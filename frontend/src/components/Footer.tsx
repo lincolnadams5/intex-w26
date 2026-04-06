@@ -1,0 +1,65 @@
+function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <h4 className="mb-1">{title}</h4>
+      {links.map(({ label, href }) => (
+        <a key={label} href={href} className="text-[var(--text)] text-sm hover:text-[var(--accent)] no-underline transition-colors">
+          {label}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+export function Footer() {
+  return (
+    <footer className="bg-[var(--bg-alt)] border-t border-[var(--border)] mt-auto">
+      <div className="grid grid-cols-1 md:grid-cols-[1.5fr_2fr] gap-10 md:gap-[60px] py-10 px-6 md:py-[60px] md:px-8 max-w-[1200px] mx-auto">
+        <div>
+          <div className="mb-4">
+            <span className="text-[22px] font-bold text-[var(--text-h)] tracking-tight">
+              Pag-asa Sanctuary
+            </span>
+          </div>
+          <p className="text-[var(--text)] text-sm leading-relaxed max-w-[300px]">
+            Pag-asa means "hope" in Tagalog. We restore hope and rebuild lives for survivors of abuse and trafficking.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+          <FooterColumn
+            title="Organization"
+            links={[
+              { label: 'Our Mission', href: '#mission' },
+              { label: 'Impact', href: '#impact' },
+              { label: 'About Us', href: '#' },
+              { label: 'Our Team', href: '#' },
+            ]}
+          />
+          <FooterColumn
+            title="Get Involved"
+            links={[
+              { label: 'Donate', href: '#' },
+              { label: 'Volunteer', href: '#' },
+              { label: 'Partner', href: '#' },
+              { label: 'Careers', href: '#' },
+            ]}
+          />
+          <FooterColumn
+            title="Resources"
+            links={[
+              { label: 'Annual Reports', href: '#' },
+              { label: 'News', href: '#' },
+              { label: 'FAQ', href: '#' },
+              { label: 'Privacy Policy', href: '/privacy' },
+            ]}
+          />
+        </div>
+      </div>
+      <div className="border-t border-[var(--border)] py-6 px-8 text-center">
+        <p className="text-[13px] text-[var(--text)]">
+          © 2026 Pag-asa Sanctuary. All rights reserved. A 501(c)(3) nonprofit organization.
+        </p>
+      </div>
+    </footer>
+  )
+}
