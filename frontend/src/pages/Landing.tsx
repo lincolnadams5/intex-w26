@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { getSafehouses } from '../lib/api'
-import './Landing.css'
+import { Header } from '../components/Header'
+import { Footer } from '../components/Footer'
+import { StatCard } from '../components/StatCard'
+import { SectionHeader } from '../components/SectionHeader'
+import { PillarCard } from '../components/PillarCard'
+import { ServiceCard } from '../components/ServiceCard'
+import { ImpactCard } from '../components/ImpactCard'
 
 export function Landing() {
   const [safehouseCount, setSafehouseCount] = useState<number | null>(null)
@@ -10,203 +16,119 @@ export function Landing() {
       .then((data: unknown[]) => setSafehouseCount(data.length))
       .catch(() => setSafehouseCount(null))
   }, [])
+
   return (
     <>
-      <header className="landing-header">
-        <nav className="landing-nav">
-          <div className="logo">
-            <span className="logo-text">Pag-asa Sanctuary</span>
-          </div>
-          <div className="nav-links">
-            <a href="#mission">Mission</a>
-            <a href="#services">Services</a>
-            <a href="#impact">Impact</a>
-            <a href="#contact">Contact</a>
-          </div>
-          <div className="nav-actions">
-            <button className="btn btn-secondary">Sign In</button>
-            <button className="btn btn-primary">Donate</button>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       <main>
-        <section className="hero-section">
-          <div className="hero-content">
-            <h1>Pag-asa: Hope.<br />Rebuilding Lives.</h1>
-            <p className="hero-subtitle">
-              Pag-asa Sanctuary provides safe homes and comprehensive rehabilitation 
-              services for survivors of sexual abuse and trafficking, helping them 
+        {/* Hero */}
+        <section className="py-12 px-6 lg:py-20 lg:px-8 max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-[60px] items-center text-center lg:text-left">
+          <div>
+            <h1 className="mb-6">Pag-asa: Hope.<br />Rebuilding Lives.</h1>
+            <p className="text-lg leading-[1.7] text-[var(--text)] mb-8">
+              Pag-asa Sanctuary provides safe homes and comprehensive rehabilitation
+              services for survivors of sexual abuse and trafficking, helping them
               heal and build brighter futures.
             </p>
-            <div className="hero-actions">
+            <div className="flex gap-4 justify-center lg:justify-start flex-col sm:flex-row">
               <button className="btn btn-primary btn-large">Get Involved</button>
               <button className="btn btn-outline btn-large">Learn More</button>
             </div>
           </div>
-          <div className="hero-stats">
-            <div className="stat-card">
-              <span className="stat-number">150+</span>
-              <span className="stat-label">Lives Transformed</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">{safehouseCount ?? '…'}</span>
-              <span className="stat-label">Safe Homes</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">98%</span>
-              <span className="stat-label">Successful Rehabilitation</span>
-            </div>
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-3 gap-4 sm:gap-6 max-w-[500px] lg:max-w-none mx-auto lg:mx-0">
+            <StatCard number="150+" label="Lives Transformed" />
+            <StatCard number={safehouseCount ?? '…'} label="Safe Homes" />
+            <StatCard number="98%" label="Successful Rehabilitation" />
           </div>
         </section>
 
-        <section id="mission" className="mission-section">
-          <div className="section-header">
-            <h2>Our Mission</h2>
-            <p>
-              We partner with local organizations to create safe environments where 
-              survivors can heal, grow, and thrive. Through comprehensive care and 
-              data-driven approaches, we're building a model that can be replicated 
-              across underserved regions worldwide.
-            </p>
-          </div>
-          <div className="mission-pillars">
-            <div className="pillar-card">
-              <h3>Protection</h3>
-              <p>Safe homes staffed by trained professionals providing 24/7 care and security.</p>
-            </div>
-            <div className="pillar-card">
-              <h3>Healing</h3>
-              <p>Trauma-informed counseling and therapy to support emotional recovery.</p>
-            </div>
-            <div className="pillar-card">
-              <h3>Education</h3>
-              <p>Academic support and vocational training for long-term independence.</p>
-            </div>
-            <div className="pillar-card">
-              <h3>Reintegration</h3>
-              <p>Careful transition support to help survivors rebuild their lives.</p>
-            </div>
+        {/* Mission */}
+        <section id="mission" className="py-12 px-6 lg:py-20 lg:px-8 bg-[var(--bg-alt)]">
+          <SectionHeader
+            title="Our Mission"
+            subtitle="We partner with local organizations to create safe environments where survivors can heal, grow, and thrive. Through comprehensive care and data-driven approaches, we're building a model that can be replicated across underserved regions worldwide."
+          />
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1200px] mx-auto">
+            <PillarCard title="Protection" description="Safe homes staffed by trained professionals providing 24/7 care and security." />
+            <PillarCard title="Healing" description="Trauma-informed counseling and therapy to support emotional recovery." />
+            <PillarCard title="Education" description="Academic support and vocational training for long-term independence." />
+            <PillarCard title="Reintegration" description="Careful transition support to help survivors rebuild their lives." />
           </div>
         </section>
 
-        <section id="services" className="services-section">
-          <div className="section-header">
-            <h2>Operations Portal</h2>
-            <p>
-              Authorized staff and partners can access our comprehensive case management 
-              and reporting tools to coordinate care effectively.
-            </p>
-          </div>
-          <div className="services-grid">
-            <a href="/cases" className="service-card">
-              <h3>Case Management</h3>
-              <p>Track and manage caseload inventory, monitor progress, and coordinate care plans.</p>
-              <span className="service-link">Access Cases →</span>
-            </a>
-            <a href="/sessions" className="service-card">
-              <h3>Session Notes</h3>
-              <p>Document counseling sessions with structured process recording formats.</p>
-              <span className="service-link">View Sessions →</span>
-            </a>
-            <a href="/visits" className="service-card">
-              <h3>Home Visits</h3>
-              <p>Record and review home visitation reports and follow-up assessments.</p>
-              <span className="service-link">Manage Visits →</span>
-            </a>
-            <a href="/reports" className="service-card">
-              <h3>Reports & Analytics</h3>
-              <p>Generate annual accomplishment reports and analyze program outcomes.</p>
-              <span className="service-link">View Reports →</span>
-            </a>
-            <a href="/homes" className="service-card">
-              <h3>Safe Homes</h3>
-              <p>Manage safe home facilities, capacity, and partner organizations.</p>
-              <span className="service-link">Manage Homes →</span>
-            </a>
-            <a href="/donors" className="service-card">
-              <h3>Donor Relations</h3>
-              <p>Track donations, manage donor communications, and acknowledge support.</p>
-              <span className="service-link">View Donors →</span>
-            </a>
+        {/* Services */}
+        <section id="services" className="py-12 px-6 lg:py-20 lg:px-8 max-w-[1200px] mx-auto">
+          <SectionHeader
+            title="Operations Portal"
+            subtitle="Authorized staff and partners can access our comprehensive case management and reporting tools to coordinate care effectively."
+          />
+          <div className="grid grid-cols-1 min-[600px]:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ServiceCard href="/cases" title="Case Management" description="Track and manage caseload inventory, monitor progress, and coordinate care plans." linkText="Access Cases →" />
+            <ServiceCard href="/sessions" title="Session Notes" description="Document counseling sessions with structured process recording formats." linkText="View Sessions →" />
+            <ServiceCard href="/visits" title="Home Visits" description="Record and review home visitation reports and follow-up assessments." linkText="Manage Visits →" />
+            <ServiceCard href="/reports" title="Reports & Analytics" description="Generate annual accomplishment reports and analyze program outcomes." linkText="View Reports →" />
+            <ServiceCard href="/homes" title="Safe Homes" description="Manage safe home facilities, capacity, and partner organizations." linkText="Manage Homes →" />
+            <ServiceCard href="/donors" title="Donor Relations" description="Track donations, manage donor communications, and acknowledge support." linkText="View Donors →" />
           </div>
         </section>
 
-        <section id="impact" className="impact-section">
-          <div className="section-header">
-            <h2>Our Impact</h2>
-            <p>
-              Every number represents a life changed. Through careful documentation 
-              and data analysis, we continuously improve our programs to maximize impact.
-            </p>
-          </div>
-          <div className="impact-grid">
-            <div className="impact-card">
-              <div className="impact-metric">
-                <span className="impact-number">2,400+</span>
-                <span className="impact-label">Counseling Sessions</span>
-              </div>
-              <p>Individual and group therapy sessions conducted annually</p>
-            </div>
-            <div className="impact-card">
-              <div className="impact-metric">
-                <span className="impact-number">85%</span>
-                <span className="impact-label">Educational Advancement</span>
-              </div>
-              <p>Survivors advancing in education or vocational training</p>
-            </div>
-            <div className="impact-card">
-              <div className="impact-metric">
-                <span className="impact-number">500+</span>
-                <span className="impact-label">Home Visits</span>
-              </div>
-              <p>Follow-up visits ensuring continued well-being</p>
-            </div>
-            <div className="impact-card">
-              <div className="impact-metric">
-                <span className="impact-number">4</span>
-                <span className="impact-label">Partner Regions</span>
-              </div>
-              <p>Expanding our reach to underserved communities</p>
-            </div>
+        {/* Impact */}
+        <section id="impact" className="py-12 px-6 lg:py-20 lg:px-8 bg-[var(--bg-alt)]">
+          <SectionHeader
+            title="Our Impact"
+            subtitle="Every number represents a life changed. Through careful documentation and data analysis, we continuously improve our programs to maximize impact."
+          />
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1200px] mx-auto">
+            <ImpactCard number="2,400+" label="Counseling Sessions" description="Individual and group therapy sessions conducted annually" />
+            <ImpactCard number="85%" label="Educational Advancement" description="Survivors advancing in education or vocational training" />
+            <ImpactCard number="500+" label="Home Visits" description="Follow-up visits ensuring continued well-being" />
+            <ImpactCard number="4" label="Partner Regions" description="Expanding our reach to underserved communities" />
           </div>
         </section>
 
-        <section className="cta-section">
-          <div className="cta-content">
-            <h2>Join Us in Making a Difference</h2>
-            <p>
-              Whether through donations, volunteering, or partnerships, your support 
+        {/* CTA */}
+        <section
+          className="py-12 px-6 lg:py-20 lg:px-8 text-center"
+          style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #0891b2 100%)' }}
+        >
+          <div className="max-w-[700px] mx-auto">
+            <h2 className="text-white mb-4">Join Us in Making a Difference</h2>
+            <p className="text-white/90 text-lg mb-8">
+              Whether through donations, volunteering, or partnerships, your support
               helps us provide safety and hope to those who need it most.
             </p>
-            <div className="cta-actions">
-              <button className="btn btn-primary btn-large">Donate Now</button>
+            <div className="flex gap-4 justify-center flex-col sm:flex-row items-center">
+              <button className="btn btn-large bg-white text-[var(--accent)] hover:bg-white/90">
+                Donate Now
+              </button>
               <button className="btn btn-outline-light btn-large">Partner With Us</button>
             </div>
           </div>
         </section>
 
-        <section id="contact" className="contact-section">
-          <div className="contact-grid">
-            <div className="contact-info">
-              <h2>Get in Touch</h2>
-              <p>
-                Have questions about our work or want to learn how you can help? 
+        {/* Contact */}
+        <section id="contact" className="py-12 px-6 lg:py-20 lg:px-8 max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-[60px] items-start">
+            <div>
+              <h2 className="mb-4">Get in Touch</h2>
+              <p className="text-[var(--text)] mb-8">
+                Have questions about our work or want to learn how you can help?
                 We'd love to hear from you.
               </p>
-              <div className="contact-details">
-                <div className="contact-item">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3 text-[var(--text-h)]">
                   <span>contact@pagasasanctuary.org</span>
                 </div>
-                <div className="contact-item">
+                <div className="flex items-center gap-3 text-[var(--text-h)]">
                   <span>+1 (555) 123-4567</span>
                 </div>
-                <div className="contact-item">
+                <div className="flex items-center gap-3 text-[var(--text-h)]">
                   <span>123 Hope Street, Anytown, USA</span>
                 </div>
               </div>
             </div>
-            <form className="contact-form">
+            <form className="bg-[var(--bg-alt)] p-8 rounded-xl border border-[var(--border)]">
               <div className="form-group">
                 <label htmlFor="name">Name</label>
                 <input type="text" id="name" placeholder="Your name" />
@@ -225,42 +147,7 @@ export function Landing() {
         </section>
       </main>
 
-      <footer className="landing-footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <div className="logo">
-              <span className="logo-text">Pag-asa Sanctuary</span>
-            </div>
-            <p>Pag-asa means "hope" in Tagalog. We restore hope and rebuild lives for survivors of abuse and trafficking.</p>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Organization</h4>
-              <a href="#mission">Our Mission</a>
-              <a href="#impact">Impact</a>
-              <a href="/about">About Us</a>
-              <a href="/team">Our Team</a>
-            </div>
-            <div className="footer-column">
-              <h4>Get Involved</h4>
-              <a href="/donate">Donate</a>
-              <a href="/volunteer">Volunteer</a>
-              <a href="/partner">Partner</a>
-              <a href="/careers">Careers</a>
-            </div>
-            <div className="footer-column">
-              <h4>Resources</h4>
-              <a href="/reports">Annual Reports</a>
-              <a href="/news">News</a>
-              <a href="/faq">FAQ</a>
-              <a href="/privacy">Privacy Policy</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>© 2026 Pag-asa Sanctuary. All rights reserved. A 501(c)(3) nonprofit organization.</p>
-        </div>
-      </footer>
+      <Footer />
     </>
   )
 }
