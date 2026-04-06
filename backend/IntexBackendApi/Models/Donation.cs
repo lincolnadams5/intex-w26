@@ -1,0 +1,24 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace IntexBackendApi.Models;
+
+[Table("donations")]
+public class Donation
+{
+    [Key]
+    public int DonationId { get; set; }
+    public int SupporterId { get; set; }
+    public string? DonationType { get; set; }
+    public DateOnly? DonationDate { get; set; }
+    public string? ChannelSource { get; set; }
+    public string? CurrencyCode { get; set; }
+    public decimal? Amount { get; set; }
+    public decimal? EstimatedValue { get; set; }
+    public string? ImpactUnit { get; set; }
+    public bool? IsRecurring { get; set; }
+    public string? CampaignName { get; set; }
+    public string? Notes { get; set; }
+    public int? CreatedByPartnerId { get; set; }
+    public int? ReferralPostId { get; set; }
+}
