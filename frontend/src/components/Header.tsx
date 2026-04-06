@@ -1,9 +1,9 @@
 export function Header() {
   return (
-    <header className="sticky top-0 z-[100] bg-[var(--bg)] border-b border-[var(--border)]">
+    <header className="sticky top-0 z-[100] bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--border)]">
       <nav className="flex items-center justify-between py-3 px-4 md:py-4 md:px-8 max-w-[1200px] mx-auto flex-wrap gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="text-[22px] font-bold text-[var(--text-h)] tracking-tight">
+          <span className="text-[22px] font-bold text-[var(--text-h)] tracking-tight font-[family-name:var(--heading)]">
             Pag-asa Sanctuary
           </span>
         </div>

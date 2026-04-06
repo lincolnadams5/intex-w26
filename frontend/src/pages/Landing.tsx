@@ -90,7 +90,7 @@ export function Landing() {
         {/* CTA */}
         <section
           className="py-12 px-6 lg:py-20 lg:px-8 text-center"
-          style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #0891b2 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #2D9F8C 0%, #1f7a69 100%)' }}
         >
           <div className="max-w-[700px] mx-auto">
             <h2 className="text-white mb-4">Join Us in Making a Difference</h2>
