@@ -12,7 +12,7 @@ export function ServiceCard({
   return (
     <a
       href={href}
-      className="group bg-[var(--bg)] border border-[var(--border)] rounded-xl p-7 no-underline transition-all duration-300 flex flex-col hover:border-[var(--accent)] hover:shadow-[var(--shadow)] hover:-translate-y-1"
+      className="group bg-[var(--bg)] border border-[var(--border)] rounded-[24px] p-7 no-underline transition-all duration-[300ms] ease-in-out flex flex-col hover:border-[var(--accent-border)] hover:shadow-[var(--shadow)] hover:-translate-y-1"
     >
       <h3 className="mb-2 text-[var(--text-h)]">{title}</h3>
       <p className="text-sm text-[var(--text)] grow">{description}</p>
