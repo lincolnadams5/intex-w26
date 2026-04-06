@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using backend.Models;
+using backend.Services;
 
 namespace backend.Controllers;
 
@@ -7,42 +8,44 @@ namespace backend.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly IAuthService _authService;
 
-    public AuthController(UserManager<IdentityUser> userManager,
-                          SignInManager<IdentityUser> signInManager)
+    public AuthController(IAuthService authService)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
-
-    public class LoginDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        _authService = authService;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] LoginDto dto)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var user = await _authService.RegisterUserAsync(request);
 
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
+        if (user == null)
+            return BadRequest("Email already registered");
 
-        return Ok("User created");
+        var token = _authService.GenerateJwtToken(user);
+
+        return Ok(new { user, token });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
+        var user = await _authService.ValidateUserAsync(request.Email, request.Password);
 
-        if (!result.Succeeded)
-            return Unauthorized("Invalid login");
+        if (user == null)
+            return Unauthorized("Invalid email or password");
 
-        return Ok("Logged in");
+        var token = _authService.GenerateJwtToken(user);
+
+        return Ok(new { user, token });
+    }
+
+    // 🔐 TEST ENDPOINT
+    [HttpGet("secure")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public IActionResult Secure()
+    {
+        return Ok("You are authenticated");
     }
 }
