@@ -1,3 +1,11 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+
 # Logs
 logs
 *.log
