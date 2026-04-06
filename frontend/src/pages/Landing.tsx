@@ -1,6 +1,15 @@
+import { useEffect, useState } from 'react'
+import { getSafehouses } from '../lib/api'
 import './Landing.css'
 
 export function Landing() {
+  const [safehouseCount, setSafehouseCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    getSafehouses()
+      .then((data: unknown[]) => setSafehouseCount(data.length))
+      .catch(() => setSafehouseCount(null))
+  }, [])
   return (
     <>
       <header className="landing-header">
@@ -41,7 +50,7 @@ export function Landing() {
               <span className="stat-label">Lives Transformed</span>
             </div>
             <div className="stat-card">
-              <span className="stat-number">12</span>
+              <span className="stat-number">{safehouseCount ?? '…'}</span>
               <span className="stat-label">Safe Homes</span>
             </div>
             <div className="stat-card">

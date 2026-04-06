@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/mspul/intex-w26/backend/IntexBackendApi/backend.csproj": {}
+    "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/backend.csproj": {}
   },
   "projects": {
-    "/Users/mspul/intex-w26/backend/IntexBackendApi/backend.csproj": {
+    "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mspul/intex-w26/backend/IntexBackendApi/backend.csproj",
+        "projectUniqueName": "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/backend.csproj",
         "projectName": "backend",
-        "projectPath": "/Users/mspul/intex-w26/backend/IntexBackendApi/backend.csproj",
-        "packagesPath": "/Users/mspul/.nuget/packages/",
-        "outputPath": "/Users/mspul/intex-w26/backend/IntexBackendApi/obj/",
+        "projectPath": "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/backend.csproj",
+        "packagesPath": "/Users/lincolnadams/.nuget/packages/",
+        "outputPath": "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/mspul/.nuget/NuGet/NuGet.Config"
+          "/Users/lincolnadams/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -44,7 +44,21 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "EFCore.NamingConventions": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.0.5, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[10.0.1, )"
             }
