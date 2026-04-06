@@ -83,19 +83,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/lincolnadams/.nuget/packages/": {}
+    "/Users/mspul/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/backend.csproj",
+      "projectUniqueName": "/Users/mspul/intex-w26/backend/IntexBackendApi/backend.csproj",
       "projectName": "backend",
-      "projectPath": "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/backend.csproj",
-      "packagesPath": "/Users/lincolnadams/.nuget/packages/",
-      "outputPath": "/Users/lincolnadams/Documents/School/intex-w26/backend/IntexBackendApi/obj/",
+      "projectPath": "/Users/mspul/intex-w26/backend/IntexBackendApi/backend.csproj",
+      "packagesPath": "/Users/mspul/.nuget/packages/",
+      "outputPath": "/Users/mspul/intex-w26/backend/IntexBackendApi/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/lincolnadams/.nuget/NuGet/NuGet.Config"
+        "/Users/mspul/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
