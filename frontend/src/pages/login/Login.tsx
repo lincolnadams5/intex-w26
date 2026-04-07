@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import './Login.css'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
@@ -22,7 +22,8 @@ export default function Login() {
 
   // Already logged in — redirect to the appropriate home for their role
   if (isAuthenticated) {
-    return <Navigate to={role === 'Admin' || role === 'Staff' ? '/admin/dashboard' : '/'} replace />
+    const dest = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : '/'
+    return <Navigate to={dest} replace />
   }
 
   // ── Step 1: Email + password ────────────────────────────────────────────────
@@ -67,7 +68,8 @@ export default function Login() {
       } else {
         localStorage.setItem('token', data.token)
         // Reload to let AuthProvider re-hydrate from localStorage
-        window.location.href = data.user?.role === 'Donor' ? '/' : '/admin/dashboard'
+        const dest = data.user?.role === 'Admin' ? '/admin/dashboard' : data.user?.role === 'Staff' ? '/staff/dashboard' : '/'
+        window.location.href = dest
       }
     } catch {
       setError('Network error. Please try again.')

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../../hooks/useAuth'
 
 // Placeholder summary data — replace with GET /api/dashboard/summary
 const summaryData = {
@@ -33,6 +34,9 @@ const recentActivity = [
 ]
 
 export function Dashboard() {
+  const { isAdmin } = useAuth()
+  const base = isAdmin ? '/admin' : '/staff'
+
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
       {/* Page title */}
@@ -45,20 +49,22 @@ export function Dashboard() {
 
       {/* Domain summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Donors card */}
-        <Link to="/admin/donors" className="card card-interactive no-underline block group">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-[var(--text-h)]">Donor Activity</span>
-            <span className="text-xl">💰</span>
-          </div>
-          <div className="text-2xl font-bold text-[var(--accent)] mb-1">{summaryData.donors.totalThisMonth}</div>
-          <div className="text-xs text-[var(--text)] mb-3">donations this month</div>
-          <div className="text-xs text-green-600 font-medium">▲ {summaryData.donors.trend.text}</div>
-          <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View donors →</div>
-        </Link>
+        {/* Donors card — Admin only */}
+        {isAdmin && (
+          <Link to={`${base}/donors`} className="card card-interactive no-underline block group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-[var(--text-h)]">Donor Activity</span>
+              <span className="text-xl">💰</span>
+            </div>
+            <div className="text-2xl font-bold text-[var(--accent)] mb-1">{summaryData.donors.totalThisMonth}</div>
+            <div className="text-xs text-[var(--text)] mb-3">donations this month</div>
+            <div className="text-xs text-green-600 font-medium">▲ {summaryData.donors.trend.text}</div>
+            <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View donors →</div>
+          </Link>
+        )}
 
         {/* Residents card */}
-        <Link to="/admin/residents" className="card card-interactive no-underline block group">
+        <Link to={`${base}/residents`} className="card card-interactive no-underline block group">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-[var(--text-h)]">Residents</span>
             <span className="text-xl">🏠</span>
@@ -71,20 +77,22 @@ export function Dashboard() {
           <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View residents →</div>
         </Link>
 
-        {/* Social media card */}
-        <Link to="/admin/social" className="card card-interactive no-underline block group">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-[var(--text-h)]">Social Media</span>
-            <span className="text-xl">📱</span>
-          </div>
-          <div className="text-2xl font-bold text-[var(--text-h)] mb-1">{summaryData.social.engagementRate}</div>
-          <div className="text-xs text-[var(--text)] mb-3">avg engagement rate this month</div>
-          <div className="text-xs text-green-600 font-medium">▲ {summaryData.social.trend.text}</div>
-          <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View social →</div>
-        </Link>
+        {/* Social media card — Admin only */}
+        {isAdmin && (
+          <Link to={`${base}/social`} className="card card-interactive no-underline block group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-[var(--text-h)]">Social Media</span>
+              <span className="text-xl">📱</span>
+            </div>
+            <div className="text-2xl font-bold text-[var(--text-h)] mb-1">{summaryData.social.engagementRate}</div>
+            <div className="text-xs text-[var(--text)] mb-3">avg engagement rate this month</div>
+            <div className="text-xs text-green-600 font-medium">▲ {summaryData.social.trend.text}</div>
+            <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View social →</div>
+          </Link>
+        )}
 
         {/* ML card */}
-        <Link to="/admin/ml" className="card card-interactive no-underline block group">
+        <Link to={`${base}/ml`} className="card card-interactive no-underline block group">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-[var(--text-h)]">ML Insights</span>
             <span className="text-xl">🤖</span>

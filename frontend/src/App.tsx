@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Landing } from './pages/Landing'
 import { AdminLayout } from './pages/(admin)/AdminLayout'
+import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
 import { ResidentsPage } from './pages/(admin)/residents/ResidentsPage'
@@ -9,7 +10,7 @@ import { MLPage } from './pages/(admin)/ml/MLPage'
 import { ImpactDashboard } from './pages/ImpactDashboard'
 import Donors from './pages/Donors'
 import PrivacyPolicy from './pages/PrivacyPolicy'
-import Login from './pages/Login'
+import Login from './pages/login/Login'
 import Unauthorized from './pages/Unauthorized'
 import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -39,11 +40,11 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* ── Admin portal — requires Staff or Admin role ── */}
+        {/* ── Admin portal — requires Admin role ── */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+            <ProtectedRoute allowedRoles={['Admin']}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -53,6 +54,21 @@ function App() {
           <Route path="donors" element={<DonorsPage />} />
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="social" element={<SocialPage />} />
+          <Route path="ml" element={<MLPage />} />
+        </Route>
+
+        {/* ── Staff portal — requires Staff role ── */}
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute allowedRoles={['Staff']}>
+              <StaffLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/staff/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="residents" element={<ResidentsPage />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 

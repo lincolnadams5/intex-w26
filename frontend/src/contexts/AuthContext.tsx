@@ -40,7 +40,7 @@ export interface AuthContextType {
 
 // ── Context ──────────────────────────────────────────────────────────────────
 
-export const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextType>({
   user: null, token: null, role: null,
   isAuthenticated: false, isAdmin: false, isStaff: false, isDonor: false,
   isLoading: true,
@@ -75,19 +75,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // On mount: restore session from localStorage and validate the stored token
   useEffect(() => {
-    const stored = localStorage.getItem('token')
-    if (!stored) { setIsLoading(false); return }
-
-    fetchProfile(stored).then(profile => {
-      if (profile) {
-        setToken(stored)
-        setUser(profile)
-      } else {
-        // Token is expired or invalid — clear it
-        localStorage.removeItem('token')
+    const init = async () => {
+      const stored = localStorage.getItem('token')
+      if (stored) {
+        const profile = await fetchProfile(stored)
+        if (profile) {
+          setToken(stored)
+          setUser(profile)
+        } else {
+          // Token is expired or invalid — clear it
+          localStorage.removeItem('token')
+        }
       }
       setIsLoading(false)
-    })
+    }
+    init()
   }, [])
 
   const login = async (email: string, password: string): Promise<LoginResult> => {
@@ -168,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 // ── Hook (convenience) ────────────────────────────────────────────────────────
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextType {
   return useContext(AuthContext)
 }
