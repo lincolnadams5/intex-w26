@@ -4,24 +4,17 @@ import { useAuth } from '../../hooks/useAuth'
 
 // Nav items visible to both Admin and Staff
 const baseNavItems = [
-  { to: '/admin/dashboard', label: 'Overview',      icon: '⊞' },
-  { to: '/admin/donors',    label: 'Donor Activity', icon: '💰' },
-  { to: '/admin/residents', label: 'Residents',      icon: '🏠' },
-  { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
-  { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
+  { to: '/staff/dashboard', label: 'Overview',      icon: '⊞' },
+  { to: '/staff/residents', label: 'Residents',      icon: '🏠' },
+  { to: '/staff/ml',        label: 'ML Insights',    icon: '🤖' },
 ]
 
-// Nav item visible only to Admin
-const adminNavItems = [
-  { to: '/admin/users', label: 'Manage Users', icon: '👥' },
-]
-
-export function AdminLayout() {
+export function StaffLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
-  const { user, isAdmin, logout } = useAuth()
+  const { user, isStaff, logout } = useAuth()
 
-  const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems
+  const navItems = isStaff ? [...baseNavItems] : baseNavItems
 
   function handleLogout() {
     logout()
@@ -43,7 +36,7 @@ export function AdminLayout() {
             Pag-asa Sanctuary
           </span>
           <p className="text-xs text-[var(--text)] mt-0.5 font-[family-name:var(--sans)]">
-            {isAdmin ? 'Admin Portal' : 'Staff Portal'}
+            {isStaff ? 'Staff Portal' : 'User Portal'}
           </p>
         </div>
 
@@ -53,7 +46,7 @@ export function AdminLayout() {
             <NavLink
               key={to}
               to={to}
-              end={to === '/admin/dashboard'}
+              end={to === '/staff/dashboard'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline ${
                   isActive

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './ImpactDashboard.css'
+import { Header } from '../components/Header'
 
 interface ImpactSummary {
   totalMonetaryDonations: number
@@ -176,6 +177,9 @@ export function ImpactDashboard() {
 
   return (
     <div className="impact-dashboard">
+
+      <Header />
+
       <header className="impact-header">
         <div className="impact-header-content">
           <a href="/" className="back-link">← Back to Home</a>
