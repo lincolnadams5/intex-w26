@@ -11,6 +11,7 @@ export function Header() {
   }
 
   const portalHref = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : null
+  const isDonor = role === 'Donor'
 
   return (
     <header className="sticky top-0 z-[100] bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--border)]">
@@ -40,6 +41,11 @@ export function Header() {
               {portalHref && (
                 <Link to={portalHref} className="btn btn-secondary">
                   Portal
+                </Link>
+              )}
+              {isDonor && (
+                <Link to="/my-donations" className="btn btn-primary">
+                  My Donations
                 </Link>
               )}
               <button onClick={handleLogout} className="btn btn-secondary">
