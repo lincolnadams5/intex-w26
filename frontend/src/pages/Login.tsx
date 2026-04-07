@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./Login.css";
 
+const BASE_URL = import.meta.env.VITE_API_URL ?? "";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +36,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await fetch("https://localhost:5001/api/auth/login", {
+      const res = await fetch(`${BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -63,7 +65,7 @@ export default function Login() {
         // 🔐 OPTIONAL: test secured endpoint (great for demo)
         const token = data.token;
 
-        const testRes = await fetch("https://localhost:5001/api/auth/secure", {
+        const testRes = await fetch(`${BASE_URL}/api/auth/secure`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
