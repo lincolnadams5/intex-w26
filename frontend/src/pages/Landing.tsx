@@ -13,6 +13,7 @@ export function Landing() {
   const [safehouseCount, setSafehouseCount] = useState<number | null>(null)
 
   useEffect(() => {
+    // setSafehouseCount(4); for testing cookies
     getSafehouses()
       .then((data: unknown[]) => setSafehouseCount(data.length))
       .catch(() => setSafehouseCount(null))

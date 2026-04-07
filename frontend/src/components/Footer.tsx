@@ -1,11 +1,17 @@
+import { Link } from "react-router-dom";
+
 function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div className="flex flex-col gap-3">
       <h4 className="mb-1">{title}</h4>
       {links.map(({ label, href }) => (
-        <a key={label} href={href} className="text-[var(--text)] text-sm hover:text-[var(--accent)] no-underline transition-colors">
-          {label}
-        </a>
+        <Link
+        key={label}
+        to={href}
+        className="text-[var(--text)] text-sm hover:text-[var(--accent)] no-underline transition-colors"
+      >
+        {label}
+      </Link>
       ))}
     </div>
   )
@@ -50,7 +56,7 @@ export function Footer() {
               { label: 'Annual Reports', href: '#' },
               { label: 'News', href: '#' },
               { label: 'FAQ', href: '#' },
-              { label: 'Privacy Policy', href: '/privacy' },
+              { label: 'Privacy Policy', href: '/privacypolicy' },
             ]}
           />
         </div>
