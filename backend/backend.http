@@ -1,6 +1,37 @@
 @backend_HostAddress = http://localhost:5011
 
-GET {{backend_HostAddress}}/weatherforecast/
+### Get all safehouses
+GET {{backend_HostAddress}}/api/safehouses
+Accept: application/json
+
+###
+
+### Public impact summary
+GET {{backend_HostAddress}}/api/publicimpact/summary
+Accept: application/json
+
+###
+
+### Donations by type
+GET {{backend_HostAddress}}/api/publicimpact/donations-by-type
+Accept: application/json
+
+###
+
+### Login
+POST {{backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+###
+
+### Secure endpoint (requires Bearer token)
+GET {{backend_HostAddress}}/api/auth/secure
+Authorization: Bearer <token>
 Accept: application/json
 
 ###
