@@ -10,10 +10,15 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("dfba6f62-99c0-4db0-a504-5e14092b256b")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< HEAD:backend/obj/Debug/net10.0/backend.AssemblyInfo.cs
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+83542ffae2a58d73f03b02756ba53d2ee15e2c9a")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a8034b38714ff09260af67e66fbd614c6869ebc")]
+>>>>>>> 2e368da55c6566b68c617ef0df59fe372083627e:backend/IntexBackendApi/obj/Debug/net10.0/backend.AssemblyInfo.cs
 [assembly: System.Reflection.AssemblyProductAttribute("backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

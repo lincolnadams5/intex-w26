@@ -44,6 +44,7 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+<<<<<<< HEAD:backend/obj/backend.csproj.nuget.dgspec.json
             "BCrypt.Net-Next": {
               "target": "Package",
               "version": "[4.1.0, )"
@@ -55,6 +56,11 @@
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
               "version": "[10.0.5, )"
+=======
+            "EFCore.NamingConventions": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+>>>>>>> 2e368da55c6566b68c617ef0df59fe372083627e:backend/IntexBackendApi/obj/backend.csproj.nuget.dgspec.json
             },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
@@ -66,6 +72,7 @@
               "target": "Package",
               "version": "[10.0.5, )"
             },
+<<<<<<< HEAD:backend/obj/backend.csproj.nuget.dgspec.json
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[10.0.5, )"
@@ -83,6 +90,11 @@
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[8.17.0, )"
+=======
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+>>>>>>> 2e368da55c6566b68c617ef0df59fe372083627e:backend/IntexBackendApi/obj/backend.csproj.nuget.dgspec.json
             }
           },
           "imports": [

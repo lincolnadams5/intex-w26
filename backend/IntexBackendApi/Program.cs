@@ -1,19 +1,23 @@
+using IntexBackendApi.Data;
+using IntexBackendApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using backend.Data;
-using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Services
+// ✅ Controllers + OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// ✅ Database
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=intex.db"));
+// ✅ Database (PostgreSQL from config)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString)
+           .UseSnakeCaseNamingConvention());
 
 // 🔐 JWT CONFIG
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -43,19 +47,20 @@ builder.Services.AddAuthorization();
 // ✅ Register Auth Service
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// ✅ CORS
+// ✅ CORS (local + deployed frontend)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "https://intex-w26.vercel.app"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-// ✅ Build
 var app = builder.Build();
 
 // ✅ Middleware
@@ -67,7 +72,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
-app.UseAuthentication();
+app.UseAuthentication();   // 🔥 REQUIRED
 app.UseAuthorization();
 
 app.MapControllers();

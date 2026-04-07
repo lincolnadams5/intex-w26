@@ -1,4 +1,4 @@
-using backend.Models;
+using IntexBackendApi.Models;
 
 namespace backend.Services
 {

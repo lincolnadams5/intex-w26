@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using backend.Models;
-using backend.Services;
+using IntexBackendApi.Models;
+using IntexBackendApi.Services;
 
 namespace backend.Controllers;
 
