@@ -1,5 +1,3 @@
-import React from "react";
-
 type DonationRecord = {
   supporter_id: number;
   display_name: string;
