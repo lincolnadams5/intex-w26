@@ -16,6 +16,7 @@ import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
 import { useEffect } from 'react'
+import ProcessRecording from './pages/ProcessRecording'
 
 function App() {
   useEffect(() => {
@@ -35,7 +36,7 @@ function App() {
         {/* ── Public routes — no auth required ── */}
         <Route path="/" element={<Landing />} />
         <Route path="/impact" element={<ImpactDashboard />} />
-        <Route path="/donor" element={<Donors />} />
+        <Route path="/donor" element={<Donors />} /> 
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
@@ -55,6 +56,7 @@ function App() {
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
+          <Route path="process-recording" element={<ProcessRecording />} />
         </Route>
 
         {/* ── Staff portal — requires Staff role ── */}
