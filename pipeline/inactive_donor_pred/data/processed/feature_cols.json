@@ -1,0 +1,42 @@
+{
+  "feature_cols": [
+    "supporter_type",
+    "relationship_type",
+    "region",
+    "country",
+    "acquisition_channel",
+    "supporter_tenure_days",
+    "total_donations",
+    "total_estimated_value",
+    "mean_estimated_value",
+    "has_recurring",
+    "n_campaigns",
+    "n_channels",
+    "monetary_donations",
+    "time_donations",
+    "inkind_donations",
+    "donor_tenure_days",
+    "avg_days_between_donations"
+  ],
+  "numeric_cols": [
+    "supporter_tenure_days",
+    "total_donations",
+    "total_estimated_value",
+    "mean_estimated_value",
+    "has_recurring",
+    "n_campaigns",
+    "n_channels",
+    "monetary_donations",
+    "time_donations",
+    "inkind_donations",
+    "donor_tenure_days",
+    "avg_days_between_donations"
+  ],
+  "categorical_cols": [
+    "supporter_type",
+    "relationship_type",
+    "region",
+    "country",
+    "acquisition_channel"
+  ]
+}
