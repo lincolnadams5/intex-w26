@@ -1,22 +1,35 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 
-const navItems = [
-  { to: '/admin/dashboard', label: 'Overview', icon: '⊞' },
-  { to: '/admin/donors', label: 'Donor Activity', icon: '💰' },
-  { to: '/admin/residents', label: 'Residents', icon: '🏠' },
-  { to: '/admin/social', label: 'Social Media', icon: '📱' },
-  { to: '/admin/ml', label: 'ML Insights', icon: '🤖' },
+// Nav items visible to both Admin and Staff
+const baseNavItems = [
+  { to: '/admin/dashboard', label: 'Overview',      icon: '⊞' },
+  { to: '/admin/donors',    label: 'Donor Activity', icon: '💰' },
+  { to: '/admin/residents', label: 'Residents',      icon: '🏠' },
+  { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
+  { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
+]
+
+// Nav item visible only to Admin
+const adminNavItems = [
+  { to: '/admin/users', label: 'Manage Users', icon: '👥' },
 ]
 
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
+  const { user, isAdmin, logout } = useAuth()
+
+  const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems
 
   function handleLogout() {
-    // Placeholder: will call auth logout endpoint
+    logout()
     navigate('/')
   }
+
+  // First letter of the user's name for the avatar bubble
+  const initial = user?.fullName?.charAt(0).toUpperCase() ?? 'U'
 
   return (
     <div className="flex min-h-svh bg-[var(--bg-alt)]">
@@ -29,7 +42,9 @@ export function AdminLayout() {
           <span className="text-[18px] font-bold text-[var(--text-h)] tracking-tight leading-tight font-[family-name:var(--heading)]">
             Pag-asa Sanctuary
           </span>
-          <p className="text-xs text-[var(--text)] mt-0.5 font-[family-name:var(--sans)]">Admin Portal</p>
+          <p className="text-xs text-[var(--text)] mt-0.5 font-[family-name:var(--sans)]">
+            {isAdmin ? 'Admin Portal' : 'Staff Portal'}
+          </p>
         </div>
 
         {/* Nav */}
@@ -70,7 +85,7 @@ export function AdminLayout() {
         {/* Top bar */}
         <header className="bg-[var(--bg)] border-b border-[var(--border)] px-6 py-3 flex items-center justify-between flex-shrink-0">
           <button
-            onClick={() => setSidebarOpen((o) => !o)}
+            onClick={() => setSidebarOpen(o => !o)}
             className="p-2 rounded-lg text-[var(--text)] hover:bg-[var(--bg-alt)] transition-colors"
             aria-label="Toggle sidebar"
           >
@@ -79,11 +94,10 @@ export function AdminLayout() {
 
           <div className="flex items-center gap-3">
             <span className="text-sm text-[var(--text)] hidden sm:block">
-              {/* Placeholder: replace with real user name from auth context */}
-              admin@pagasasanctuary.org
+              {user?.email ?? ''}
             </span>
             <div className="w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              A
+              {initial}
             </div>
           </div>
         </header>
