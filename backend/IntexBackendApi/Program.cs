@@ -57,7 +57,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "https://intex-w26.vercel.app",
                 "https://intex-w26.lincolnadams.com",
-                "https://*.la-personal.vercel.app"
+                "https://*la-personal.vercel.app"
               )
               .SetIsOriginAllowedToAllowWildcardSubdomains()
               .AllowAnyHeader()
