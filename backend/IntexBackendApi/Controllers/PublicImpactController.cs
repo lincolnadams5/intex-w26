@@ -215,7 +215,7 @@ public class PublicImpactController : ControllerBase
 
 public class ImpactSummaryDto
 {
-    public decimal TotalMonetaryDonations { get; set; }
+    public double TotalMonetaryDonations { get; set; }
     public int TotalDonationCount { get; set; }
     public int TotalSupporters { get; set; }
     public int ActiveSupporters { get; set; }
@@ -230,7 +230,7 @@ public class DonationsByTypeDto
 {
     public string DonationType { get; set; } = "";
     public int Count { get; set; }
-    public decimal TotalValue { get; set; }
+    public double TotalValue { get; set; }
 }
 
 public class DonationsByMonthDto
@@ -238,13 +238,13 @@ public class DonationsByMonthDto
     public int Year { get; set; }
     public int Month { get; set; }
     public int Count { get; set; }
-    public decimal TotalAmount { get; set; }
+    public double TotalAmount { get; set; }
 }
 
 public class AllocationsByProgramDto
 {
     public string ProgramArea { get; set; } = "";
-    public decimal TotalAllocated { get; set; }
+    public double TotalAllocated { get; set; }
     public int AllocationCount { get; set; }
 }
 
@@ -265,7 +265,7 @@ public class InKindByCategoryDto
 {
     public string Category { get; set; } = "";
     public int TotalItems { get; set; }
-    public decimal EstimatedValue { get; set; }
+    public double EstimatedValue { get; set; }
 }
 
 public class PartnersByRoleDto
@@ -279,6 +279,6 @@ public class CampaignPerformanceDto
 {
     public string CampaignName { get; set; } = "";
     public int DonationCount { get; set; }
-    public decimal TotalRaised { get; set; }
+    public double TotalRaised { get; set; }
     public int UniqueDonors { get; set; }
 }

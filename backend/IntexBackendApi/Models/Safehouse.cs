@@ -14,7 +14,7 @@ public class Safehouse
     public string? City { get; set; }
     public string? Province { get; set; }
     public string? Country { get; set; }
-    public DateOnly? OpenDate { get; set; }
+    public DateTime? OpenDate { get; set; }
     public string? Status { get; set; }
     public int? CapacityGirls { get; set; }
     public int? CapacityStaff { get; set; }
