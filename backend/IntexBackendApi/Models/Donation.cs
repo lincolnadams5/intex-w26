@@ -13,8 +13,8 @@ public class Donation
     public DateOnly? DonationDate { get; set; }
     public string? ChannelSource { get; set; }
     public string? CurrencyCode { get; set; }
-    public decimal? Amount { get; set; }
-    public decimal? EstimatedValue { get; set; }
+    public double? Amount { get; set; }
+    public double? EstimatedValue { get; set; }
     public string? ImpactUnit { get; set; }
     public bool? IsRecurring { get; set; }
     public string? CampaignName { get; set; }

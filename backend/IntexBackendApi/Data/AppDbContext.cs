@@ -24,9 +24,5 @@ public class AppDbContext : DbContext
     public DbSet<SocialMediaPost> SocialMediaPosts => Set<SocialMediaPost>();
     public DbSet<SafehouseMonthlyMetric> SafehouseMonthlyMetrics => Set<SafehouseMonthlyMetric>();
     public DbSet<PublicImpactSnapshot> PublicImpactSnapshots => Set<PublicImpactSnapshot>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-    }
+    public DbSet<User> Users => Set<User>();
 }

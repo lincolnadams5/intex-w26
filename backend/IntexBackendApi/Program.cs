@@ -1,11 +1,17 @@
 using IntexBackendApi.Data;
+using IntexBackendApi.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database — connection string from User Secrets (dev) or environment variable (prod)
-// Local setup: dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=..."
-// Render: set env var ConnectionStrings__DefaultConnection
+// ✅ Controllers + OpenAPI
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+
+// ✅ Database (PostgreSQL from config)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -13,9 +19,35 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+// 🔐 JWT CONFIG
+var jwtKey = builder.Configuration["Jwt:Key"];
+var key = Encoding.UTF8.GetBytes(jwtKey);
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
+
+builder.Services.AddAuthorization();
+
+// ✅ Register Auth Service
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// ✅ CORS (local + deployed frontend)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -31,6 +63,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// ✅ Middleware
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -38,7 +71,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();   // 🔥 REQUIRED
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
