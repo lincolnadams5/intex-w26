@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getSafehouses } from '../lib/api'
 import { Header } from '../components/Header'
 import { Footer } from '../components/Footer'
@@ -84,6 +85,9 @@ export function Landing() {
             <ImpactCard number="85%" label="Educational Advancement" description="Survivors advancing in education or vocational training" />
             <ImpactCard number="500+" label="Home Visits" description="Follow-up visits ensuring continued well-being" />
             <ImpactCard number="4" label="Partner Regions" description="Expanding our reach to underserved communities" />
+          </div>
+          <div className="text-center mt-10">
+            <Link to="/impact" className="btn btn-outline">View Full Impact Dashboard →</Link>
           </div>
         </section>
 

@@ -13,7 +13,7 @@ public class InKindDonationItem
     public string? ItemCategory { get; set; }
     public int? Quantity { get; set; }
     public string? UnitOfMeasure { get; set; }
-    public decimal? EstimatedUnitValue { get; set; }
+    public double? EstimatedUnitValue { get; set; }
     public string? IntendedUse { get; set; }
     public string? ReceivedCondition { get; set; }
 }
