@@ -12,6 +12,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import CookieBanner from "./components/CookieBanner"
 import { getCookie } from "./utils/cookies"
 import { useEffect } from 'react'
+import ProcessRecording from './pages/ProcessRecording'
 
 function App() {
   useEffect(() => {
@@ -34,7 +35,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/impact" element={<ImpactDashboard />} />
-        <Route path="/donor" element={<Donors />} />
+        <Route path="/donor" element={<Donors />} /> 
         <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* Admin portal — auth guard goes here once auth is wired */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -44,6 +45,7 @@ function App() {
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
+          <Route path="process-recording" element={<ProcessRecording />} />
         </Route>
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
