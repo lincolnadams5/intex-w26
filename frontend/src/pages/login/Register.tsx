@@ -3,10 +3,8 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import './Login.css'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? ''
-
 export default function Register() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, register } = useAuth()
   const navigate = useNavigate()
 
   const [fullName, setFullName] = useState('')
@@ -16,17 +14,15 @@ export default function Register() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<string[]>([])
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/my-donations" replace />
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
-    setFieldErrors([])
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -40,38 +36,15 @@ export default function Register() {
       return
     }
 
-    try {
-      const res = await fetch(`${BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          fullName,
-          password,
-          confirmPassword,
-        }),
-      })
+    const result = await register(email, fullName, password, confirmPassword)
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        if (res.status === 409) {
-          setError('This email is already registered')
-        } else if (data.errors && Array.isArray(data.errors)) {
-          setFieldErrors(data.errors)
-        } else {
-          setError(data.message ?? 'Registration failed')
-        }
-        return
-      }
-
-      localStorage.setItem('token', data.token)
-      window.location.href = '/my-donations'
-    } catch {
-      setError('Network error. Please try again.')
-    } finally {
+    if (!result.ok) {
+      setError(result.error ?? 'Registration failed')
       setIsLoading(false)
+      return
     }
+
+    navigate('/my-donations')
   }
 
   return (
@@ -126,13 +99,6 @@ export default function Register() {
           </div>
 
           {error && <div className="error-message">{error}</div>}
-          {fieldErrors.length > 0 && (
-            <div className="error-message">
-              {fieldErrors.map((err, i) => (
-                <div key={i}>{err}</div>
-              ))}
-            </div>
-          )}
 
           <button
             type="submit"
