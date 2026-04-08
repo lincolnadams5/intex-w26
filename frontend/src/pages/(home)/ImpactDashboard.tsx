@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Header } from '../components/Header'
 
 interface ImpactSummary {
   totalMonetaryDonations: number
@@ -177,17 +176,12 @@ export function ImpactDashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
-      <Header />
-
       {/* Hero Header */}
       <header className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <Link to="/" className="inline-block text-white/70 hover:text-white text-sm mb-6 transition-colors">
-            ← Back to Home
-          </Link>
           <h1 className="text-white mb-4">Our Impact</h1>
           <p className="text-white/80 text-lg max-w-2xl mx-auto leading-relaxed">
-            Transparency matters. See how your support is making a difference in the lives 
+            Transparency matters. See how your support is making a difference in the lives
             of survivors across the regions we serve.
           </p>
         </div>
@@ -325,7 +319,7 @@ export function ImpactDashboard() {
               return (
                 <div key={`${item.year}-${item.month}`} className="flex-1 flex flex-col items-center gap-2">
                   <div className="w-full h-40 flex items-end">
-                    <div 
+                    <div
                       className="w-full bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-primary-container)] rounded-t transition-all hover:opacity-80"
                       style={{ height: `${heightPercent}%` }}
                       title={`${formatCurrency(item.totalAmount)} (${item.count} donations)`}
@@ -372,7 +366,7 @@ export function ImpactDashboard() {
         <section className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white rounded-xl p-10 text-center">
           <h2 className="text-white mb-3">Join Our Mission</h2>
           <p className="text-white/80 max-w-xl mx-auto mb-8">
-            Every contribution, big or small, helps us provide safety, healing, and hope 
+            Every contribution, big or small, helps us provide safety, healing, and hope
             to survivors of abuse and trafficking.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
@@ -381,11 +375,6 @@ export function ImpactDashboard() {
           </div>
         </section>
       </main>
-
-      <footer className="text-center py-8 text-[var(--color-on-surface-variant)] text-sm">
-        <p className="mb-1">Data updated in real-time. All figures represent aggregated, anonymized information.</p>
-        <p>© 2026 Pag-asa Sanctuary. A 501(c)(3) nonprofit organization.</p>
-      </footer>
     </div>
   )
 }

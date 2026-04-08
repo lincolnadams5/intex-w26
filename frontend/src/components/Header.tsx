@@ -46,7 +46,7 @@ export function Header() {
               to="/login"
               className="px-6 py-2.5 text-sm font-semibold rounded bg-[#004c5a] !text-white hover:shadow-[0_12px_40px_rgba(0,76,90,0.15)] transition-all"
             >
-              LOGIN
+              LOG IN / DONATE
             </Link>
           )}
         </div>
