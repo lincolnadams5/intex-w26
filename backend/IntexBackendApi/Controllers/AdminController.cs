@@ -424,8 +424,6 @@ public class AdminController : ControllerBase
     [HttpGet("residents/summary")]
     public async Task<IActionResult> GetResidentsSummary()
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
-
         var activeResidents = await _db.Residents
             .CountAsync(r => r.CaseStatus == "Active");
 
@@ -436,16 +434,173 @@ public class AdminController : ControllerBase
         var reintegrationInProgress = await _db.Residents
             .CountAsync(r => r.ReintegrationStatus == "In Progress");
 
-        var upcomingConferences = await _db.InterventionPlans
-            .CountAsync(ip => ip.CaseConferenceDate >= today);
+        var unresolvedHighIncidents = await _db.IncidentReports
+            .CountAsync(i => i.Severity == "High" && i.Resolved == false);
 
         return Ok(new
         {
             activeResidents,
             highCriticalRisk,
             reintegrationInProgress,
-            upcomingConferences,
+            unresolvedHighIncidents,
         });
+    }
+
+    // GET /api/admin/residents/list
+    // Full resident table with optional filters + readiness score (graceful if table missing).
+    [HttpGet("residents/list")]
+    public async Task<IActionResult> GetResidentsList(
+        [FromQuery] string? status = "Active",
+        [FromQuery] int? safehouseId = null,
+        [FromQuery] string? riskLevel = null,
+        [FromQuery] string? reintegrationType = null,
+        [FromQuery] string? reintegrationStatus = null,
+        [FromQuery] string? search = null)
+    {
+        // Step 1 — fetch matching residents joined with their safehouse name
+        var rows = await _db.Residents
+            .Where(r => (status == null || r.CaseStatus == status)
+                     && (!safehouseId.HasValue || r.SafehouseId == safehouseId)
+                     && (riskLevel == null || r.CurrentRiskLevel == riskLevel)
+                     && (reintegrationType == null || r.ReintegrationType == reintegrationType)
+                     && (reintegrationStatus == null || r.ReintegrationStatus == reintegrationStatus)
+                     && (search == null || (r.InternalCode != null && r.InternalCode.Contains(search)))
+                     && r.SafehouseId.HasValue)
+            .Join(_db.Safehouses,
+                r => r.SafehouseId!.Value,
+                s => s.SafehouseId,
+                (r, s) => new
+                {
+                    r.ResidentId,
+                    internalCode         = r.InternalCode ?? "Unknown",
+                    safehouseName        = s.Name ?? "Unknown",
+                    caseStatus           = r.CaseStatus ?? "—",
+                    r.CurrentRiskLevel,
+                    r.ReintegrationType,
+                    r.ReintegrationStatus,
+                    r.AssignedSocialWorker,
+                    r.LengthOfStay,
+                })
+            .OrderBy(r => r.internalCode)
+            .ToListAsync();
+
+        // Step 2 — try to fetch readiness scores; degrade gracefully if table absent
+        Dictionary<int, ResidentReintegrationScore> scoreMap = new();
+        try
+        {
+            var ids    = rows.Select(r => r.ResidentId).ToList();
+            var scores = await _db.ResidentReintegrationScores
+                .Where(sc => ids.Contains(sc.ResidentId))
+                .ToListAsync();
+            scoreMap = scores.ToDictionary(sc => sc.ResidentId);
+        }
+        catch { /* resident_reintegration_scores table not yet created — scores will be null */ }
+
+        // Step 3 — merge and return
+        var result = rows.Select(r =>
+        {
+            scoreMap.TryGetValue(r.ResidentId, out var sc);
+            return new
+            {
+                residentId           = r.ResidentId,
+                internalCode         = r.internalCode,
+                safehouseName        = r.safehouseName,
+                caseStatus           = r.caseStatus,
+                currentRiskLevel     = r.CurrentRiskLevel,
+                reintegrationType    = r.ReintegrationType,
+                reintegrationStatus  = r.ReintegrationStatus,
+                assignedSocialWorker = r.AssignedSocialWorker,
+                lengthOfStay         = r.LengthOfStay,
+                readinessBand        = sc?.ReadinessBand,
+                readinessFlag        = sc?.ReadinessBand == "Ready for Review"
+                                       && r.ReintegrationStatus == "In Progress",
+            };
+        });
+
+        return Ok(result);
+    }
+
+    // GET /api/admin/residents/alerts
+    // Three alert types: risk escalations, unresolved High incidents, no recent recording.
+    [HttpGet("residents/alerts")]
+    public async Task<IActionResult> GetResidentAlerts()
+    {
+        // 1. Risk escalations (current risk > initial risk for active residents)
+        var allActive = await _db.Residents
+            .Where(r => r.CaseStatus == "Active" &&
+                        r.InitialRiskLevel != null &&
+                        r.CurrentRiskLevel != null &&
+                        r.SafehouseId.HasValue)
+            .Join(_db.Safehouses,
+                r => r.SafehouseId!.Value,
+                s => s.SafehouseId,
+                (r, s) => new
+                {
+                    internalCode     = r.InternalCode ?? "Unknown",
+                    safehouseName    = s.Name ?? "Unknown",
+                    initialRiskLevel = r.InitialRiskLevel!,
+                    currentRiskLevel = r.CurrentRiskLevel!,
+                    lengthOfStay     = r.LengthOfStay ?? "—",
+                })
+            .ToListAsync();
+
+        var riskEscalations = allActive
+            .Where(r =>
+                RiskOrdinal.TryGetValue(r.currentRiskLevel, out int curr) &&
+                RiskOrdinal.TryGetValue(r.initialRiskLevel, out int init) &&
+                curr > init)
+            .OrderByDescending(r =>
+                RiskOrdinal.TryGetValue(r.currentRiskLevel, out int curr) ? curr : 0)
+            .ToList();
+
+        // 2. Unresolved High incidents
+        var unresolvedHighIncidents = await _db.IncidentReports
+            .Where(i => i.Severity == "High" && i.Resolved == false)
+            .Join(_db.Residents,
+                i => i.ResidentId,
+                r => r.ResidentId,
+                (i, r) => new { i, residentCode = r.InternalCode ?? "Unknown" })
+            .Join(_db.Safehouses,
+                x => x.i.SafehouseId,
+                s => s.SafehouseId,
+                (x, s) => new
+                {
+                    x.i.IncidentId,
+                    residentCode  = x.residentCode,
+                    safehouseName = s.Name ?? "Unknown",
+                    incidentDate  = x.i.IncidentDate,
+                    incidentType  = x.i.IncidentType ?? "—",
+                })
+            .OrderByDescending(x => x.incidentDate)
+            .Take(20)
+            .ToListAsync();
+
+        // 3. Active residents with no process recording in the last 30 days
+        var cutoff = DateTime.UtcNow.AddDays(-30);
+
+        var recentlyRecordedIds = await _db.ProcessRecordings
+            .Where(p => p.SessionDate >= cutoff)
+            .Select(p => p.ResidentId)
+            .Distinct()
+            .ToListAsync();
+
+        var noRecentRecording = await _db.Residents
+            .Where(r => r.CaseStatus == "Active" &&
+                        r.SafehouseId.HasValue &&
+                        !recentlyRecordedIds.Contains(r.ResidentId))
+            .Join(_db.Safehouses,
+                r => r.SafehouseId!.Value,
+                s => s.SafehouseId,
+                (r, s) => new
+                {
+                    residentId    = r.ResidentId,
+                    internalCode  = r.InternalCode ?? "Unknown",
+                    safehouseName = s.Name ?? "Unknown",
+                })
+            .OrderBy(x => x.internalCode)
+            .ToListAsync();
+
+        return Ok(new { riskEscalations, unresolvedHighIncidents, noRecentRecording });
     }
 
     // GET /api/admin/safehouses/overview

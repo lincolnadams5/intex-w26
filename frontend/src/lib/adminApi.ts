@@ -131,7 +131,49 @@ export interface ResidentsSummary {
   activeResidents: number
   highCriticalRisk: number
   reintegrationInProgress: number
-  upcomingConferences: number
+  unresolvedHighIncidents: number
+}
+
+export interface ResidentRow {
+  residentId: number
+  internalCode: string
+  safehouseName: string
+  caseStatus: string
+  currentRiskLevel: string | null
+  reintegrationType: string | null
+  reintegrationStatus: string | null
+  assignedSocialWorker: string | null
+  lengthOfStay: string | null
+  readinessBand: string | null
+  readinessFlag: boolean
+}
+
+export interface ResidentAlertsEscalation {
+  internalCode: string
+  safehouseName: string
+  initialRiskLevel: string
+  currentRiskLevel: string
+  lengthOfStay: string
+}
+
+export interface ResidentAlertsIncident {
+  incidentId: number
+  residentCode: string
+  safehouseName: string
+  incidentDate: string | null
+  incidentType: string
+}
+
+export interface ResidentAlertsNoRecording {
+  residentId: number
+  internalCode: string
+  safehouseName: string
+}
+
+export interface ResidentAlerts {
+  riskEscalations: ResidentAlertsEscalation[]
+  unresolvedHighIncidents: ResidentAlertsIncident[]
+  noRecentRecording: ResidentAlertsNoRecording[]
 }
 
 export interface SafehouseOverviewRow {
@@ -201,6 +243,29 @@ export const getRecentRecordings = () =>
 
 export const getRecentIncidents = () =>
   get<RecentIncident[]>('/api/admin/incidents/recent')
+
+export interface ResidentListParams {
+  status?: string
+  safehouseId?: number
+  riskLevel?: string
+  reintegrationType?: string
+  reintegrationStatus?: string
+  search?: string
+}
+
+export const getResidentsList = (params: ResidentListParams = {}) => {
+  const qs = new URLSearchParams()
+  if (params.status)              qs.set('status', params.status)
+  if (params.safehouseId)         qs.set('safehouseId', String(params.safehouseId))
+  if (params.riskLevel)           qs.set('riskLevel', params.riskLevel)
+  if (params.reintegrationType)   qs.set('reintegrationType', params.reintegrationType)
+  if (params.reintegrationStatus) qs.set('reintegrationStatus', params.reintegrationStatus)
+  if (params.search)              qs.set('search', params.search)
+  return get<ResidentRow[]>(`/api/admin/residents/list?${qs.toString()}`)
+}
+
+export const getResidentAlerts = () =>
+  get<ResidentAlerts>('/api/admin/residents/alerts')
 
 
 // ── Social Media Analytics ────────────────────────────────────────────────────

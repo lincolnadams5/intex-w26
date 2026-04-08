@@ -28,6 +28,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     // --- ML predictions ---
     public DbSet<DonorRiskScore> DonorRiskScores => Set<DonorRiskScore>();
+    public DbSet<ResidentReintegrationScore> ResidentReintegrationScores => Set<ResidentReintegrationScore>();
 
     // --- Outreach domain ---
     public DbSet<SocialMediaPost> SocialMediaPosts => Set<SocialMediaPost>();
