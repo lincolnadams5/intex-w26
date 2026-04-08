@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace IntexBackendApi.Controllers;
 
@@ -19,17 +21,20 @@ public class AuthController : ControllerBase
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration config,
-        IEmailService emailService)
+        IEmailService emailService,
+        IHttpClientFactory httpClientFactory)
     {
-        _userManager   = userManager;
-        _signInManager = signInManager;
-        _config        = config;
-        _emailService  = emailService;
+        _userManager        = userManager;
+        _signInManager      = signInManager;
+        _config             = config;
+        _emailService       = emailService;
+        _httpClientFactory  = httpClientFactory;
     }
 
     // POST /api/auth/register
@@ -219,6 +224,71 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Reset failed.", errors = result.Errors.Select(e => e.Description) });
 
         return Ok(new { message = "Password has been reset successfully." });
+    }
+
+    // POST /api/auth/google-signin
+    // Verifies a Google ID token, then finds or creates the user and returns a JWT.
+    // The ID token is produced by @react-oauth/google on the frontend.
+    [HttpPost("google-signin")]
+    public async Task<IActionResult> GoogleSignIn([FromBody] GoogleCredentialDto dto)
+    {
+        var googleClientId = _config["Google:ClientId"]
+            ?? throw new InvalidOperationException("Google:ClientId not configured.");
+
+        // Verify the ID token by calling Google's tokeninfo endpoint
+        var http = _httpClientFactory.CreateClient();
+        var tokenInfoUrl = $"https://oauth2.googleapis.com/tokeninfo?id_token={dto.Credential}";
+        var response = await http.GetAsync(tokenInfoUrl);
+
+        if (!response.IsSuccessStatusCode)
+            return Unauthorized(new { message = "Invalid Google credential" });
+
+        var payload = await response.Content.ReadFromJsonAsync<GoogleTokenPayload>();
+
+        if (payload is null)
+            return Unauthorized(new { message = "Could not parse Google token" });
+
+        // Verify that this token was issued for OUR app (prevents token substitution attacks)
+        if (payload.Aud != googleClientId)
+            return Unauthorized(new { message = "Token audience mismatch" });
+
+        if (!string.Equals(payload.EmailVerified, "true", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized(new { message = "Google account email is not verified" });
+
+        // Find existing user or create a new one
+        var user = await _userManager.FindByEmailAsync(payload.Email);
+
+        if (user is null)
+        {
+            user = new ApplicationUser
+            {
+                UserName       = payload.Email,
+                Email          = payload.Email,
+                FullName       = !string.IsNullOrWhiteSpace(payload.Name) ? payload.Name : payload.Email,
+                EmailConfirmed = true,   // Google has already verified the email
+                IsActive       = true,
+                CreatedAt      = DateTime.UtcNow,
+            };
+
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                var errors = createResult.Errors.Select(e => e.Description);
+                return BadRequest(new { message = "Account creation failed", errors });
+            }
+
+            await _userManager.AddToRoleAsync(user, "Donor");
+            await _emailService.SendWelcomeEmailAsync(user.Email!, user.FullName);
+        }
+
+        if (!user.IsActive)
+            return Unauthorized(new { message = "This account has been deactivated" });
+
+        // Google authentication bypasses 2FA — the user has already authenticated with Google
+        var token   = await GenerateJwtTokenAsync(user);
+        var profile = await BuildProfileDtoAsync(user);
+
+        return Ok(new AuthResponseDto { Token = token, User = profile });
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

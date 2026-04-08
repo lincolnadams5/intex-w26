@@ -22,22 +22,29 @@ import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
 import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+import { trackPageView } from './utils/analytics'
 import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
 import HomeVisits from './pages/(admin)/visits/HomeVisits'
 
-function App() {
+function AnalyticsTracker() {
+  const location = useLocation()
+
   useEffect(() => {
     const consent = getCookie('cookie_consent')
     if (consent === 'accepted') {
-      console.log('Tracking ENABLED')
       document.cookie = 'analytics=true; path=/'
-    } else {
-      console.log('Tracking BLOCKED')
     }
-  }, [])
+    trackPageView(location.pathname)
+  }, [location.pathname])
 
+  return null
+}
+
+function App() {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <CookieBanner />
       <Routes>
         {/* ── Public routes — no auth required ── */}

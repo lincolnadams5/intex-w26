@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ✅ Controllers + OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 // ✅ Database (PostgreSQL)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -134,11 +135,12 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self'; " +
-        "style-src 'self' 'unsafe-inline'; " +   // unsafe-inline needed if Swagger UI is used
+        "script-src 'self' https://accounts.google.com; " +                                          // Google Identity Services
+        "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data: https:; " +
         "font-src 'self'; " +
-        "connect-src 'self' https://intex-backend.onrender.com; " +
+        "connect-src 'self' https://intex-backend.onrender.com https://oauth2.googleapis.com; " +    // Google tokeninfo
+        "frame-src https://accounts.google.com; " +                                                  // Google OAuth popup
         "frame-ancestors 'none'; " +
         "form-action 'self';"
     );

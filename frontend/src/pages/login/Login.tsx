@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -65,6 +66,45 @@ export default function Login() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError('Google sign-in failed. Please try again.')
+      return
+    }
+
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/auth/google-signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data?.message ?? 'Google sign-in failed')
+      } else {
+        localStorage.setItem('token', data.token)
+        const r = data.user?.role
+        const dest =
+          r === 'Admin' ? '/admin/dashboard' :
+          r === 'Staff' ? '/staff/dashboard' :
+          r === 'Donor' ? '/my-donations' : '/'
+        window.location.href = dest
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleError = () => {
+    setError('Google sign-in was cancelled or failed.')
   }
 
   if (requires2FA) {
@@ -156,6 +196,24 @@ export default function Login() {
               Register
             </Link>
           </p>
+
+          {/* ── Google OAuth ── */}
+          <div className="flex items-center gap-3 my-1">
+            <hr className="flex-1 border-[var(--border)]" />
+            <span className="text-xs text-[var(--on-surface-variant)]">or</span>
+            <hr className="flex-1 border-[var(--border)]" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              useOneTap={false}
+              text="signin_with"
+              shape="rectangular"
+              theme="outline"
+            />
+          </div>
         </form>
       </div>
     </div>
