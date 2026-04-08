@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 interface HeaderProps {
@@ -27,24 +27,26 @@ export function Header({ transparent = false }: HeaderProps) {
 
         {/* Center Nav */}
         <div className="hidden md:flex items-center gap-10">
-          <Link 
-            to="/" 
-            className="text-sm font-medium text-[#1a1c1a] hover:text-[#004c5a] transition-colors underline underline-offset-4"
-          >
-            Home
-          </Link>
-          <Link 
-            to="/impact" 
-            className="text-sm font-medium text-[#3f484b] hover:text-[#004c5a] transition-colors"
-          >
-            Impact
-          </Link>
-          <Link 
-            to="/donate" 
-            className="text-sm font-medium text-[#3f484b] hover:text-[#004c5a] transition-colors"
-          >
-            Donate
-          </Link>
+          {[
+            { to: '/', label: 'Home', end: true },
+            { to: '/impact', label: 'Impact', end: false },
+            { to: '/donate', label: 'Donate', end: false },
+          ].map(({ to, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-[#1a1c1a] underline underline-offset-4 decoration-[#004c5a]'
+                    : 'text-[#3f484b] hover:text-[#004c5a]'
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </div>
 
         {/* Right Actions */}

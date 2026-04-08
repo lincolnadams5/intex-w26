@@ -97,7 +97,7 @@ export function UsersPage() {
   }
 
   if (loading) return <LoadingState />
-  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+  if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
 
   // ── Summary counts ───────────────────────────────────────────────────────────
   const activeCount = users.filter(u => u.isActive).length
@@ -142,10 +142,10 @@ export function UsersPage() {
                 <tr key={user.id}>
 
                   {/* Email */}
-                  <td className="font-medium text-[var(--text-h)] text-sm">{user.email}</td>
+                  <td className="font-medium text-[var(--color-on-surface)] text-sm">{user.email}</td>
 
                   {/* Full name */}
-                  <td className="text-[var(--text)] text-sm">{user.fullName || '—'}</td>
+                  <td className="text-[var(--color-on-surface-variant)] text-sm">{user.fullName || '—'}</td>
 
                   {/* Role — inline selector */}
                   <td>
@@ -154,7 +154,7 @@ export function UsersPage() {
                         value={user.role}
                         disabled={saving === user.id}
                         onChange={e => handleRoleChange(user, e.target.value)}
-                        className="text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 bg-[var(--bg)] text-[var(--text-h)] disabled:opacity-50 hover:cursor-pointer"
+                        className="text-xs border border-[var(--color-outline-variant)] rounded-lg px-2 py-1.5 bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] disabled:opacity-50 hover:cursor-pointer"
                       >
                         {ROLES.map(r => <option key={r}>{r}</option>)}
                       </select>
@@ -164,7 +164,7 @@ export function UsersPage() {
                   </td>
 
                   {/* Linked entity */}
-                  <td className="text-[var(--text)] text-xs">
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">
                     {user.safehouseId
                       ? `Safehouse #${user.safehouseId}`
                       : user.supporterId
@@ -173,7 +173,7 @@ export function UsersPage() {
                   </td>
 
                   {/* Joined date */}
-                  <td className="text-[var(--text)] text-xs">
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">
                     {new Date(user.createdAt).toLocaleDateString('en-PH', {
                       month: 'short', day: 'numeric', year: 'numeric',
                     })}
@@ -193,7 +193,7 @@ export function UsersPage() {
                       <button
                         disabled={saving === user.id}
                         onClick={() => handleDeactivate(user)}
-                        className="text-xs text-[var(--alert)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                        className="text-xs text-[var(--color-error)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
                       >
                         {saving === user.id ? 'Saving…' : 'Deactivate'}
                       </button>
