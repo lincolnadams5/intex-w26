@@ -2,46 +2,65 @@
 
 /* ============================================
    Global Styles & Design Tokens
-   Design system: "The Serene Guardian"
+   Design system: "The Anchored Horizon"
    See intex-resources/ai-context/design.md
    ============================================ */
 
 :root {
-  /* ── Brand: Muted Teal (primary actions) ── */
-  --accent: #2D9F8C;
-  --accent-light: #3db5a3;
-  --accent-dark: #1f7a69;
-  --accent-bg: rgba(45, 159, 140, 0.10);
-  --accent-border: rgba(45, 159, 140, 0.30);
+  /* ── Primary: Deep Teal (Ocean-Deep) ── */
+  --primary: #004c5a;
+  --primary-container: #006677;
+  --primary-fixed: #007a8f;
+  --on-primary: #ffffff;
+  --on-primary-container: #e0f4f7;
 
-  /* ── Brand: Soft Lavender/Rose (warm alert, avoid harsh red) ── */
-  --alert: #DB7981;
-  --alert-bg: rgba(219, 121, 129, 0.10);
-  --alert-border: rgba(219, 121, 129, 0.30);
+  /* ── Secondary: Warm Gold (Beacon/Highlighter) ── */
+  --secondary: #c9a227;
+  --secondary-container: #f5e6b3;
+  --on-secondary: #1a1c1a;
+  --on-secondary-container: #4a3f1a;
 
-  /* ── Neutral Palette ── */
-  --text: #78726A;           /* Warm mid-tone body text */
-  --text-h: #1E293B;         /* Deep Charcoal headings */
-  --bg: #FEF9F3;             /* Warm Cream — all page backgrounds */
-  --bg-alt: #F8F3EB;         /* Soft Sand — section separators, card backgrounds */
-  --border: #E8E0D0;         /* Warm-toned border */
-  --card-bg: rgba(248, 243, 235, 0.90);
-  --code-bg: #F0EAE0;
+  /* ── Surface Hierarchy (Stacked Paper Layers) ── */
+  --surface: #faf9f6;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f4f3ef;
+  --surface-container: #eeeee9;
+  --surface-container-high: #e8e7e3;
+  --surface-container-highest: #e2e1dc;
 
-  /* ── Elevation ── */
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08);
+  /* ── On-Surface Typography ── */
+  --on-surface: #1a1c1a;
+  --on-surface-variant: #3f484b;
+  --outline: #6f797c;
+  --outline-variant: #bec8cb;
+
+  /* ── Alert (Soft, Non-Harsh) ── */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+
+  /* ── Elevation: Sky Shadows (Teal-Tinted) ── */
+  --shadow-ambient: 0 12px 40px rgba(0, 76, 90, 0.06);
+  --shadow-elevated: 0 8px 32px rgba(0, 76, 90, 0.10);
+  --shadow-floating: 0 16px 48px rgba(0, 76, 90, 0.12);
 
   /* ── Typography ── */
-  --sans: 'Inter', system-ui, 'Segoe UI', sans-serif;
-  --heading: 'Quicksand', system-ui, 'Segoe UI', sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --font-display: 'Noto Serif', Georgia, serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
 
-  font: 16px/1.6 var(--sans);
+  /* ── Radii ── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* ── Base Setup ── */
+  font: 16px/1.6 var(--font-body);
   letter-spacing: 0.01em;
   color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--on-surface-variant);
+  background: var(--surface);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -67,241 +86,227 @@ body {
   flex-direction: column;
 }
 
+/* ── Typography: Editorial Authority ── */
 h1, h2, h3, h4 {
-  font-family: var(--heading);
+  font-family: var(--font-display);
   font-weight: 700;
-  color: var(--text-h);
+  color: var(--on-surface);
   margin: 0;
   line-height: 1.2;
 }
 
-/* H1: 32–48px — Hero/Welcome */
 h1 {
-  font-size: clamp(32px, 5vw, 48px);
+  font-size: clamp(36px, 5vw, 56px);
   letter-spacing: -0.5px;
 }
 
-/* H2: 24–32px — Section headers */
 h2 {
-  font-size: clamp(24px, 3.5vw, 32px);
+  font-size: clamp(28px, 4vw, 40px);
   letter-spacing: -0.3px;
 }
 
-/* H3: 18–20px */
 h3 {
-  font-size: clamp(18px, 2vw, 20px);
+  font-size: clamp(20px, 2.5vw, 24px);
 }
 
-/* H4: 15–16px */
 h4 {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
 }
 
 p {
   margin: 0;
-  line-height: 1.65;
-}
-
-/* Body: 14–16px per design spec */
-body, p, span, div {
-  font-size: 15px;
+  line-height: 1.7;
+  font-size: 16px;
 }
 
 a {
-  color: var(--accent);
+  color: var(--primary);
   text-decoration: none;
-  transition: color 300ms ease-in-out;
+  transition: color 200ms ease;
+}
 
-  &:hover {
-    color: var(--accent-light);
-  }
+a:hover {
+  color: var(--primary-container);
 }
 
 code {
-  font-family: var(--mono);
-  font-size: 13px;
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: var(--code-bg);
-  color: var(--text-h);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-container-high);
+  color: var(--on-surface);
 }
 
 /* ============================================
-   Buttons — Pill-shaped (fully rounded)
+   Buttons — Architectural with Ambient Shadows
    ============================================ */
 
 .btn {
-  font-family: var(--sans);
+  font-family: var(--font-body);
   font-size: 15px;
-  font-weight: 500;
-  padding: 10px 22px;
-  border-radius: 9999px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  transition: all 300ms ease-in-out;
+  transition: all 200ms ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
 
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  color: var(--on-primary);
+}
 
-  &:hover:not(:disabled) {
-    background: var(--accent-light);
-    box-shadow: var(--shadow);
-    transform: scale(1.02);
-  }
+.btn-primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-elevated);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: var(--card-bg);
-  color: var(--text-h);
-  border: 1px solid var(--border);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
 
-  &:hover:not(:disabled) {
-    background: var(--bg-alt);
-    border-color: var(--accent);
-  }
+.btn-secondary:hover:not(:disabled) {
+  box-shadow: var(--shadow-ambient);
 }
 
 .btn-outline {
   background: transparent;
-  border: 2px solid var(--accent);
-  color: var(--accent);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
 
-  &:hover:not(:disabled) {
-    background: var(--accent-bg);
-  }
+.btn-outline:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .btn-outline-light {
   background: transparent;
-  border: 2px solid white;
+  border: 2px solid rgba(255, 255, 255, 0.7);
   color: white;
+}
 
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.15);
-  }
+.btn-outline-light:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: white;
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--text);
+  color: var(--on-surface-variant);
+}
 
-  &:hover:not(:disabled) {
-    background: var(--bg-alt);
-    color: var(--text-h);
-  }
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
 }
 
 .btn-small {
-  padding: 6px 14px;
+  padding: 8px 16px;
   font-size: 13px;
 }
 
 .btn-large {
-  padding: 14px 30px;
-  font-size: 16px;
+  padding: 16px 32px;
+  font-size: 17px;
 }
 
 /* ============================================
-   Cards & Containers — 24px radius, soft shadow
+   Cards — Tonal Layering, No Borders
    ============================================ */
 
 .card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 24px;
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-lg);
   padding: 24px;
-  transition: all 300ms ease-in-out;
-}
-
-.card-interactive {
-  &:hover {
-    border-color: var(--accent-border);
-    box-shadow: var(--shadow);
-    transform: translateY(-3px);
-  }
+  transition: all 200ms ease;
 }
 
 .card-elevated {
-  box-shadow: var(--shadow);
-  border: none;
+  box-shadow: var(--shadow-ambient);
+}
+
+.card-interactive:hover {
+  box-shadow: var(--shadow-elevated);
+  transform: translateY(-2px);
+}
+
+.card-tonal {
+  background: var(--surface-container-low);
 }
 
 /* ============================================
-   Form Elements
+   Form Elements — No Borders, Tonal Backgrounds
    ============================================ */
 
 .form-group {
   margin-bottom: 20px;
+}
 
-  label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-h);
-    margin-bottom: 8px;
-  }
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 8px;
+}
 
-  input,
-  textarea,
-  select {
-    width: 100%;
-    padding: 11px 16px;
-    font-family: var(--sans);
-    font-size: 15px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg);
-    color: var(--text-h);
-    transition: border-color 300ms ease-in-out, box-shadow 300ms ease-in-out;
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  border: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
 
-    &::placeholder {
-      color: var(--text);
-      opacity: 0.7;
-    }
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--outline);
+}
 
-    &:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-bg);
-    }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  background: var(--surface-container-highest);
+  box-shadow: 0 2px 0 0 var(--primary);
+}
 
-    &:disabled {
-      background: var(--bg-alt);
-      cursor: not-allowed;
-    }
-  }
+.form-group input:disabled,
+.form-group textarea:disabled {
+  background: var(--surface-container);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
-  textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-
-  select {
-    cursor: pointer;
-  }
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+  border-radius: var(--radius-md);
 }
 
 .form-error {
-  color: var(--alert);
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-.form-hint {
-  color: var(--text);
+  color: var(--error);
   font-size: 13px;
   margin-top: 6px;
 }
@@ -314,135 +319,47 @@ code {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 32px;
+}
 
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
+  .container {
     padding: 0 20px;
   }
 }
 
 .section {
   padding: 80px 32px;
+}
 
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
+  .section {
     padding: 48px 20px;
   }
 }
 
-.section-alt {
-  background: var(--bg-alt);
+.section-tonal {
+  background: var(--surface-container-low);
 }
-
-.section-header {
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto 48px;
-
-  h2 {
-    margin-bottom: 16px;
-  }
-
-  p {
-    color: var(--text);
-  }
-}
-
-/* Grid Layouts */
-.grid {
-  display: grid;
-  gap: 24px;
-}
-
-.grid-2 {
-  grid-template-columns: repeat(2, 1fr);
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.grid-3 {
-  grid-template-columns: repeat(3, 1fr);
-
-  @media (max-width: 968px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.grid-4 {
-  grid-template-columns: repeat(4, 1fr);
-
-  @media (max-width: 968px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Flex Utilities */
-.flex {
-  display: flex;
-}
-
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.gap-sm { gap: 8px; }
-.gap-md { gap: 16px; }
-.gap-lg { gap: 24px; }
-.gap-xl { gap: 32px; }
 
 /* ============================================
-   Navigation Components
+   The Horizon Line (Signature Element)
    ============================================ */
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.horizon-line {
+  width: 20%;
+  height: 2px;
+  background: var(--secondary);
+  margin-bottom: 16px;
 }
 
-.logo-text {
-  font-family: var(--heading);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-h);
-  letter-spacing: -0.5px;
-}
+/* ============================================
+   Navigation — Glassmorphism
+   ============================================ */
 
-.nav-links {
-  display: flex;
-  gap: 32px;
-
-  a {
-    color: var(--text);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 500;
-    transition: color 300ms ease-in-out;
-
-    &:hover {
-      color: var(--accent);
-    }
-  }
-
-  @media (max-width: 768px) {
-    display: none;
-  }
+.nav-glass {
+  background: rgba(250, 249, 246, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* ============================================
@@ -450,199 +367,110 @@ code {
    ============================================ */
 
 .stat-card {
-  background: var(--card-bg);
-  border-radius: 24px;
+  background: var(--surface-container-low);
+  border-radius: var(--radius-lg);
   padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   text-align: center;
-  border: 1px solid var(--border);
 }
 
 .stat-number {
-  font-family: var(--heading);
-  font-size: 36px;
+  font-family: var(--font-display);
+  font-size: 40px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--primary);
 }
 
 .stat-label {
   font-size: 14px;
-  color: var(--text);
+  color: var(--on-surface-variant);
 }
 
 /* ============================================
-   Footer Components
-   ============================================ */
-
-.footer {
-  background: var(--bg-alt);
-  border-top: 1px solid var(--border);
-  margin-top: auto;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: 1.5fr 2fr;
-  gap: 60px;
-  padding: 60px 32px;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    padding: 40px 24px;
-    gap: 40px;
-  }
-}
-
-.footer-brand {
-  .logo {
-    margin-bottom: 16px;
-  }
-
-  p {
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.6;
-    max-width: 300px;
-  }
-}
-
-.footer-links {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.footer-column {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  h4 {
-    margin-bottom: 4px;
-  }
-
-  a {
-    color: var(--text);
-    font-size: 14px;
-
-    &:hover {
-      color: var(--accent);
-    }
-  }
-}
-
-.footer-bottom {
-  border-top: 1px solid var(--border);
-  padding: 24px 32px;
-  text-align: center;
-
-  p {
-    font-size: 13px;
-    color: var(--text);
-  }
-}
-
-/* ============================================
-   Icon Styling
-   ============================================ */
-
-.icon-box {
-  font-size: 32px;
-  line-height: 1;
-}
-
-.icon-box-lg {
-  font-size: 40px;
-}
-
-/* ============================================
-   Badge & Tag Components
-   ============================================ */
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 9999px;
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
-.badge-success {
-  background: rgba(34, 197, 94, 0.10);
-  color: #16a34a;
-}
-
-.badge-warning {
-  background: rgba(234, 179, 8, 0.12);
-  color: #a16207;
-}
-
-/* Uses --alert (Soft Lavender) instead of harsh red */
-.badge-error {
-  background: var(--alert-bg);
-  color: var(--alert);
-}
-
-/* ============================================
-   Table Styles
+   Tables — No Dividers, Tonal Separation
    ============================================ */
 
 .table-container {
   overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-lowest);
+  box-shadow: var(--shadow-ambient);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 th, td {
-  padding: 12px 16px;
+  padding: 16px 20px;
   text-align: left;
-  border-bottom: 1px solid var(--border);
 }
 
 th {
-  background: var(--bg-alt);
+  background: var(--surface-container-low);
   font-weight: 600;
-  color: var(--text-h);
-  font-family: var(--heading);
-  font-size: 13px;
-  letter-spacing: 0.02em;
+  color: var(--on-surface);
+  font-family: var(--font-display);
+  font-size: 14px;
 }
 
-tr:last-child td {
-  border-bottom: none;
+tr:nth-child(even) td {
+  background: var(--surface-container-low);
 }
 
 tr:hover td {
-  background: var(--bg-alt);
+  background: var(--surface-container);
 }
 
 /* ============================================
-   Loading & Empty States
+   Badges
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+}
+
+.badge-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.badge-secondary {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-error {
+  background: var(--error-container);
+  color: var(--error);
+}
+
+/* ============================================
+   Loading States
    ============================================ */
 
 .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
+  border: 3px solid var(--surface-container-high);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -651,18 +479,11 @@ tr:hover td {
   to { transform: rotate(360deg); }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--text);
+/* ============================================
+   Footer
+   ============================================ */
 
-  .icon-box {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.4;
-  }
-
-  h3 {
-    margin-bottom: 8px;
-  }
+.footer {
+  background: var(--surface-container-low);
+  margin-top: auto;
 }

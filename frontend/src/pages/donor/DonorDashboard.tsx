@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import './DonorDashboard.css'
 
 const mockDonations = [
   { id: 1, date: '2026-03-15', type: 'Monetary', amount: 5000, currency: 'PHP', campaign: 'Year-End Hope', status: 'Completed' },
@@ -37,64 +36,66 @@ export default function DonorDashboard() {
   const { user } = useAuth()
 
   return (
-    <div className="donor-dashboard">
-      <header className="donor-header">
-        <div className="donor-header-content">
+    <div className="min-h-screen bg-[var(--surface)]">
+      {/* Header */}
+      <header className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary-container)] text-white py-10 px-6">
+        <div className="max-w-[1200px] mx-auto flex justify-between items-center flex-wrap gap-4">
           <div>
-            <h1>Welcome back, {user?.fullName?.split(' ')[0] || 'Donor'}</h1>
-            <p>Thank you for your continued support of Pag-asa Sanctuary</p>
+            <h1 className="text-white mb-1">Welcome back, {user?.fullName?.split(' ')[0] || 'Donor'}</h1>
+            <p className="text-white/80 text-lg">Thank you for your continued support of Pag-asa Sanctuary</p>
           </div>
-          <Link to="/" className="back-link">Back to Home</Link>
+          <Link to="/" className="btn btn-outline-light">Back to Home</Link>
         </div>
       </header>
 
-      <main className="donor-main">
+      <main className="max-w-[1200px] mx-auto px-6 py-10 flex flex-col gap-10">
         {/* Summary Cards */}
-        <section className="metrics-section">
-          <div className="metrics-grid">
-            <div className="metric-card primary">
-              <span className="metric-value">{formatCurrency(mockMetrics.totalMonetary)}</span>
-              <span className="metric-label">Total Monetary Donations</span>
+        <section>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary-container)] text-white rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold font-[family-name:var(--font-display)]">{formatCurrency(mockMetrics.totalMonetary)}</span>
+              <span className="text-white/80 text-sm">Total Monetary Donations</span>
             </div>
-            <div className="metric-card">
-              <span className="metric-value">{mockMetrics.totalDonations}</span>
-              <span className="metric-label">Total Donations</span>
+            <div className="bg-[var(--surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold text-[var(--primary)] font-[family-name:var(--font-display)]">{mockMetrics.totalDonations}</span>
+              <span className="text-[var(--on-surface-variant)] text-sm">Total Donations</span>
             </div>
-            <div className="metric-card">
-              <span className="metric-value">{mockMetrics.inKindItems}</span>
-              <span className="metric-label">In-Kind Items Donated</span>
+            <div className="bg-[var(--surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold text-[var(--primary)] font-[family-name:var(--font-display)]">{mockMetrics.inKindItems}</span>
+              <span className="text-[var(--on-surface-variant)] text-sm">In-Kind Items Donated</span>
             </div>
-            <div className="metric-card">
-              <span className="metric-value">{mockMetrics.yearsSupporting}</span>
-              <span className="metric-label">Years Supporting</span>
+            <div className="bg-[var(--surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold text-[var(--primary)] font-[family-name:var(--font-display)]">{mockMetrics.yearsSupporting}</span>
+              <span className="text-[var(--on-surface-variant)] text-sm">Years Supporting</span>
             </div>
           </div>
         </section>
 
         {/* Impact Section */}
-        <section className="impact-section">
-          <div className="section-header">
-            <h2>Your Impact</h2>
-            <p>See how your generosity has made a difference</p>
+        <section>
+          <div className="mb-6">
+            <div className="horizon-line"></div>
+            <h3 className="mb-1">Your Impact</h3>
+            <p className="text-[var(--on-surface-variant)]">See how your generosity has made a difference</p>
           </div>
-          <div className="impact-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {mockImpact.map((item, idx) => (
-              <div key={idx} className="impact-card">
-                <span className="impact-metric">{item.metric}</span>
-                <span className="impact-description">{item.description}</span>
+              <div key={idx} className="bg-[var(--surface-container-lowest)] rounded-xl p-5 border-l-[3px] border-[var(--secondary)] shadow-[var(--shadow-ambient)]">
+                <span className="block text-xl font-bold text-[var(--secondary)] mb-1">{item.metric}</span>
+                <span className="text-sm text-[var(--on-surface-variant)] leading-relaxed">{item.description}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* Donation History */}
-        <section className="history-section">
-          <div className="section-header">
-            <h2>Donation History</h2>
-            <Link to="/donate" className="donate-button">Make a Donation</Link>
+        <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
+          <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
+            <h3>Donation History</h3>
+            <Link to="/donate" className="btn btn-primary">Make a Donation</Link>
           </div>
           <div className="table-container">
-            <table className="donations-table">
+            <table>
               <thead>
                 <tr>
                   <th>Date</th>
@@ -109,7 +110,7 @@ export default function DonorDashboard() {
                   <tr key={donation.id}>
                     <td>{formatDate(donation.date)}</td>
                     <td>
-                      <span className={`type-badge ${donation.type.toLowerCase().replace('-', '')}`}>
+                      <span className={`badge ${donation.type === 'Monetary' ? 'badge-primary' : 'badge-secondary'}`}>
                         {donation.type}
                       </span>
                     </td>
@@ -120,7 +121,7 @@ export default function DonorDashboard() {
                         : donation.items}
                     </td>
                     <td>
-                      <span className={`status-badge ${donation.status.toLowerCase()}`}>
+                      <span className="badge badge-success">
                         {donation.status}
                       </span>
                     </td>
@@ -132,19 +133,19 @@ export default function DonorDashboard() {
         </section>
 
         {/* CTA Section */}
-        <section className="cta-section">
-          <div className="cta-content">
-            <h2>Continue Making a Difference</h2>
-            <p>Your support helps provide safety, healing, and hope to survivors. Every contribution matters.</p>
-            <div className="cta-buttons">
-              <Link to="/donate" className="donate-button large">Donate Now</Link>
-              <Link to="/impact" className="secondary-button">View Organization Impact</Link>
-            </div>
+        <section className="bg-[var(--surface-container-low)] rounded-xl p-10 text-center">
+          <h2 className="mb-3">Continue Making a Difference</h2>
+          <p className="text-[var(--on-surface-variant)] max-w-lg mx-auto mb-8">
+            Your support helps provide safety, healing, and hope to survivors. Every contribution matters.
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link to="/donate" className="btn btn-primary btn-large">Donate Now</Link>
+            <Link to="/impact" className="btn btn-outline">View Organization Impact</Link>
           </div>
         </section>
       </main>
 
-      <footer className="donor-footer">
+      <footer className="text-center py-6 text-[var(--on-surface-variant)] text-sm">
         <p>Questions about your donations? Contact us at donations@pagasasanctuary.org</p>
       </footer>
     </div>
