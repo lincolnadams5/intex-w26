@@ -1,0 +1,28 @@
+{
+  "trained_at": "2026-04-07T16:46:52.276379+00:00",
+  "best_model": "RandomForest",
+  "cv_recall": 0.7821,
+  "cv_roc_auc": 0.5679,
+  "at_risk_days": 90,
+  "train_rows": 48,
+  "test_rows": 12,
+  "feature_cols": [
+    "supporter_type",
+    "relationship_type",
+    "region",
+    "country",
+    "acquisition_channel",
+    "supporter_tenure_days",
+    "total_donations",
+    "total_estimated_value",
+    "mean_estimated_value",
+    "has_recurring",
+    "n_campaigns",
+    "n_channels",
+    "monetary_donations",
+    "time_donations",
+    "inkind_donations",
+    "donor_tenure_days",
+    "avg_days_between_donations"
+  ]
+}

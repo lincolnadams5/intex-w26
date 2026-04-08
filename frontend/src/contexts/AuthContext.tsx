@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false)
     }
     init()
-  }, [])
+  }, []) 
 
   const login = async (email: string, password: string): Promise<LoginResult> => {
     try {

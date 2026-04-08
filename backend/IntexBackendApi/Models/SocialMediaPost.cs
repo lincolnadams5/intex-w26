@@ -28,7 +28,8 @@ public class SocialMediaPost
     public bool? FeaturesResidentStory { get; set; }
     public string? CampaignName { get; set; }
     public bool? IsBoosted { get; set; }
-    public decimal? BoostBudgetPhp { get; set; }
+    // Stored as double precision in PostgreSQL — use double? not decimal?
+    public double? BoostBudgetPhp { get; set; }
     public int? Impressions { get; set; }
     public int? Reach { get; set; }
     public int? Likes { get; set; }
@@ -37,10 +38,12 @@ public class SocialMediaPost
     public int? Saves { get; set; }
     public int? ClickThroughs { get; set; }
     public int? VideoViews { get; set; }
-    public decimal? EngagementRate { get; set; }
+    // Stored as double precision in PostgreSQL — use double? not decimal?
+    public double? EngagementRate { get; set; }
     public int? ProfileVisits { get; set; }
     public int? DonationReferrals { get; set; }
-    public decimal? EstimatedDonationValuePhp { get; set; }
+    // Stored as double precision in PostgreSQL — use double? not decimal?
+    public double? EstimatedDonationValuePhp { get; set; }
     public int? FollowerCountAtPost { get; set; }
     public int? WatchTimeSeconds { get; set; }
     public int? AvgViewDurationSeconds { get; set; }

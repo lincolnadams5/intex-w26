@@ -1,247 +1,291 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-import { AdminStatCard } from '../../../components/admin/AdminStatCard'
+import { StatCard }    from '../../../components/admin/StatCard'
+import { PageHeader }  from '../../../components/admin/PageHeader'
+import { SectionCard } from '../../../components/admin/SectionCard'
+import { Pagination }  from '../../../components/admin/Pagination'
+import { LoadingState } from '../../../components/admin/LoadingState'
+import {
+  getDonorsSummary,
+  getDonorTrends,
+  getDonationsByType,
+  getDonationsByChannel,
+  getDonationsByCampaign,
+  getDonationAllocations,
+  getRecentDonations,
+  type DonorsSummary,
+  type MonthlyTotal,
+  type DonationByType,
+  type DonationByChannel,
+  type DonationByCampaign,
+  type AllocationRow,
+  type RecentDonation,
+} from '../../../lib/adminApi'
 
-// ─── Mock data — replace with API calls once backend is ready ─────────────────
-// GET /api/donors/summary
-const donorSummary = {
-  totalThisMonth: '₱485,200',
-  lastMonth: '₱433,400',
-  activeDonors: 142,
-  inactiveDonors: 38,
-  recurringDonors: 67,
+// ── Chart colors ──────────────────────────────────────────────────────────────
+const PIE_COLORS   = ['#0d9488', '#14b8a6', '#5eead4', '#99f6e4', '#ccfbf1']
+const AREA_COLORS: Record<string, string> = {
+  Care:       '#0d9488',
+  Healing:    '#14b8a6',
+  Teaching:   '#5eead4',
+  Operations: '#99f6e4',
+  Staff:      '#f0abfc',
+  Outreach:   '#a78bfa',
 }
-
-// GET /api/donations/trends
-const trendData = [
-  { month: 'May', amount: 320000 },
-  { month: 'Jun', amount: 285000 },
-  { month: 'Jul', amount: 410000 },
-  { month: 'Aug', amount: 375000 },
-  { month: 'Sep', amount: 298000 },
-  { month: 'Oct', amount: 450000 },
-  { month: 'Nov', amount: 520000 },
-  { month: 'Dec', amount: 680000 },
-  { month: 'Jan', amount: 390000 },
-  { month: 'Feb', amount: 425000 },
-  { month: 'Mar', amount: 510000 },
-  { month: 'Apr', amount: 485000 },
-]
-
-// GET /api/donations/by-type
-const typeData = [
-  { name: 'Monetary', value: 45 },
-  { name: 'In-Kind', value: 20 },
-  { name: 'Time', value: 15 },
-  { name: 'Skills', value: 12 },
-  { name: 'Social Media', value: 8 },
-]
-const PIE_COLORS = ['#0d9488', '#14b8a6', '#5eead4', '#99f6e4', '#ccfbf1']
-
-// GET /api/donations/by-channel
-const channelData = [
-  { channel: 'Social Media', count: 61 },
-  { channel: 'Website', count: 42 },
-  { channel: 'Word of Mouth', count: 38 },
-  { channel: 'Event', count: 23 },
-  { channel: 'Email', count: 18 },
-]
-
-// GET /api/donations/by-campaign
-const campaignData = [
-  { campaign: 'Hope Fund 2026', total: 192000 },
-  { campaign: 'Basic Needs Drive', total: 134000 },
-  { campaign: 'Education First', total: 98000 },
-  { campaign: 'Holiday Appeal', total: 87000 },
-  { campaign: 'Emergency Fund', total: 43000 },
-]
-
-// GET /api/donations/recent
-const recentDonations = [
-  { id: 1, donor: 'Maria Santos', type: 'Monetary', amount: '₱15,000', date: '2026-04-05', campaign: 'Hope Fund 2026' },
-  { id: 2, donor: 'Juan dela Cruz', type: 'In-Kind', amount: '₱8,200', date: '2026-04-04', campaign: 'Basic Needs Drive' },
-  { id: 3, donor: 'Anonymous', type: 'Monetary', amount: '₱5,000', date: '2026-04-04', campaign: 'Hope Fund 2026' },
-  { id: 4, donor: 'Lighthouse Partners', type: 'Skills', amount: '₱12,500', date: '2026-04-03', campaign: 'Education First' },
-  { id: 5, donor: 'Rosa Aquino', type: 'Time', amount: '₱3,600', date: '2026-04-02', campaign: '—' },
-  { id: 6, donor: 'BDO Foundation', type: 'Monetary', amount: '₱50,000', date: '2026-04-01', campaign: 'Emergency Fund' },
-  { id: 7, donor: 'Carlos Reyes', type: 'Monetary', amount: '₱2,000', date: '2026-03-31', campaign: 'Hope Fund 2026' },
-  { id: 8, donor: 'Ateneo Outreach', type: 'In-Kind', amount: '₱6,400', date: '2026-03-30', campaign: 'Basic Needs Drive' },
-]
-
-// GET /api/donations/allocations
-const allocationData = [
-  { area: 'Manila', Education: 45000, Health: 38000, Housing: 62000, Emergency: 22000 },
-  { area: 'Cebu', Education: 32000, Health: 27000, Housing: 48000, Emergency: 15000 },
-  { area: 'Davao', Education: 51000, Health: 44000, Housing: 71000, Emergency: 28000 },
-  { area: 'Iloilo', Education: 28000, Health: 22000, Housing: 35000, Emergency: 11000 },
-]
 
 const PAGE_SIZE = 5
 
+// ── Pivot flat allocation rows into recharts stacked bar format ───────────────
+function pivotAllocations(rows: AllocationRow[]) {
+  const byHouse: Record<string, Record<string, number>> = {}
+  for (const row of rows) {
+    if (!byHouse[row.safehouseName]) byHouse[row.safehouseName] = {}
+    byHouse[row.safehouseName][row.programArea] =
+      (byHouse[row.safehouseName][row.programArea] ?? 0) + row.total
+  }
+  return Object.entries(byHouse).map(([name, areas]) => ({ name, ...areas }))
+}
+
+// ── Collect unique program areas for bar keys ─────────────────────────────────
+function programAreas(rows: AllocationRow[]) {
+  return [...new Set(rows.map(r => r.programArea))].sort()
+}
+
 export function DonorsPage() {
-  const [page, setPage] = useState(1)
-  const totalPages = Math.ceil(recentDonations.length / PAGE_SIZE)
-  const pagedDonations = recentDonations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  // ── Data state ──────────────────────────────────────────────────────────────
+  const [summary, setSummary]       = useState<DonorsSummary | null>(null)
+  const [trends, setTrends]         = useState<MonthlyTotal[]>([])
+  const [byType, setByType]         = useState<DonationByType[]>([])
+  const [byChannel, setByChannel]   = useState<DonationByChannel[]>([])
+  const [byCampaign, setByCampaign] = useState<DonationByCampaign[]>([])
+  const [allocations, setAllocations] = useState<AllocationRow[]>([])
+  const [recentItems, setRecentItems] = useState<RecentDonation[]>([])
+  const [totalDonations, setTotalDonations] = useState(0)
+  const [page, setPage]             = useState(1)
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState<string | null>(null)
+
+  // ── Fetch summary data on mount ──────────────────────────────────────────────
+  useEffect(() => {
+    Promise.all([
+      getDonorsSummary(),
+      getDonorTrends(),
+      getDonationsByType(),
+      getDonationsByChannel(),
+      getDonationsByCampaign(),
+      getDonationAllocations(),
+    ]).then(([s, t, bt, bc, bcp, alloc]) => {
+      setSummary(s)
+      setTrends(t)
+      setByType(bt)
+      setByChannel(bc)
+      setByCampaign(bcp)
+      setAllocations(alloc)
+    }).catch(() => setError('Failed to load donor data.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // ── Fetch paginated donations when page changes ──────────────────────────────
+  useEffect(() => {
+    getRecentDonations(page, PAGE_SIZE).then(result => {
+      setRecentItems(result.items)
+      setTotalDonations(result.total)
+    })
+  }, [page])
+
+  if (loading) return <LoadingState />
+  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+
+  const allocPivoted = pivotAllocations(allocations)
+  const areas        = programAreas(allocations)
+  const totalPages   = Math.ceil(totalDonations / PAGE_SIZE)
 
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
-      <div>
-        <h2 className="text-[var(--text-h)]">Donor Activity</h2>
-        <p className="text-sm text-[var(--text)] mt-1">
-          Donation trends, type breakdowns, and recent contributions.
-        </p>
-      </div>
+      <PageHeader
+        title="Donor Activity"
+        subtitle="Donation trends, type breakdowns, campaign performance, and recent contributions."
+      />
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <AdminStatCard
-          label="Total Donations This Month"
-          value={donorSummary.totalThisMonth}
+      {/* ── Stat cards ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard
+          label="Total Donations (All Time)"
+          value={summary ? `₱${summary.totalAllTime.toLocaleString()}` : '—'}
           icon="💰"
-          trend={{ direction: 'up', text: '+12% vs last month' }}
           accent
         />
-        <AdminStatCard
-          label="Active / Inactive Donors"
-          value={`${donorSummary.activeDonors} / ${donorSummary.inactiveDonors}`}
-          icon="👤"
+        <StatCard
+          label="Total Supporters"
+          value={summary?.totalSupporters ?? '—'}
+          icon="👥"
         />
-        <AdminStatCard
+        <StatCard
+          label="Active / Inactive"
+          value={summary ? `${summary.activeSupporters} / ${summary.inactiveSupporters}` : '—'}
+          icon="📊"
+          subtitle="supporters"
+        />
+        <StatCard
           label="Recurring Donors"
-          value={donorSummary.recurringDonors}
+          value={summary?.recurringDonors ?? '—'}
           icon="🔁"
-          trend={{ direction: 'up', text: '+4 this month' }}
         />
       </div>
 
-      {/* Donation trend + type breakdown */}
+      {/* ── Donation trend + type breakdown ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="card lg:col-span-2">
-          <h3 className="text-[var(--text-h)] mb-1">Donation Trend</h3>
-          <p className="text-xs text-[var(--text)] mb-4">Monthly total (₱) over the past 12 months</p>
+
+        {/* Line chart: 12-month trend */}
+        <SectionCard
+          title="Donation Trend"
+          subtitle="Monthly monetary total (₱) over the past 12 months"
+          className="lg:col-span-2"
+        >
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <LineChart data={trends} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} width={52} />
-                <Tooltip formatter={(v) => [`₱${Number(v).toLocaleString()}`, 'Total']} />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                <YAxis
+                  tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 11 }}
+                  width={52}
+                />
+                <Tooltip formatter={v => [`₱${Number(v).toLocaleString()}`, 'Total']} />
                 <Line
                   type="monotone"
-                  dataKey="amount"
+                  dataKey="total"
                   stroke="#0d9488"
                   strokeWidth={2.5}
                   dot={{ fill: '#0d9488', r: 4 }}
                   activeDot={{ r: 6 }}
+                  name="Total"
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Donation by Type</h3>
-          <p className="text-xs text-[var(--text)] mb-4">% share of estimated value</p>
-          <div className="h-[200px]">
+        {/* Donut chart: donation by type */}
+        <SectionCard title="Donation by Type" subtitle="Share of estimated value by type">
+          <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={typeData}
+                  data={byType}
                   cx="50%"
                   cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  dataKey="value"
+                  innerRadius={50}
+                  outerRadius={80}
+                  dataKey="total"
                   paddingAngle={3}
                 >
-                  {typeData.map((_, i) => (
+                  {byType.map((_, i) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v) => [`${v}%`, 'Share']} />
+                <Tooltip formatter={v => [`₱${Number(v).toLocaleString()}`, 'Total']} />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="flex flex-col gap-1.5 mt-2">
-            {typeData.map((d, i) => (
-              <div key={d.name} className="flex items-center gap-2 text-xs text-[var(--text)]">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i] }} />
-                <span className="flex-1">{d.name}</span>
-                <span className="font-medium text-[var(--text-h)]">{d.value}%</span>
+            {byType.map((d, i) => (
+              <div key={d.donationType} className="flex items-center gap-2 text-xs text-[var(--text)]">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                <span className="flex-1">{d.donationType}</span>
+                <span className="font-medium text-[var(--text-h)]">{d.count}</span>
               </div>
             ))}
           </div>
-        </div>
+        </SectionCard>
       </div>
 
-      {/* Channel breakdown + Campaign performance */}
+      {/* ── Channel + Campaign ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Acquisition Channel</h3>
-          <p className="text-xs text-[var(--text)] mb-4">Number of donors by how they first found us</p>
+
+        {/* Horizontal bar: acquisition channel */}
+        <SectionCard
+          title="Acquisition Channel"
+          subtitle="Total monetary donations (₱) by channel source"
+        >
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={channelData} layout="vertical" margin={{ left: 8, right: 16 }}>
+              <BarChart data={byChannel} layout="vertical" margin={{ left: 8, right: 16 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <XAxis
+                  type="number"
+                  tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 11 }}
+                />
                 <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} width={90} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#0d9488" radius={[0, 4, 4, 0]} name="Donors" />
+                <Tooltip formatter={v => [`₱${Number(v).toLocaleString()}`, 'Total']} />
+                <Bar dataKey="total" fill="#0d9488" radius={[0, 4, 4, 0]} name="Amount" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Campaign Performance</h3>
-          <p className="text-xs text-[var(--text)] mb-4">Total donations raised per campaign (₱)</p>
+        {/* Horizontal bar: campaign performance */}
+        <SectionCard
+          title="Campaign Performance"
+          subtitle="Total donations raised (₱) per campaign"
+        >
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={campaignData} layout="vertical" margin={{ left: 8, right: 16 }}>
+              <BarChart data={byCampaign} layout="vertical" margin={{ left: 8, right: 16 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-                <XAxis type="number" tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
-                <YAxis dataKey="campaign" type="category" tick={{ fontSize: 11 }} width={100} />
-                <Tooltip formatter={(v) => [`₱${Number(v).toLocaleString()}`, 'Total']} />
+                <XAxis
+                  type="number"
+                  tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis dataKey="campaignName" type="category" tick={{ fontSize: 11 }} width={110} />
+                <Tooltip formatter={v => [`₱${Number(v).toLocaleString()}`, 'Total']} />
                 <Bar dataKey="total" fill="#14b8a6" radius={[0, 4, 4, 0]} name="Amount" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
       </div>
 
-      {/* Allocation chart */}
-      <div className="card">
-        <h3 className="text-[var(--text-h)] mb-1">Donation Allocations by Safehouse</h3>
-        <p className="text-xs text-[var(--text)] mb-4">Estimated allocation (₱) across program areas</p>
-        <div className="h-[240px]">
+      {/* ── Donation allocations stacked bar ─────────────────────────────────── */}
+      <SectionCard
+        title="Donation Allocations by Safehouse"
+        subtitle="Amount allocated (₱) per safehouse, broken down by program area"
+      >
+        <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={allocationData} margin={{ left: 0, right: 8 }}>
+            <BarChart data={allocPivoted} margin={{ left: 0, right: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="area" tick={{ fontSize: 12 }} />
-              <YAxis tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} width={52} />
-              <Tooltip formatter={(v) => [`₱${Number(v).toLocaleString()}`]} />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis
+                tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
+                tick={{ fontSize: 11 }}
+                width={52}
+              />
+              <Tooltip formatter={v => [`₱${Number(v).toLocaleString()}`]} />
               <Legend />
-              <Bar dataKey="Housing" stackId="a" fill="#0d9488" />
-              <Bar dataKey="Education" stackId="a" fill="#14b8a6" />
-              <Bar dataKey="Health" stackId="a" fill="#5eead4" />
-              <Bar dataKey="Emergency" stackId="a" fill="#99f6e4" radius={[4, 4, 0, 0]} />
+              {areas.map((area, i) => (
+                <Bar
+                  key={area}
+                  dataKey={area}
+                  stackId="a"
+                  fill={AREA_COLORS[area] ?? PIE_COLORS[i % PIE_COLORS.length]}
+                  radius={i === areas.length - 1 ? [4, 4, 0, 0] : undefined}
+                />
+              ))}
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </SectionCard>
 
-      {/* Recent donations table */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-[var(--text-h)]">Recent Donations</h3>
-            <p className="text-xs text-[var(--text)] mt-0.5">Latest contributions across all types</p>
-          </div>
-          <span className="badge">Page {page} of {totalPages}</span>
-        </div>
+      {/* ── Recent donations table ───────────────────────────────────────────── */}
+      <SectionCard title="Recent Donations" subtitle="Latest contributions across all types">
         <div className="table-container">
           <table>
             <thead>
@@ -251,43 +295,38 @@ export function DonorsPage() {
                 <th>Amount (PHP)</th>
                 <th>Date</th>
                 <th>Campaign</th>
+                <th>Channel</th>
+                <th>Recurring</th>
               </tr>
             </thead>
             <tbody>
-              {pagedDonations.map((d) => (
-                <tr key={d.id}>
-                  <td className="font-medium text-[var(--text-h)]">{d.donor}</td>
+              {recentItems.map(d => (
+                <tr key={d.donationId}>
+                  <td className="font-medium text-[var(--text-h)]">{d.donorName}</td>
+                  <td><span className="badge text-xs">{d.donationType}</span></td>
+                  <td className="font-medium">₱{d.amount.toLocaleString()}</td>
+                  <td className="text-[var(--text)] text-xs">{d.donationDate?.split('T')[0] ?? '—'}</td>
+                  <td className="text-[var(--text)] text-xs">{d.campaignName}</td>
+                  <td className="text-[var(--text)] text-xs">{d.channelSource}</td>
                   <td>
-                    <span className="badge text-xs">{d.type}</span>
+                    {d.isRecurring
+                      ? <span className="badge badge-success text-xs">Yes</span>
+                      : <span className="badge text-xs">No</span>
+                    }
                   </td>
-                  <td className="font-medium">{d.amount}</td>
-                  <td className="text-[var(--text)]">{d.date}</td>
-                  <td className="text-[var(--text)]">{d.campaign}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="btn btn-secondary btn-small"
-          >
-            ← Previous
-          </button>
-          <span className="text-sm text-[var(--text)]">
-            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, recentDonations.length)} of {recentDonations.length}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="btn btn-secondary btn-small"
-          >
-            Next →
-          </button>
-        </div>
-      </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalDonations}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      </SectionCard>
     </div>
   )
 }

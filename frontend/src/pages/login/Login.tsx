@@ -1,32 +1,26 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import './Login.css'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 export default function Login() {
   const { isAuthenticated, login, role } = useAuth()
 
-  // Step 1 fields
-  const [email, setEmail]       = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  // Step 2 — 2FA
   const [requires2FA, setRequires2FA] = useState(false)
-  const [userId, setUserId]           = useState('')
-  const [code, setCode]               = useState('')
+  const [userId, setUserId] = useState('')
+  const [code, setCode] = useState('')
 
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError]         = useState('')
+  const [error, setError] = useState('')
 
-  // Already logged in — redirect to the appropriate home for their role
   if (isAuthenticated) {
-    const dest = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : '/'
+    const dest = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : role === 'Donor' ? '/my-donations' : '/'
     return <Navigate to={dest} replace />
   }
-
-  // ── Step 1: Email + password ────────────────────────────────────────────────
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,17 +32,12 @@ export default function Login() {
     if (!result.ok) {
       setError(result.error ?? 'Login failed')
     } else if (result.requires2FA) {
-      // Switch to the 2FA code input step
       setUserId(result.userId ?? '')
       setRequires2FA(true)
     }
-    // On successful login the AuthContext sets isAuthenticated=true, which triggers
-    // the <Navigate> guard at the top of this component to redirect by role.
 
     setIsLoading(false)
   }
-
-  // ── Step 2: 2FA code verification ──────────────────────────────────────────
 
   const handleVerify2FA = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,8 +56,8 @@ export default function Login() {
         setError(data?.message ?? 'Invalid code')
       } else {
         localStorage.setItem('token', data.token)
-        // Reload to let AuthProvider re-hydrate from localStorage
-        const dest = data.user?.role === 'Admin' ? '/admin/dashboard' : data.user?.role === 'Staff' ? '/staff/dashboard' : '/'
+        const r = data.user?.role
+        const dest = r === 'Admin' ? '/admin/dashboard' : r === 'Staff' ? '/staff/dashboard' : r === 'Donor' ? '/my-donations' : '/'
         window.location.href = dest
       }
     } catch {
@@ -78,42 +67,39 @@ export default function Login() {
     }
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   if (requires2FA) {
     return (
-      <div className="login-container">
-        <div className="login-card">
-          <h2 className="login-title">Two-Factor Authentication</h2>
-          <p className="text-sm text-center mb-4" style={{ color: 'var(--text)' }}>
+      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-[var(--surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
+          <h2 className="text-center mb-2">Two-Factor Authentication</h2>
+          <p className="text-center text-[var(--on-surface-variant)] mb-8">
             Enter the 6-digit code sent to your email.
           </p>
-          <form className="login-form" onSubmit={handleVerify2FA}>
-            <div className="input-group">
+          <form className="flex flex-col gap-5" onSubmit={handleVerify2FA}>
+            <div className="form-group mb-0">
               <input
                 type="text"
                 placeholder="6-digit code"
                 value={code}
                 onChange={e => setCode(e.target.value)}
-                className="login-input"
                 maxLength={6}
                 required
                 disabled={isLoading}
                 autoFocus
+                className="text-center text-2xl tracking-[0.5em] font-semibold"
               />
             </div>
-            {error && <div className="error-message">{error}</div>}
+            {error && <p className="text-[var(--error)] text-sm text-center">{error}</p>}
             <button
               type="submit"
-              className={`login-button ${isLoading ? 'loading' : ''}`}
+              className="btn btn-primary w-full"
               disabled={isLoading}
             >
               {isLoading ? 'Verifying...' : 'Verify Code'}
             </button>
             <button
               type="button"
-              className="login-button"
-              style={{ marginTop: 8, background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}
+              className="btn btn-ghost w-full"
               onClick={() => { setRequires2FA(false); setCode(''); setError('') }}
             >
               Back to Login
@@ -125,40 +111,45 @@ export default function Login() {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h2 className="login-title">Welcome Back</h2>
-        <form className="login-form" onSubmit={handleLogin}>
-          <div className="input-group">
+    <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-[var(--surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
+        <h2 className="text-center mb-8">Welcome Back</h2>
+        <form className="flex flex-col gap-5" onSubmit={handleLogin}>
+          <div className="form-group mb-0">
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="login-input"
               required
               disabled={isLoading}
             />
           </div>
-          <div className="input-group">
+          <div className="form-group mb-0">
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="login-input"
               required
               disabled={isLoading}
             />
           </div>
-          {error && <div className="error-message">{error}</div>}
+          {error && <p className="text-[var(--error)] text-sm text-center">{error}</p>}
           <button
             type="submit"
-            className={`login-button ${isLoading ? 'loading' : ''}`}
+            className="btn btn-primary w-full"
             disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
+
+          <p className="text-center text-sm text-[var(--on-surface-variant)]">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-[var(--primary)] font-semibold hover:underline">
+              Register
+            </Link>
+          </p>
         </form>
       </div>
     </div>
