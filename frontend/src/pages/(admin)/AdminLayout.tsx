@@ -9,6 +9,8 @@ const baseNavItems = [
   { to: '/admin/residents', label: 'Residents',      icon: '🏠' },
   { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
   { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
+  { to: '/admin/home-visits', label: 'Home Visits', icon: '📋' },
+  { to: '/admin/process-recording', label: 'Process Recording', icon: '📋' },
 ]
 
 // Nav item visible only to Admin
