@@ -1,281 +1,383 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-import { AdminStatCard } from '../../../components/admin/AdminStatCard'
+import { StatCard }    from '../../../components/admin/StatCard'
+import { PageHeader }  from '../../../components/admin/PageHeader'
+import { SectionCard } from '../../../components/admin/SectionCard'
+import { Pagination }  from '../../../components/admin/Pagination'
+import { LoadingState } from '../../../components/admin/LoadingState'
+import {
+  getSocialSummary,
+  getSocialByPlatform,
+  getSocialByPostType,
+  getSocialByContentTopic,
+  getSocialReferralTrend,
+  getSocialPostingHeatmap,
+  getSocialTopPosts,
+  type SocialSummary,
+  type PlatformEngagement,
+  type PostTypeEngagement,
+  type ContentTopicEngagement,
+  type ReferralTrendItem,
+  type HeatmapCell,
+  type TopPost,
+} from '../../../lib/adminApi'
 
-// ─── Mock data — replace with API calls once backend is ready ─────────────────
-// GET /api/social/summary
-const socialSummary = {
-  postsThisMonth: 24,
-  engagementRate: '4.2%',
-  donationReferrals: 31,
-  estimatedValue: '₱92,400',
+// ── Heatmap configuration ─────────────────────────────────────────────────────
+// Buckets: 0 = 12am–3am, 1 = 3am–6am, … 7 = 9pm–12am
+const HEATMAP_X_LABELS = ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm']
+const HEATMAP_Y_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+// Map full day names (from DB) to 0-based index
+const DAY_INDEX: Record<string, number> = {
+  Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3,
+  Friday: 4, Saturday: 5, Sunday: 6,
 }
 
-// GET /api/social/by-platform
-const platformData = [
-  { platform: 'Instagram', rate: 6.2 },
-  { platform: 'Facebook', rate: 4.8 },
-  { platform: 'YouTube', rate: 3.4 },
-  { platform: 'Twitter/X', rate: 2.1 },
-]
+// Transform flat heatmap cells into the 2D matrix required by react-heatmap-grid
+function buildHeatmapMatrix(cells: HeatmapCell[]): number[][] {
+  const matrix = HEATMAP_Y_LABELS.map(() => HEATMAP_X_LABELS.map(() => 0))
+  for (const cell of cells) {
+    const dayIdx  = DAY_INDEX[cell.day]
+    const hourIdx = cell.hourBucket
+    if (dayIdx !== undefined && hourIdx >= 0 && hourIdx < 8) {
+      matrix[dayIdx][hourIdx] = cell.avgEngagementRate
+    }
+  }
+  return matrix
+}
 
-// GET /api/social/by-post-type
-const postTypeData = [
-  { type: 'Testimonial', rate: 7.4 },
-  { type: 'Impact Story', rate: 6.9 },
-  { type: 'Fundraising', rate: 5.2 },
-  { type: 'Educational', rate: 4.1 },
-  { type: 'Event', rate: 3.8 },
-  { type: 'General', rate: 2.6 },
-]
+// ── Platform icon map ─────────────────────────────────────────────────────────
+const PLATFORM_ICON: Record<string, string> = {
+  Instagram:  '📸',
+  Facebook:   '👍',
+  'Twitter/X': '🐦',
+  YouTube:    '▶️',
+  TikTok:     '🎵',
+  LinkedIn:   '💼',
+  WhatsApp:   '💬',
+}
 
-// GET /api/social/referral-trend
-const referralTrendData = [
-  { month: 'Nov', referrals: 12, posts: 18 },
-  { month: 'Dec', referrals: 22, posts: 28 },
-  { month: 'Jan', referrals: 15, posts: 16 },
-  { month: 'Feb', referrals: 19, posts: 20 },
-  { month: 'Mar', referrals: 27, posts: 22 },
-  { month: 'Apr', referrals: 31, posts: 24 },
-]
+// ── Inline heatmap — replaces react-heatmap-grid (not compatible with React 19) ─
+function PostingHeatmap({ data, xLabels, yLabels }: {
+  data: number[][]
+  xLabels: string[]
+  yLabels: string[]
+}) {
+  const allValues = data.flat()
+  const min = Math.min(...allValues)
+  const max = Math.max(...allValues)
 
-// GET /api/social/posting-heatmap — avg engagement by hour × day
-// Simplified to daily-only for now; full heatmap can replace this
-const bestDayData = [
-  { day: 'Mon', rate: 3.8 },
-  { day: 'Tue', rate: 4.1 },
-  { day: 'Wed', rate: 5.0 },
-  { day: 'Thu', rate: 4.6 },
-  { day: 'Fri', rate: 3.9 },
-  { day: 'Sat', rate: 6.3 },
-  { day: 'Sun', rate: 5.8 },
-]
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      {/* X-axis labels (top) */}
+      <div style={{ display: 'flex', marginLeft: '40px' }}>
+        {xLabels.map(label => (
+          <div key={label} style={{ width: '50px', textAlign: 'center', fontSize: '10px', color: 'var(--text)', flexShrink: 0 }}>
+            {label}
+          </div>
+        ))}
+      </div>
 
-// GET /api/social/top-posts
-const topPosts = [
-  { id: 1, platform: 'Instagram', type: 'Testimonial', date: '2026-04-02', likes: 412, shares: 87, comments: 54, referrals: 9, engRate: '8.1%' },
-  { id: 2, platform: 'Facebook', type: 'Impact Story', date: '2026-03-28', likes: 318, shares: 104, comments: 38, referrals: 7, engRate: '7.2%' },
-  { id: 3, platform: 'Instagram', type: 'Fundraising', date: '2026-03-21', likes: 290, shares: 62, comments: 41, referrals: 5, engRate: '6.5%' },
-  { id: 4, platform: 'YouTube', type: 'Impact Story', date: '2026-03-15', likes: 214, shares: 39, comments: 28, referrals: 4, engRate: '5.8%' },
-  { id: 5, platform: 'Facebook', type: 'Educational', date: '2026-03-10', likes: 178, shares: 55, comments: 22, referrals: 3, engRate: '4.9%' },
-  { id: 6, platform: 'Instagram', type: 'Testimonial', date: '2026-03-05', likes: 334, shares: 71, comments: 47, referrals: 6, engRate: '7.8%' },
-  { id: 7, platform: 'Twitter/X', type: 'Fundraising', date: '2026-02-27', likes: 89, shares: 134, comments: 15, referrals: 2, engRate: '3.4%' },
-]
+      {/* Rows */}
+      {yLabels.map((yLabel, y) => (
+        <div key={yLabel} style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ width: '40px', fontSize: '10px', color: 'var(--text)', flexShrink: 0 }}>
+            {yLabel}
+          </div>
+          {xLabels.map((_label, x) => {
+            const value = data[y][x]
+            const intensity = max === min ? 0 : (value - min) / (max - min)
+            return (
+              <div
+                key={x}
+                style={{
+                  width: '48px',
+                  height: '32px',
+                  margin: '1px',
+                  borderRadius: '3px',
+                  background: `rgba(13, 148, 136, ${0.08 + intensity * 0.88})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10px',
+                  color: intensity > 0.5 ? '#fff' : '#1e293b',
+                  flexShrink: 0,
+                }}
+              >
+                {value > 0 ? `${value.toFixed(1)}%` : ''}
+              </div>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const PAGE_SIZE = 5
 
-const platformIcon: Record<string, string> = {
-  Instagram: '📸',
-  Facebook: '👍',
-  'Twitter/X': '🐦',
-  YouTube: '▶️',
-}
-
 export function SocialPage() {
-  const [page, setPage] = useState(1)
-  const [sortKey, setSortKey] = useState<keyof (typeof topPosts)[0]>('engRate')
-  const sorted = [...topPosts].sort((a, b) => {
-    const av = sortKey === 'engRate' ? parseFloat(a[sortKey]) : (a[sortKey] as number)
-    const bv = sortKey === 'engRate' ? parseFloat(b[sortKey]) : (b[sortKey] as number)
-    return bv - av
-  })
+  // ── Data state ──────────────────────────────────────────────────────────────
+  const [summary, setSummary]             = useState<SocialSummary | null>(null)
+  const [byPlatform, setByPlatform]       = useState<PlatformEngagement[]>([])
+  const [byPostType, setByPostType]       = useState<PostTypeEngagement[]>([])
+  const [byTopic, setByTopic]             = useState<ContentTopicEngagement[]>([])
+  const [referralTrend, setReferralTrend] = useState<ReferralTrendItem[]>([])
+  const [heatmapCells, setHeatmapCells]   = useState<HeatmapCell[]>([])
+  const [topPosts, setTopPosts]           = useState<TopPost[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState<string | null>(null)
+
+  // ── Table sort + pagination state ────────────────────────────────────────────
+  const [sortKey, setSortKey] = useState<keyof TopPost>('engagementRate')
+  const [page, setPage]       = useState(1)
+
+  // ── Fetch all data on mount ──────────────────────────────────────────────────
+  useEffect(() => {
+    Promise.all([
+      getSocialSummary(),
+      getSocialByPlatform(),
+      getSocialByPostType(),
+      getSocialByContentTopic(),
+      getSocialReferralTrend(),
+      getSocialPostingHeatmap(),
+      getSocialTopPosts(),
+    ]).then(([s, plat, pt, topic, trend, heat, posts]) => {
+      setSummary(s)
+      setByPlatform(plat)
+      setByPostType(pt)
+      setByTopic(topic)
+      setReferralTrend(trend)
+      setHeatmapCells(heat)
+      setTopPosts(posts)
+    }).catch(() => setError('Failed to load social analytics data.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <LoadingState />
+  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+
+  // ── Sort + paginate top posts ─────────────────────────────────────────────────
+  const sorted = [...topPosts].sort((a, b) =>
+    ((b[sortKey] as number) ?? 0) - ((a[sortKey] as number) ?? 0)
+  )
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
-  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paged      = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const heatmapMatrix = buildHeatmapMatrix(heatmapCells)
 
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
-      <div>
-        <h2 className="text-[var(--text-h)]">Social Media Engagement</h2>
-        <p className="text-sm text-[var(--text)] mt-1">
-          Platform performance, content analysis, and donation referral tracking.
-        </p>
-      </div>
+      <PageHeader
+        title="Social Media Engagement"
+        subtitle="Platform performance, content analysis, and donation referral tracking."
+      />
 
-      {/* Summary cards */}
+      {/* ── Stat cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <AdminStatCard
-          label="Posts This Month"
-          value={socialSummary.postsThisMonth}
+        <StatCard
+          label="Total Posts"
+          value={summary?.totalPosts ?? '—'}
           icon="📝"
-          trend={{ direction: 'up', text: '+4 vs last month' }}
         />
-        <AdminStatCard
+        <StatCard
           label="Avg Engagement Rate"
-          value={socialSummary.engagementRate}
+          value={summary ? `${summary.avgEngagementRate.toFixed(2)}%` : '—'}
           icon="📊"
-          trend={{ direction: 'up', text: '+0.8pp vs last month' }}
           accent
         />
-        <AdminStatCard
-          label="Donation Referrals"
-          value={socialSummary.donationReferrals}
+        <StatCard
+          label="Total Donation Referrals"
+          value={summary?.totalReferrals ?? '—'}
           icon="🔗"
-          trend={{ direction: 'up', text: '+14% vs last month' }}
         />
-        <AdminStatCard
+        <StatCard
           label="Est. Referral Value"
-          value={socialSummary.estimatedValue}
+          value={summary ? `₱${Number(summary.totalReferralValue).toLocaleString()}` : '—'}
           icon="💸"
-          trend={{ direction: 'up', text: '+₱18k vs last month' }}
         />
       </div>
 
-      {/* Platform engagement + Post type engagement */}
+      {/* ── Platform engagement + Post type engagement ───────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Engagement Rate by Platform</h3>
-          <p className="text-xs text-[var(--text)] mb-4">Average engagement rate (%) across all posts</p>
+
+        {/* Bar: engagement by platform */}
+        <SectionCard
+          title="Engagement Rate by Platform"
+          subtitle="Average engagement rate (%) per platform"
+        >
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={platformData} margin={{ left: 0, right: 8 }}>
+              <BarChart data={byPlatform} margin={{ left: 0, right: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="platform" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} domain={[0, 8]} />
-                <Tooltip formatter={(v) => [`${v}%`, 'Engagement Rate']} />
-                <Bar dataKey="rate" fill="#0d9488" radius={[4, 4, 0, 0]} name="Eng. Rate" />
+                <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={v => [`${Number(v).toFixed(2)}%`, 'Avg Engagement']} />
+                <Bar dataKey="avgEngagementRate" fill="#0d9488" radius={[4, 4, 0, 0]} name="Eng. Rate" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Post Type vs Avg Engagement</h3>
-          <p className="text-xs text-[var(--text)] mb-4">Which content formats drive the most engagement</p>
+        {/* Horizontal bar: post type vs engagement */}
+        <SectionCard
+          title="Post Type vs Avg Engagement"
+          subtitle="Which content formats drive the most engagement"
+        >
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={postTypeData} layout="vertical" margin={{ left: 8, right: 16 }}>
+              <BarChart data={byPostType} layout="vertical" margin={{ left: 8, right: 16 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-                <XAxis type="number" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} domain={[0, 9]} />
-                <YAxis dataKey="type" type="category" tick={{ fontSize: 12 }} width={80} />
-                <Tooltip formatter={(v) => [`${v}%`, 'Engagement Rate']} />
-                <Bar dataKey="rate" fill="#14b8a6" radius={[0, 4, 4, 0]} name="Eng. Rate" />
+                <XAxis type="number" tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
+                <YAxis dataKey="postType" type="category" tick={{ fontSize: 12 }} width={100} />
+                <Tooltip formatter={v => [`${Number(v).toFixed(2)}%`, 'Avg Engagement']} />
+                <Bar dataKey="avgEngagementRate" fill="#14b8a6" radius={[0, 4, 4, 0]} name="Eng. Rate" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
       </div>
 
-      {/* Referral trend + Best day chart */}
+      {/* ── Content topic performance ────────────────────────────────────────── */}
+      <SectionCard
+        title="Content Topic Performance"
+        subtitle="Average engagement rate by content topic — identify what stories drive action"
+      >
+        <div className="h-[220px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={byTopic} layout="vertical" margin={{ left: 8, right: 16 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+              <XAxis type="number" tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
+              <YAxis dataKey="contentTopic" type="category" tick={{ fontSize: 11 }} width={120} />
+              <Tooltip formatter={v => [`${Number(v).toFixed(2)}%`, 'Avg Engagement']} />
+              <Bar dataKey="avgEngagementRate" fill="#0d9488" radius={[0, 4, 4, 0]} name="Eng. Rate" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </SectionCard>
+
+      {/* ── Referral trend + Posting heatmap ────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Donation Referrals vs Posting Frequency</h3>
-          <p className="text-xs text-[var(--text)] mb-4">Monthly comparison over the last 6 months</p>
+
+        {/* Line: donation referrals vs posting frequency */}
+        <SectionCard
+          title="Donation Referrals vs Posting Frequency"
+          subtitle="Monthly comparison over the last 6 months"
+        >
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={referralTrendData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <LineChart data={referralTrend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left"  tick={{ fontSize: 11 }} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="referrals" stroke="#0d9488" strokeWidth={2.5} dot={{ r: 4 }} name="Referrals" />
-                <Line yAxisId="right" type="monotone" dataKey="posts" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} name="Posts" />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="totalReferrals"
+                  stroke="#0d9488"
+                  strokeWidth={2.5}
+                  dot={{ r: 4 }}
+                  name="Referrals"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="postCount"
+                  stroke="#94a3b8"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={{ r: 3 }}
+                  name="Posts"
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="card">
-          <h3 className="text-[var(--text-h)] mb-1">Best Posting Days</h3>
-          <p className="text-xs text-[var(--text)] mb-4">
-            Avg engagement rate by day of week — full hour × day heatmap coming once API is wired
-          </p>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={bestDayData} margin={{ left: 0, right: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(v) => `${v}%`} tick={{ fontSize: 11 }} domain={[0, 8]} />
-                <Tooltip formatter={(v) => [`${v}%`, 'Engagement Rate']} />
-                <Bar dataKey="rate" fill="#0d9488" radius={[4, 4, 0, 0]} name="Eng. Rate" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        {/* Heatmap: best posting times (day × 3-hour bucket) */}
+        <SectionCard
+          title="Best Posting Times"
+          subtitle="Avg engagement rate by day × time — darker = higher engagement"
+        >
+          <PostingHeatmap
+            xLabels={HEATMAP_X_LABELS}
+            yLabels={HEATMAP_Y_LABELS}
+            data={heatmapMatrix}
+          />
+        </SectionCard>
       </div>
 
-      {/* Top posts table */}
-      <div className="card">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-[var(--text-h)]">Top Posts</h3>
-            <p className="text-xs text-[var(--text)] mt-0.5">Sorted by engagement rate. Click a column header to re-sort.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-[var(--text)]">Sort by:</label>
-            <select
-              value={sortKey as string}
-              onChange={(e) => { setSortKey(e.target.value as keyof (typeof topPosts)[0]); setPage(1) }}
-              className="text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 bg-[var(--bg)] text-[var(--text-h)]"
-            >
-              <option value="engRate">Engagement Rate</option>
-              <option value="likes">Likes</option>
-              <option value="shares">Shares</option>
-              <option value="comments">Comments</option>
-              <option value="referrals">Donation Referrals</option>
-            </select>
-          </div>
+      {/* ── Top posts table ──────────────────────────────────────────────────── */}
+      <SectionCard title="Top Posts" subtitle="Sorted by the selected metric">
+        {/* Sort dropdown */}
+        <div className="flex items-center gap-2 mb-4">
+          <label className="text-xs text-[var(--text)]">Sort by:</label>
+          <select
+            value={sortKey as string}
+            onChange={e => { setSortKey(e.target.value as keyof TopPost); setPage(1) }}
+            className="text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 bg-[var(--bg)] text-[var(--text-h)]"
+          >
+            <option value="engagementRate">Engagement Rate</option>
+            <option value="likes">Likes</option>
+            <option value="shares">Shares</option>
+            <option value="donationReferrals">Donation Referrals</option>
+            <option value="impressions">Impressions</option>
+          </select>
         </div>
+
         <div className="table-container">
           <table>
             <thead>
               <tr>
                 <th>Platform</th>
                 <th>Post Type</th>
+                <th>Topic</th>
                 <th>Date</th>
                 <th>Likes</th>
                 <th>Shares</th>
-                <th>Comments</th>
                 <th>Referrals</th>
                 <th>Eng. Rate</th>
               </tr>
             </thead>
             <tbody>
-              {paged.map((p) => (
-                <tr key={p.id}>
+              {paged.map(p => (
+                <tr key={p.postId}>
                   <td>
                     <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-h)]">
-                      {platformIcon[p.platform] ?? '🌐'} {p.platform}
+                      {PLATFORM_ICON[p.platform] ?? '🌐'} {p.platform}
                     </span>
                   </td>
-                  <td>
-                    <span className="badge text-xs">{p.type}</span>
+                  <td><span className="badge text-xs">{p.postType}</span></td>
+                  <td className="text-[var(--text)] text-xs">{p.contentTopic}</td>
+                  <td className="text-[var(--text)] text-xs">
+                    {p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-PH') : '—'}
                   </td>
-                  <td className="text-[var(--text)] text-xs">{p.date}</td>
                   <td>{p.likes.toLocaleString()}</td>
                   <td>{p.shares.toLocaleString()}</td>
-                  <td>{p.comments.toLocaleString()}</td>
-                  <td className="font-medium text-[var(--accent)]">{p.referrals}</td>
-                  <td className="font-bold text-[var(--text-h)]">{p.engRate}</td>
+                  <td className="font-medium text-[var(--accent)]">{p.donationReferrals}</td>
+                  <td className="font-bold text-[var(--text-h)]">
+                    {p.engagementRate != null ? `${Number(p.engagementRate).toFixed(2)}%` : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="btn btn-secondary btn-small"
-          >
-            ← Previous
-          </button>
-          <span className="text-sm text-[var(--text)]">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="btn btn-secondary btn-small"
-          >
-            Next →
-          </button>
-        </div>
-      </div>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={sorted.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
+      </SectionCard>
     </div>
   )
 }

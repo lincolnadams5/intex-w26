@@ -9,7 +9,8 @@ public class ProcessRecording
     [Key]
     public int RecordingId { get; set; }
     public int ResidentId { get; set; }
-    public DateOnly? SessionDate { get; set; }
+    // Stored as timestamptz in PostgreSQL — use DateTime? not DateOnly?
+    public DateTime? SessionDate { get; set; }
     public string? SocialWorker { get; set; }
     public string? SessionType { get; set; }
     public int? SessionDurationMinutes { get; set; }

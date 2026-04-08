@@ -9,4 +9,5 @@ public class UserProfileDto
     public int? SafehouseId { get; set; }
     public int? SupporterId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsActive { get; set; }
 }
