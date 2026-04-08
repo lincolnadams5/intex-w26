@@ -54,8 +54,8 @@ def build_donation_features(supporters: pd.DataFrame, donations: pd.DataFrame, r
     return df
 
 
-def add_label(df: pd.DataFrame, at_risk_days: int = 90) -> pd.DataFrame:
-    """Add binary at_risk label: 1 if no donation in at_risk_days, else 0."""
+def add_label(df: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    """Add binary at_risk label: 1 if supporter status is Inactive, else 0."""
     df = df.copy()
-    df["at_risk"] = (df["days_since_last_donation"] >= at_risk_days).astype(int)
+    df["at_risk"] = (df["status"] == "Inactive").astype(int)
     return df
