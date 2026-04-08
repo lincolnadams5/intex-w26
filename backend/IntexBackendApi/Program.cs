@@ -1,5 +1,7 @@
 using IntexBackendApi.Data;
 using IntexBackendApi.Models;
+using IntexBackendApi.Services;
+using IntexBackendApi.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +78,14 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("DonorOnly",    policy => policy.RequireRole("Donor"));
     options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
 });
+
+// 📧 Email service — uses Gmail SMTP when App Password is configured, stub otherwise
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+
+if (string.IsNullOrEmpty(builder.Configuration["Email:AppPassword"]))
+    builder.Services.AddScoped<IEmailService, StubEmailService>();
+else
+    builder.Services.AddScoped<IEmailService, GmailEmailService>();
 
 // 🔒 HSTS configuration (production only — applied below in middleware pipeline)
 builder.Services.AddHsts(options =>

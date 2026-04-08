@@ -13,6 +13,8 @@ import Donors from './pages/Donors'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Login from './pages/login/Login'
 import Register from './pages/login/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Unauthorized from './pages/Unauthorized'
 import DonorDashboard from './pages/donor/DonorDashboard'
 import DonatePage from './pages/donor/DonatePage'
@@ -45,6 +47,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ── Donor dashboard — any authenticated user (non-admin/staff will use this) ── */}

@@ -145,6 +145,12 @@ export default function Login() {
           </button>
 
           <p className="text-center text-sm text-[var(--on-surface-variant)]">
+            <Link to="/forgot-password" className="text-[var(--primary)] hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-[var(--on-surface-variant)]">
             Don't have an account?{' '}
             <Link to="/register" className="text-[var(--primary)] font-semibold hover:underline">
               Register
