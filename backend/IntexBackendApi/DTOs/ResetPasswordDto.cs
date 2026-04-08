@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IntexBackendApi.DTOs;
 
-public class LoginDto
+public class ResetPasswordDto
 {
     [Required]
     [EmailAddress]
@@ -10,6 +10,9 @@ public class LoginDto
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(256, MinimumLength = 1)]
-    public string Password { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(256, MinimumLength = 14)]
+    public string NewPassword { get; set; } = string.Empty;
 }

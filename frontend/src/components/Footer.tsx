@@ -56,7 +56,7 @@ export function Footer() {
               { label: 'Annual Reports', href: '#' },
               { label: 'News', href: '#' },
               { label: 'FAQ', href: '#' },
-              { label: 'Privacy Policy', href: '/privacypolicy' },
+              { label: 'Privacy Policy', href: '/privacy' },
             ]}
           />
         </div>
