@@ -7,6 +7,7 @@ import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
 import { ResidentsPage } from './pages/(admin)/residents/ResidentsPage'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
+import { UsersPage } from './pages/(admin)/users/UsersPage'
 import { ImpactDashboard } from './pages/ImpactDashboard'
 import Donors from './pages/Donors'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -79,6 +80,7 @@ function App() {
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
+          <Route path="users" element={<UsersPage />} />
           <Route path="process-recording" element={<ProcessRecording />} />
           <Route path="home-visits" element={<HomeVisits />} />
         </Route>

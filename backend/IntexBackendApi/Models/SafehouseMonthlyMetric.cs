@@ -9,11 +9,13 @@ public class SafehouseMonthlyMetric
     [Key]
     public int MetricId { get; set; }
     public int SafehouseId { get; set; }
-    public DateOnly? MonthStart { get; set; }
-    public DateOnly? MonthEnd { get; set; }
+    // Stored as timestamptz in PostgreSQL — use DateTime? not DateOnly?
+    public DateTime? MonthStart { get; set; }
+    public DateTime? MonthEnd { get; set; }
     public int? ActiveResidents { get; set; }
-    public decimal? AvgEducationProgress { get; set; }
-    public decimal? AvgHealthScore { get; set; }
+    // Stored as double precision in PostgreSQL — use double? not decimal?
+    public double? AvgEducationProgress { get; set; }
+    public double? AvgHealthScore { get; set; }
     public int? ProcessRecordingCount { get; set; }
     public int? HomeVisitationCount { get; set; }
     public int? IncidentCount { get; set; }

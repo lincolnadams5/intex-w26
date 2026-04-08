@@ -9,7 +9,8 @@ public class HomeVisitation
     [Key]
     public int VisitationId { get; set; }
     public int ResidentId { get; set; }
-    public DateOnly? VisitDate { get; set; }
+    // Stored as timestamptz in PostgreSQL — use DateTime? not DateOnly?
+    public DateTime? VisitDate { get; set; }
     public string? SocialWorker { get; set; }
     public string? VisitType { get; set; }
     public string? LocationVisited { get; set; }

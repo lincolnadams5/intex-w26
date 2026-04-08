@@ -1,140 +1,234 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
+import { StatCard }    from '../../../components/admin/StatCard'
+import { PageHeader }  from '../../../components/admin/PageHeader'
+import { SectionCard } from '../../../components/admin/SectionCard'
+import { LoadingState } from '../../../components/admin/LoadingState'
+import {
+  getDashboardSummary,
+  getDashboardActivity,
+  getDashboardConferences,
+  type DashboardSummary,
+  type ActivityItem,
+  type ConferenceItem,
+} from '../../../lib/adminApi'
 
-// Placeholder summary data — replace with GET /api/dashboard/summary
-const summaryData = {
-  donors: {
-    totalThisMonth: '₱485,200',
-    activeCount: 142,
-    trend: { direction: 'up' as const, text: '+12% vs last month' },
-  },
-  residents: {
-    activeCount: 84,
-    highRisk: 12,
-    trend: { direction: 'down' as const, text: '−2 high-risk since last week' },
-  },
-  social: {
-    postsThisMonth: 24,
-    engagementRate: '4.2%',
-    trend: { direction: 'up' as const, text: '+0.8pp vs last month' },
-  },
-  ml: {
-    churnRiskCount: 8,
-    reintegrationReady: 5,
-  },
+// ── Activity feed icons ───────────────────────────────────────────────────────
+const ACTIVITY_ICONS: Record<string, string> = {
+  donation:   '💰',
+  incident:   '⚠️',
+  recording:  '📋',
+  visitation: '🏡',
 }
 
-const recentActivity = [
-  { id: 1, type: 'donation', icon: '💰', text: 'Maria Santos donated ₱15,000 (Monetary)', time: '2 hours ago' },
-  { id: 2, type: 'incident', icon: '⚠️', text: 'Incident report filed at Pag-asa Davao — Severity: Moderate', time: '5 hours ago' },
-  { id: 3, type: 'session', icon: '📋', text: 'Process recording added for RES-2024-031 by SW Reyes', time: 'Yesterday' },
-  { id: 4, type: 'donation', icon: '💰', text: 'Anonymous donated school supplies (In-Kind, ₱8,200 est.)', time: 'Yesterday' },
-  { id: 5, type: 'conference', icon: '📅', text: 'Case conference scheduled for RES-2024-019 — Apr 14', time: '2 days ago' },
-  { id: 6, type: 'session', icon: '📋', text: 'Process recording added for RES-2024-008 by SW Dela Cruz', time: '2 days ago' },
-]
+// ── Date display helper ───────────────────────────────────────────────────────
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-PH', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  })
+}
 
 export function Dashboard() {
   const { isAdmin } = useAuth()
   const base = isAdmin ? '/admin' : '/staff'
 
+  // ── Data state ──────────────────────────────────────────────────────────────
+  const [summary, setSummary]         = useState<DashboardSummary | null>(null)
+  const [activity, setActivity]       = useState<ActivityItem[]>([])
+  const [conferences, setConferences] = useState<ConferenceItem[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState<string | null>(null)
+
+  // ── Fetch all dashboard data on mount ───────────────────────────────────────
+  useEffect(() => {
+    Promise.all([
+      getDashboardSummary(),
+      getDashboardActivity(),
+      getDashboardConferences(),
+    ]).then(([s, a, c]) => {
+      setSummary(s)
+      setActivity(a)
+      setConferences(c)
+    }).catch(() => setError('Failed to load dashboard data.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <LoadingState />
+  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
-      {/* Page title */}
-      <div>
-        <h2 className="text-[var(--text-h)]">Dashboard Overview</h2>
-        <p className="text-sm text-[var(--text)] mt-1">
-          Welcome back. Here's a summary of what's happening across the organization.
-        </p>
+      <PageHeader
+        title="Dashboard Overview"
+        subtitle="Welcome back. Here's a summary of what's happening across the organization."
+      />
+
+      {/* ── Stat cards ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard
+          label="Active Residents"
+          value={summary?.activeResidents ?? '—'}
+          icon="🏠"
+        />
+        <StatCard
+          label="High / Critical Risk"
+          value={summary?.highCriticalRisk ?? '—'}
+          icon="⚠️"
+          subtitle="active residents"
+        />
+        <StatCard
+          label="Active Donors"
+          value={summary?.activeDonors ?? '—'}
+          icon="👤"
+        />
+        <StatCard
+          label="Donations This Month"
+          value={summary ? `₱${summary.monthlyDonationsTotal.toLocaleString()}` : '—'}
+          icon="💰"
+          accent
+        />
       </div>
 
-      {/* Domain summary cards */}
+      {/* ── Quick action buttons ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Placeholder — links to home visitation form (teammate's page) */}
+        <button
+          disabled
+          title="Home visitation form — coming soon"
+          className="card flex items-center gap-4 text-left opacity-60 cursor-not-allowed"
+        >
+          <span className="text-3xl">🏡</span>
+          <div>
+            <p className="font-semibold text-[var(--text-h)]">Record a Visitation</p>
+            <p className="text-xs text-[var(--text)] mt-0.5">Opens home visitation form</p>
+          </div>
+        </button>
+
+        {/* Placeholder — links to process recording form (teammate's page) */}
+        <button
+          disabled
+          title="Process recording form — coming soon"
+          className="card flex items-center gap-4 text-left opacity-60 cursor-not-allowed"
+        >
+          <span className="text-3xl">📋</span>
+          <div>
+            <p className="font-semibold text-[var(--text-h)]">Record a Process</p>
+            <p className="text-xs text-[var(--text)] mt-0.5">Opens process recording form</p>
+          </div>
+        </button>
+      </div>
+
+      {/* ── Domain navigation cards ──────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Donors card — Admin only */}
         {isAdmin && (
           <Link to={`${base}/donors`} className="card card-interactive no-underline block group">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-[var(--text-h)]">Donor Activity</span>
               <span className="text-xl">💰</span>
             </div>
-            <div className="text-2xl font-bold text-[var(--accent)] mb-1">{summaryData.donors.totalThisMonth}</div>
-            <div className="text-xs text-[var(--text)] mb-3">donations this month</div>
-            <div className="text-xs text-green-600 font-medium">▲ {summaryData.donors.trend.text}</div>
-            <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View donors →</div>
+            <p className="text-xs text-[var(--text)]">Trends, campaigns, and allocations</p>
+            <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View donors →</p>
           </Link>
         )}
 
-        {/* Residents card */}
         <Link to={`${base}/residents`} className="card card-interactive no-underline block group">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-[var(--text-h)]">Residents</span>
             <span className="text-xl">🏠</span>
           </div>
-          <div className="text-2xl font-bold text-[var(--text-h)] mb-1">{summaryData.residents.activeCount}</div>
-          <div className="text-xs text-[var(--text)] mb-3">active residents across all safehouses</div>
-          <div className="text-xs text-[#DB7981] font-medium">
-            {summaryData.residents.highRisk} at High / Critical risk
-          </div>
-          <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View residents →</div>
+          <p className="text-xs text-[var(--text)]">Safehouse occupancy and risk levels</p>
+          <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View residents →</p>
         </Link>
 
-        {/* Social media card — Admin only */}
         {isAdmin && (
           <Link to={`${base}/social`} className="card card-interactive no-underline block group">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-[var(--text-h)]">Social Media</span>
               <span className="text-xl">📱</span>
             </div>
-            <div className="text-2xl font-bold text-[var(--text-h)] mb-1">{summaryData.social.engagementRate}</div>
-            <div className="text-xs text-[var(--text)] mb-3">avg engagement rate this month</div>
-            <div className="text-xs text-green-600 font-medium">▲ {summaryData.social.trend.text}</div>
-            <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View social →</div>
+            <p className="text-xs text-[var(--text)]">Engagement, referrals, and top posts</p>
+            <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View social →</p>
           </Link>
         )}
 
-        {/* ML card */}
         <Link to={`${base}/ml`} className="card card-interactive no-underline block group">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-[var(--text-h)]">ML Insights</span>
             <span className="text-xl">🤖</span>
           </div>
-          <div className="text-2xl font-bold text-[var(--text-h)] mb-1">{summaryData.ml.churnRiskCount}</div>
-          <div className="text-xs text-[var(--text)] mb-3">donors at high churn risk</div>
-          <div className="text-xs text-[var(--accent)] font-medium">
-            {summaryData.ml.reintegrationReady} residents ready for reintegration
-          </div>
-          <div className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View insights →</div>
+          <p className="text-xs text-[var(--text)]">Churn risk, reintegration, and ROI</p>
+          <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View insights →</p>
         </Link>
       </div>
 
-      {/* Quick stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Active Donors', value: '142' },
-          { label: 'Recurring Donors', value: '67' },
-          { label: 'Upcoming Conferences', value: '7' },
-          { label: 'Reintegration In Progress', value: '23' },
-        ].map(({ label, value }) => (
-          <div key={label} className="card text-center py-4">
-            <div className="text-2xl font-bold text-[var(--accent)]">{value}</div>
-            <div className="text-xs text-[var(--text)] mt-1">{label}</div>
-          </div>
-        ))}
-      </div>
+      {/* ── Bottom row: activity feed + upcoming conferences ─────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-      {/* Recent activity feed */}
-      <div className="card">
-        <h3 className="text-[var(--text-h)] mb-4">Recent Activity</h3>
-        <div className="flex flex-col divide-y divide-[var(--border)]">
-          {recentActivity.map((item) => (
-            <div key={item.id} className="flex items-start gap-3 py-3">
-              <span className="text-lg mt-0.5 flex-shrink-0">{item.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-[var(--text-h)]">{item.text}</p>
-                <p className="text-xs text-[var(--text)] mt-0.5">{item.time}</p>
-              </div>
+        {/* Recent activity feed */}
+        <SectionCard
+          title="Recent Activity"
+          subtitle="Latest events across donations, sessions, visitations, and incidents"
+        >
+          {activity.length === 0 ? (
+            <p className="text-sm text-[var(--text)]">No recent activity found.</p>
+          ) : (
+            <div className="flex flex-col divide-y divide-[var(--border)]">
+              {activity.map((item, i) => (
+                <div key={i} className="flex items-start gap-3 py-3">
+                  <span className="text-lg mt-0.5 flex-shrink-0">
+                    {ACTIVITY_ICONS[item.type] ?? '📌'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[var(--text-h)]">{item.label}</p>
+                    <p className="text-xs text-[var(--text)] mt-0.5">{item.detail}</p>
+                    <p className="text-xs text-[var(--text)] mt-0.5 opacity-70">
+                      {formatDate(item.date)}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </SectionCard>
+
+        {/* Upcoming case conferences */}
+        <SectionCard
+          title="Upcoming Case Conferences"
+          subtitle="Scheduled from today onward"
+          titleIcon="📅"
+        >
+          {conferences.length === 0 ? (
+            <p className="text-sm text-[var(--text)]">No upcoming conferences.</p>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Resident</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {conferences.map((c, i) => (
+                    <tr key={i}>
+                      <td className="font-medium text-[var(--text-h)]">{c.residentCode}</td>
+                      <td className="text-[var(--text)] text-xs">
+                        {formatDate(c.conferenceDate)}
+                      </td>
+                      <td className="text-xs">
+                        <span className="badge">{c.planCategory ?? '—'}</span>
+                      </td>
+                      <td className="text-xs text-[var(--text)]">{c.status ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
       </div>
     </div>
   )
