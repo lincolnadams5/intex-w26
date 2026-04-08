@@ -4,7 +4,7 @@ import { AdminLayout } from './pages/(admin)/AdminLayout'
 import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
-import { ResidentsPage } from './pages/(admin)/residents/ResidentsPage'
+import { HomeVisitation } from './pages/(admin)/dashboard/home-visitation/HomeVisitation'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
 import { UsersPage } from './pages/(admin)/users/UsersPage'
@@ -20,7 +20,7 @@ import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
 import { useEffect } from 'react'
-import ProcessRecording from './pages/(admin)/processRecording/ProcessRecording'
+import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
 import HomeVisits from './pages/(admin)/visits/HomeVisits'
 
 function App() {
@@ -76,13 +76,14 @@ function App() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+            {/* Admin dashboard has multiple sub-pages for different functionalities */}
+            <Route path="/admin/dashboard/process-recording" element={<ProcessRecording />} />
+            <Route path="/admin/dashboard/home-visits" element={<HomeVisits />} />
           <Route path="donors" element={<DonorsPage />} />
-          <Route path="residents" element={<ResidentsPage />} />
+          <Route path="residents" element={<HomeVisitation />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="users" element={<UsersPage />} />
-          <Route path="process-recording" element={<ProcessRecording />} />
-          <Route path="home-visits" element={<HomeVisits />} />
         </Route>
 
         {/* ── Staff portal — requires Staff role ── */}
@@ -96,7 +97,7 @@ function App() {
         >
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="residents" element={<ResidentsPage />} />
+          <Route path="residents" element={<HomeVisitation />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 

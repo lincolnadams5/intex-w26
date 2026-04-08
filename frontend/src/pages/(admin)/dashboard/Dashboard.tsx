@@ -93,30 +93,28 @@ export function Dashboard() {
       {/* ── Quick action buttons ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Placeholder — links to home visitation form (teammate's page) */}
-        <button
-          disabled
-          title="Home visitation form — coming soon"
-          className="card flex items-center gap-4 text-left opacity-60 cursor-not-allowed"
+        <Link
+          to={`${base}/dashboard/home-visits`}
+          className="card card-interactive flex no-underline block group"
         >
-          <span className="text-3xl">🏡</span>
+          <span className="text-3xl mr-3">🏡</span>
           <div>
             <p className="font-semibold text-[var(--text-h)]">Record a Visitation</p>
             <p className="text-xs text-[var(--text)] mt-0.5">Opens home visitation form</p>
           </div>
-        </button>
+        </Link>
 
         {/* Placeholder — links to process recording form (teammate's page) */}
-        <button
-          disabled
-          title="Process recording form — coming soon"
-          className="card flex items-center gap-4 text-left opacity-60 cursor-not-allowed"
+        <Link
+          to={`${base}/dashboard/process-recording`}
+          className="card card-interactive flex no-underline block group"
         >
-          <span className="text-3xl">📋</span>
+          <span className="text-3xl mr-3">📋</span>
           <div>
             <p className="font-semibold text-[var(--text-h)]">Record a Process</p>
             <p className="text-xs text-[var(--text)] mt-0.5">Opens process recording form</p>
           </div>
-        </button>
+        </Link>
       </div>
 
       {/* ── Domain navigation cards ──────────────────────────────────────────── */}
