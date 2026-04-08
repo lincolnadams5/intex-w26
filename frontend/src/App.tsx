@@ -4,7 +4,7 @@ import { AdminLayout } from './pages/(admin)/AdminLayout'
 import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
-import { HomeVisitation } from './pages/(admin)/dashboard/home-visitation/HomeVisitation'
+import { Residents } from './pages/(admin)/residents/Residents'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
 import { UsersPage } from './pages/(admin)/users/UsersPage'
@@ -25,7 +25,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { trackPageView } from './utils/analytics'
 import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
-import HomeVisits from './pages/(admin)/visits/HomeVisits'
+import HomeVisits from './pages/(admin)/dashboard/home-visitation/HomeVisits'
 
 function AnalyticsTracker() {
   const location = useLocation()
@@ -91,7 +91,7 @@ function App() {
             <Route path="/admin/dashboard/process-recording" element={<ProcessRecording />} />
             <Route path="/admin/dashboard/home-visits" element={<HomeVisits />} />
           <Route path="donors" element={<DonorsPage />} />
-          <Route path="residents" element={<HomeVisitation />} />
+          <Route path="residents" element={<Residents />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="users" element={<UsersPage />} />
@@ -108,7 +108,7 @@ function App() {
         >
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="residents" element={<HomeVisitation />} />
+          <Route path="residents" element={<Residents />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 
