@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@supabase/supabase-js": "^2.101.1",
+    "dompurify": "^3.3.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-heatmap-grid": "^0.9.1",
@@ -20,6 +22,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@tailwindcss/vite": "^4.2.2",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

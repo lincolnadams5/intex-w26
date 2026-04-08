@@ -1,5 +1,7 @@
 using IntexBackendApi.Data;
 using IntexBackendApi.Models;
+using IntexBackendApi.Services;
+using IntexBackendApi.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ✅ Controllers + OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 // ✅ Database (PostgreSQL)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -77,6 +80,14 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Authenticated", policy => policy.RequireAuthenticatedUser());
 });
 
+// 📧 Email service — uses Gmail SMTP when App Password is configured, stub otherwise
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+
+if (string.IsNullOrEmpty(builder.Configuration["Email:AppPassword"]))
+    builder.Services.AddScoped<IEmailService, StubEmailService>();
+else
+    builder.Services.AddScoped<IEmailService, GmailEmailService>();
+
 // 🔒 HSTS configuration (production only — applied below in middleware pipeline)
 builder.Services.AddHsts(options =>
 {
@@ -124,11 +135,12 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self'; " +
-        "style-src 'self' 'unsafe-inline'; " +   // unsafe-inline needed if Swagger UI is used
+        "script-src 'self' https://accounts.google.com; " +                                          // Google Identity Services
+        "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data: https:; " +
         "font-src 'self'; " +
-        "connect-src 'self' https://intex-backend.onrender.com; " +
+        "connect-src 'self' https://intex-backend.onrender.com https://oauth2.googleapis.com; " +    // Google tokeninfo
+        "frame-src https://accounts.google.com; " +                                                  // Google OAuth popup
         "frame-ancestors 'none'; " +
         "form-action 'self';"
     );

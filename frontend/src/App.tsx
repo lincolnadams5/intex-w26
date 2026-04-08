@@ -13,6 +13,8 @@ import Donors from './pages/Donors'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Login from './pages/login/Login'
 import Register from './pages/login/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Unauthorized from './pages/Unauthorized'
 import DonorDashboard from './pages/donor/DonorDashboard'
 import DonatePage from './pages/donor/DonatePage'
@@ -20,22 +22,29 @@ import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
 import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+import { trackPageView } from './utils/analytics'
 import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
 import HomeVisits from './pages/(admin)/visits/HomeVisits'
 
-function App() {
+function AnalyticsTracker() {
+  const location = useLocation()
+
   useEffect(() => {
     const consent = getCookie('cookie_consent')
     if (consent === 'accepted') {
-      console.log('Tracking ENABLED')
       document.cookie = 'analytics=true; path=/'
-    } else {
-      console.log('Tracking BLOCKED')
     }
-  }, [])
+    trackPageView(location.pathname)
+  }, [location.pathname])
 
+  return null
+}
+
+function App() {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <CookieBanner />
       <Routes>
         {/* ── Public routes — no auth required ── */}
@@ -45,6 +54,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ── Donor dashboard — any authenticated user (non-admin/staff will use this) ── */}
