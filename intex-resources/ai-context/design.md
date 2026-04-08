@@ -1,128 +1,81 @@
 # Pag-asa Sanctuary Design System: design.md
 
-## 1. Creative North Star: "The Serene Guardian"
-Pag-asa Sanctuary is a digital sanctuary. The design philosophy balances **Institutional Trust** (reliability, security, professionalism) with **Safe Haven** (warmth, empathy, calm).
+# Design System Document: The Anchored Horizon
 
-### Key Principles:
-- **Protective & Professional:** The UI should feel like a sturdy, reliable structure that is also soft and welcoming.
-- **Calm Clarity:** Avoid visual clutter. Use high whitespace and soft transitions to reduce cognitive load, especially for vulnerable populations.
-- **Empowerment Through Action:** Buttons and CTAs should feel like invitations to grow or help, never like demands.
+## 1. Overview & Creative North Star: "The Digital Monolith"
+This design system is built upon the concept of **"The Anchored Horizon."** It moves away from the flighty, ephemeral nature of modern SaaS and instead leans into a "Digital Monolith" aesthetic—an experience that feels architectural, permanent, and deeply rooted.
 
----
-
-## 2. Visual Foundation
-
-### Color Palette
-- **Main Background:** Warm Cream (`#FEF9F3`) - used for all page backgrounds to avoid the clinical feel of pure white.
-- **Primary Actions:** Muted Teal (`#2D9F8C`) - used for primary buttons, progress bars, and key branding elements. Represents growth and stability.
-- **Accents/Notifications:** Soft Lavender (`#DB7981`) - used for priority alerts, high-impact stories, or subtle decorative elements. It's a "warm" alert color, avoiding harsh reds.
-- **Secondary Surfaces:** Off-white/Soft Sand (`#F8F3EB`) - used for card backgrounds or section separation.
-- **Typography/Text:** Deep Charcoal/Slate (`#1E293B`) - for high-contrast, legible body text.
-
-### Typography
-- **Headings:** **Quicksand** (Bold/Semi-bold). Rounded terminals feel friendly and approachable.
-- **Body Text:** **Inter** (Regular/Medium). Highly legible, professional, and clean.
-- **Scales:**
-  - H1: 32px - 48px (Hero/Welcome)
-  - H2: 24px - 32px (Section headers)
-  - Body: 14px - 16px
-  - Small/Caption: 12px
+The system breaks the "template" look by favoring **intentional asymmetry** and **editorial density**. Instead of centering everything, we align elements to a strong vertical axis (the anchor) while allowing content to bleed or stagger horizontally (the horizon). We use high-contrast typography scales and overlapping layers to create a sense of three-dimensional space that feels like a high-end physical publication rather than a flat web page.
 
 ---
 
-## 3. UI Components & Style
+## 2. Colors: Tonal Depth & The "No-Line" Rule
+The palette is a sophisticated interplay between the ocean-deep Teal and the radiant Warm Gold. We treat color as a structural element rather than a decorative one.
 
-### Cards & Containers
-- **Border Radius:** `24px` on all primary cards and large containers.
-- **Shadows:** Soft `10%` opacity shadows (e.g., `0 4px 20px rgba(0,0,0,0.05)`).
-- **Glassmorphism:** Use `backdrop-blur-md` and semi-transparent backgrounds (e.g., `white/80`) for fixed headers, overlays, and modals to create depth without heaviness.
+### The "No-Line" Rule
+**Explicit Instruction:** Designers are prohibited from using 1px solid borders for sectioning or containment. Boundaries must be defined solely through background color shifts. Use `surface-container-low` sections sitting on `surface` backgrounds to create distinction. This forces a softer, more premium transition that feels "built" rather than "drawn."
 
-### Navigation
-- **Mobile:** Bottom Navigation with large, centered active states.
-- **Desktop (Staff):** Fixed left sidebar (`w-72`) with clear, icon-based navigation.
-- **Desktop (Public):** Top navigation with a clear 'Donate' or 'Quick Exit' primary action.
+### Surface Hierarchy & Nesting
+Treat the UI as a series of physical layers—stacked sheets of fine, heavy-stock paper.
+- **Base Layer:** `surface` (#faf9f6) for the overall canvas.
+- **Nesting:** To highlight a specific module, use `surface-container` or `surface-container-high`. The shift is subtle, signaling importance through tonal weight rather than visual noise.
 
-### Interactions
-- **Buttons:** Fully rounded (pill-shaped) for a softer look. Subtle scale-up or opacity-shift on hover.
-- **Transitions:** Use `300ms ease-in-out` for all state changes (hovers, transitions) to maintain a "calm" rhythm.
-
----
-
-## 4. Imagery & Content Tone
-- **Imagery:** Warm, natural lighting. Soft focus backgrounds. Authentic, uplifting photography of nature or peaceful human interaction. Avoid "stock-photo" sterility.
-- **Tone of Voice:** Empathetic, clear, and supportive. Use "We" and "You" to build connection.
+### The "Glass & Signature Texture" Rule
+To elevate the "Anchored Horizon" feel:
+- **Floating Elements:** Use Glassmorphism for navigation bars or floating action menus. Utilize `surface` at 80% opacity with a `20px` backdrop-blur.
+- **Signature Gradients:** For Hero sections or Primary CTAs, use a linear gradient from `primary` (#004c5a) to `primary-container` (#006677) at a 135-degree angle. This provides a "soul" to the deep teal, preventing it from appearing flat or clinical.
 
 ---
 
-## 5. Application Across User Types
-- **Resident View:** Focus on simplicity, large touch targets, and emotional check-ins.
-- **Admin View:** Focus on data clarity and efficiency, but use the same soft aesthetics so staff don't feel "clinical."
-- **Donor View:** Focus on storytelling and "impact transparency." Use high-contrast teal for CTAs to drive action.
+## 3. Typography: The Editorial Authority
+The juxtaposition of a sturdy Serif and a high-performance Sans-Serif creates an immediate sense of established trust.
+
+- **Display & Headlines (Noto Serif):** These are your "Anchor" points. Use `display-lg` and `headline-lg` with generous leading (1.2). Do not be afraid of large-scale typography; let the headlines own the white space.
+- **Body & Labels (Manrope):** This is your "Horizon." Manrope’s geometric clarity provides a modern counterweight to the serif. Use `body-lg` for long-form reading to ensure the experience feels premium and accessible.
+- **Tonal Hierarchy:** Headlines should always utilize `on-surface` (#1a1c1a), while supporting body text can drop to `on-surface-variant` (#3f484b) to create a clear visual path for the eye.
 
 ---
 
-## 6. Implementation Reference (for AI agents and developers)
+## 4. Elevation & Depth: Tonal Layering
+Traditional drop shadows are too "digital." We achieve depth through atmospheric perspective.
 
-> This section documents how the design system is implemented in code. Do not change the design decisions above — only add to this section.
+- **The Layering Principle:** Stacking tiers (e.g., a `surface-container-lowest` card on a `surface-container-low` section) creates a "natural lift."
+- **Ambient Shadows:** If a card must float, use a "Sky Shadow": `box-shadow: 0 12px 40px rgba(0, 76, 90, 0.06);`. Note the tint—we use a fraction of the `primary` color (Deep Teal) in the shadow to mimic natural light passing through an environment, rather than a generic grey.
+- **The "Ghost Border" Fallback:** If a container requires a border for accessibility (e.g., on a white background), use a "Ghost Border": `outline-variant` (#bec8cb) at 20% opacity. **Never use 100% opaque borders.**
 
-### CSS Variables (`frontend/src/index.css`)
+---
 
-All design tokens are CSS custom properties on `:root`. Use these variables — never hardcode hex values.
+## 5. Components: Architectural Primitives
 
-| Variable | Value | Usage |
-|---|---|---|
-| `--accent` | `#2D9F8C` | Primary buttons, links, progress bars, chart primary color |
-| `--accent-light` | `#3db5a3` | Hover state for accent elements |
-| `--accent-dark` | `#1f7a69` | Active/pressed states; gradient end color |
-| `--accent-bg` | `rgba(45,159,140,0.10)` | Teal tint backgrounds (e.g., active nav item) |
-| `--accent-border` | `rgba(45,159,140,0.30)` | Teal-tinted borders on hover |
-| `--alert` | `#DB7981` | Warm rose/lavender for alerts, errors, critical risk — **never use harsh red** |
-| `--alert-bg` | `rgba(219,121,129,0.10)` | Alert tint background |
-| `--alert-border` | `rgba(219,121,129,0.30)` | Alert-tinted border |
-| `--bg` | `#FEF9F3` | Warm Cream — every page background |
-| `--bg-alt` | `#F8F3EB` | Soft Sand — section separators, sidebar, table headers |
-| `--card-bg` | `rgba(248,243,235,0.90)` | Semi-transparent card background |
-| `--text` | `#78726A` | Body/secondary text |
-| `--text-h` | `#1E293B` | Headings, labels, primary text |
-| `--border` | `#E8E0D0` | Warm-toned borders throughout |
-| `--shadow` | `0 4px 20px rgba(0,0,0,0.05)` | Card and component shadows |
-| `--shadow-lg` | `0 8px 40px rgba(0,0,0,0.08)` | Elevated modals or floating elements |
-| `--sans` | `'Inter', system-ui` | Body font family |
-| `--heading` | `'Quicksand', system-ui` | Heading font family (bold, rounded terminals) |
+### Buttons
+- **Primary:** `primary` background with `on-primary` text. Use the `lg` (8px) corner radius. For a "High-End" feel, add a subtle 1px inset top-light using `primary-fixed`.
+- **Secondary:** Use the `secondary_container` (Warm Gold) with `on-secondary-container`. This acts as a "Beacon" in the UI.
+- **States:** On hover, do not just darken the color; shift the elevation using a subtle ambient shadow.
 
-### Typography in Tailwind / JSX
+### Input Fields
+- **Styling:** No bottom line or full border. Use a `surface-container-high` background with an 8px top-radius.
+- **Focus:** Transition the background to `surface-container-highest` and add a 2px "Ghost Border" of `primary`.
 
-- Apply heading font via `font-[family-name:var(--heading)]` on brand name spans, section titles, or `<h1>`–`<h4>` (already set globally in CSS).
-- Apply body font via `font-[family-name:var(--sans)]` anywhere you need to explicitly override.
-- Google Fonts loaded in `frontend/index.html`: **Quicksand** (600, 700) + **Inter** (400, 500, 600).
+### Cards & Lists
+- **The Divider Ban:** Strictly forbid the use of horizontal rules (`
+`). Separate list items using `16px` or `24px` of vertical white space or alternating backgrounds between `surface` and `surface-container-low`.
 
-### Key Component Rules
+- **Editorial Cards:** For news or data, use asymmetrical padding (e.g., `pt-32 pr-24 pb-24 pl-40`) to create an intentional, non-grid-bound aesthetic.
 
-| Component | Rule |
-|---|---|
-| `.card` | `border-radius: 24px` — set in CSS, applies everywhere `.card` is used |
-| `.btn` | `border-radius: 9999px` (pill) — set in CSS, applies to all `.btn-*` variants |
-| `.table-container` | `border-radius: 16px` — slightly smaller than cards |
-| `.form-group input/select/textarea` | `border-radius: 12px` |
-| Transitions | Always `300ms ease-in-out` — never use `duration-200` or `0.2s` |
-| Header (public) | Glassmorphism: `bg-[var(--bg)]/80 backdrop-blur-md` |
-| Admin sidebar | `w-72` (288px) on desktop, collapses to `w-0` on toggle |
+### Additional Signature Component: The "Horizon Line"
+A decorative element consisting of a 2px thick line using the `secondary` (Warm Gold) token that spans 20% of the container width, placed above `headline-sm` elements to "anchor" the section.
 
-### Color Usage Rules
+---
 
-- **Never use `text-red-*` or `bg-red-*`** for user-facing states. Use `text-[#DB7981]` / `bg-[#DB7981]/10` (or `var(--alert)` / `var(--alert-bg)`) instead.
-- **Risk level colors:** Low → `#22c55e`, Medium → `#d97706`, High → `#f97316`, Critical → `#DB7981`
-- **Chart primary line/bar:** `#2D9F8C` (accent). Secondary series: `#3db5a3`, `#5eead4`, `#99f6e4`.
-- **CTA section gradient:** `linear-gradient(135deg, #2D9F8C 0%, #1f7a69 100%)` — teal to deep teal.
-- Dark mode is **disabled** — `color-scheme: light` only.
+## 6. Do’s and Don’ts
 
-### File Locations
+### Do:
+- **Do** use "Breathing Room." If you think there is enough margin, add 16px more.
+- **Do** overlap elements. Let an image from one section slightly bleed into the `surface-container` of the next to create a cohesive narrative flow.
+- **Do** use Warm Gold (`secondary`) sparingly. It is a highlighter, not a primary fill.
 
-| What | Where |
-|---|---|
-| Global CSS / design tokens | `frontend/src/index.css` |
-| Google Fonts + page title | `frontend/index.html` |
-| Reusable admin stat card | `frontend/src/components/admin/AdminStatCard.tsx` |
-| Admin shell (sidebar + topbar) | `frontend/src/pages/(admin)/AdminLayout.tsx` |
-| Public landing page | `frontend/src/pages/Landing.tsx` |
-| Public header | `frontend/src/components/Header.tsx` |
+### Don't:
+- **Don't** use standard "Grey" shadows. They muddy the Teal/Gold palette.
+- **Don't** use 1px solid borders. It shatters the "Digital Monolith" illusion.
+- **Don't** center-align long-form text. Keep it left-aligned to the "Anchor" axis to maintain authority.
+- **Don't** use pure black (#000000). Always use `on-surface` (#1a1c1a) to maintain the soft editorial feel.
