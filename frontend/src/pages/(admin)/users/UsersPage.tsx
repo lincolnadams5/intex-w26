@@ -7,6 +7,8 @@ import {
   getUsers,
   changeUserRole,
   deactivateUser,
+  deleteUser,
+  reactivateUser,
   type UserProfile,
 } from '../../../lib/adminApi'
 
@@ -64,6 +66,36 @@ export function UsersPage() {
     }
   }
 
+  // ── Delete handler ───────────────────────────────────────────────────────────
+  async function handleDelete(user: UserProfile) {
+    if (!confirm(`Delete ${user.email}? This action cannot be undone.`)) return
+    setSaving(user.id)
+    try {
+      const res = await deleteUser(user.id)
+      if (!res.ok) throw new Error()
+      setUsers(prev => prev.filter(u => u.id !== user.id))
+    } catch {
+      alert('Failed to delete user. Please try again.')
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  // ── Reactivate handler ──────────────────────────────────────────────────────
+  async function handleReactivate(user: UserProfile) {
+    if (!confirm(`Reactivate ${user.email}? This will allow them to log in again.`)) return
+    setSaving(user.id)
+    try {
+      const res = await reactivateUser(user.id)
+      if (!res.ok) throw new Error()
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, isActive: true } : u))
+    } catch {
+      alert('Failed to reactivate user. Please try again.')
+    } finally {
+      setSaving(null)
+    }
+  }
+
   if (loading) return <LoadingState />
   if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
 
@@ -76,7 +108,7 @@ export function UsersPage() {
     <div className="flex flex-col gap-6 max-w-[1200px]">
       <PageHeader
         title="Manage Users"
-        subtitle="View all registered accounts, reassign roles, and deactivate users."
+        subtitle="View all registered accounts, reassign roles, and deactivate/delete users."
       />
 
       {/* ── Stat cards ──────────────────────────────────────────────────────── */}
@@ -107,7 +139,7 @@ export function UsersPage() {
             </thead>
             <tbody>
               {users.map(user => (
-                <tr key={user.id} className={!user.isActive ? 'opacity-50' : ''}>
+                <tr key={user.id}>
 
                   {/* Email */}
                   <td className="font-medium text-[var(--text-h)] text-sm">{user.email}</td>
@@ -155,7 +187,7 @@ export function UsersPage() {
                     }
                   </td>
 
-                  {/* Deactivate action */}
+                  {/* Deactivate/Reactivate/Delete action */}
                   <td>
                     {user.isActive && (
                       <button
@@ -166,6 +198,22 @@ export function UsersPage() {
                         {saving === user.id ? 'Saving…' : 'Deactivate'}
                       </button>
                     )}
+                    {!user.isActive && (
+                      <button
+                        disabled={saving === user.id}
+                        onClick={() => handleReactivate(user)}
+                        className="text-xs hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                      >
+                        {saving === user.id ? 'Saving…' : 'Reactivate'}
+                      </button>
+                    )}
+                    <button
+                      disabled={saving === user.id}
+                      onClick={() => handleDelete(user)}
+                      className="ml-4 text-xs text-[var(--error)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                    >
+                      {saving === user.id ? 'Saving…' : 'Delete'}
+                    </button>
                   </td>
                 </tr>
               ))}

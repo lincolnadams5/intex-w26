@@ -304,3 +304,9 @@ export const changeUserRole = (id: string, role: string) =>
 
 export const deactivateUser = (id: string) =>
   authFetch(`/api/admin/users/${id}/deactivate`, { method: 'PUT' })
+
+export const deleteUser = (id: string) =>
+  authFetch(`/api/admin/users/${id}`, { method: 'DELETE' })
+
+export const reactivateUser = (id: string) =>
+  authFetch(`/api/admin/users/${id}/reactivate`, { method: 'PUT' })
