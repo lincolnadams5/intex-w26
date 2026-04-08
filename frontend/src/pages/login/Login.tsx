@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
+import { GoogleLogin } from '@react-oauth/google'
+import type { CredentialResponse } from '@react-oauth/google'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
