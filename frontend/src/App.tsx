@@ -19,7 +19,8 @@ import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
 import { useEffect } from 'react'
-import ProcessRecording from './pages/ProcessRecording'
+import ProcessRecording from './pages/(admin)/processRecording/ProcessRecording'
+import HomeVisits from './pages/(admin)/visits/HomeVisits'
 
 function App() {
   useEffect(() => {
@@ -79,6 +80,7 @@ function App() {
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="process-recording" element={<ProcessRecording />} />
+          <Route path="home-visits" element={<HomeVisits />} />
         </Route>
 
         {/* ── Staff portal — requires Staff role ── */}
