@@ -16,18 +16,18 @@ export function StatCard({ label, value, icon, trend, accent, subtitle }: StatCa
     <div className="card">
       {/* Label + icon row */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-[var(--text)]">{label}</span>
+        <span className="text-sm font-medium text-[var(--color-on-surface-variant)]">{label}</span>
         {icon && <span className="text-xl opacity-70">{icon}</span>}
       </div>
 
       {/* Primary value */}
-      <div className={`text-3xl font-bold mb-1 ${accent ? 'text-[var(--accent)]' : 'text-[var(--text-h)]'}`}>
+      <div className={`text-3xl font-bold mb-1 ${accent ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface)]'}`}>
         {value}
       </div>
 
       {/* Optional subtitle */}
       {subtitle && (
-        <div className="text-xs text-[var(--text)] mb-1">{subtitle}</div>
+        <div className="text-xs text-[var(--color-on-surface-variant)] mb-1">{subtitle}</div>
       )}
 
       {/* Trend indicator */}

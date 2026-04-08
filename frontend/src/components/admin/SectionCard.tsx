@@ -27,10 +27,10 @@ export function SectionCard({
       {/* Section header */}
       <div className="flex items-start gap-2 mb-1">
         {titleIcon && <span className="text-xl leading-tight mt-0.5">{titleIcon}</span>}
-        <h3 className="text-[var(--text-h)]">{title}</h3>
+        <h3 className="text-[var(--color-on-surface)]">{title}</h3>
       </div>
       {subtitle && (
-        <p className="text-xs text-[var(--text)] mb-4">{subtitle}</p>
+        <p className="text-xs text-[var(--color-on-surface-variant)] mb-4">{subtitle}</p>
       )}
       {!subtitle && <div className="mb-4" />}
 

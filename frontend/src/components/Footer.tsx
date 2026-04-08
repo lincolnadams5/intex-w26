@@ -8,7 +8,7 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
         <Link
         key={label}
         to={href}
-        className="text-[var(--text)] text-sm hover:text-[var(--accent)] no-underline transition-colors"
+        className="text-[var(--color-on-surface-variant)] text-sm hover:text-[var(--color-primary)] no-underline transition-colors"
       >
         {label}
       </Link>
@@ -19,15 +19,15 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
 
 export function Footer() {
   return (
-    <footer className="bg-[var(--bg-alt)] border-t border-[var(--border)] mt-auto">
+    <footer className="bg-[var(--color-surface-container-low)] border-t border-[var(--color-outline-variant)] mt-auto">
       <div className="grid grid-cols-1 md:grid-cols-[1.5fr_2fr] gap-10 md:gap-[60px] py-10 px-6 md:py-[60px] md:px-8 max-w-[1200px] mx-auto">
         <div>
           <div className="mb-4">
-            <span className="text-[22px] font-bold text-[var(--text-h)] tracking-tight">
+            <span className="text-[22px] font-bold text-[var(--color-on-surface)] tracking-tight">
               Pag-asa Sanctuary
             </span>
           </div>
-          <p className="text-[var(--text)] text-sm leading-relaxed max-w-[300px]">
+          <p className="text-[var(--color-on-surface-variant)] text-sm leading-relaxed max-w-[300px]">
             Pag-asa means "hope" in Tagalog. We restore hope and rebuild lives for survivors of abuse and trafficking.
           </p>
         </div>
@@ -56,13 +56,14 @@ export function Footer() {
               { label: 'Annual Reports', href: '#' },
               { label: 'News', href: '#' },
               { label: 'FAQ', href: '#' },
-              { label: 'Privacy Policy', href: '/privacypolicy' },
+              { label: 'Contact Us', href: 'mailto:contact@pagasasanctuary.org' },
+              { label: 'Privacy Policy', href: '/privacy' },
             ]}
           />
         </div>
       </div>
-      <div className="border-t border-[var(--border)] py-6 px-8 text-center">
-        <p className="text-[13px] text-[var(--text)]">
+      <div className="border-t border-[var(--color-outline-variant)] py-6 px-8 text-center">
+        <p className="text-[13px] text-[var(--color-on-surface-variant)]">
           © 2026 Pag-asa Sanctuary. All rights reserved. A 501(c)(3) nonprofit organization.
         </p>
       </div>

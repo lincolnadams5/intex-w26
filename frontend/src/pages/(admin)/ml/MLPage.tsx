@@ -70,7 +70,7 @@ function ScoreBar({ score }: { score: number }) {
   const color = score >= 0.75 ? '#ef4444' : score >= 0.5 ? '#f97316' : '#eab308'
   return (
     <div className="flex items-center gap-2">
-      <div className="w-24 h-2 rounded-full bg-[var(--border)] overflow-hidden flex-shrink-0">
+      <div className="w-24 h-2 rounded-full bg-[var(--color-outline-variant)] overflow-hidden flex-shrink-0">
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
       </div>
       <span className="text-xs font-medium" style={{ color }}>{pct}%</span>
@@ -159,8 +159,8 @@ export function MLPage() {
         })()}
 
         {/* Action guidance */}
-        <div className="p-3 bg-[var(--bg-alt)] rounded-lg border border-[var(--border)] text-xs text-[var(--text)] mb-4">
-          <strong className="text-[var(--text-h)]">How to act on this: </strong>
+        <div className="p-3 bg-[var(--color-surface-container-low)] rounded-lg border border-[var(--color-outline-variant)] text-xs text-[var(--color-on-surface-variant)] mb-4">
+          <strong className="text-[var(--color-on-surface)]">How to act on this: </strong>
           Prioritize personal outreach (call or handwritten note) for donors above 75%.
           Send automated email sequences to donors in the 40–75% range.
         </div>
@@ -229,8 +229,8 @@ export function MLPage() {
         titleIcon="🌱"
       >
         {/* Action guidance */}
-        <div className="p-3 bg-[var(--bg-alt)] rounded-lg border border-[var(--border)] text-xs text-[var(--text)] mb-4">
-          <strong className="text-[var(--text-h)]">How to act on this: </strong>
+        <div className="p-3 bg-[var(--color-surface-container-low)] rounded-lg border border-[var(--color-outline-variant)] text-xs text-[var(--color-on-surface-variant)] mb-4">
+          <strong className="text-[var(--color-on-surface)]">How to act on this: </strong>
           Residents above 85% should be discussed at the next case conference for a transition plan.
           Scores between 60–85% indicate focused intervention could accelerate readiness.
         </div>
@@ -241,18 +241,18 @@ export function MLPage() {
             return (
               <div
                 key={r.code}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--bg-alt)]"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)]"
               >
                 <div className="flex-1 min-w-0">
                   {/* Resident header */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-[var(--text-h)] text-sm">{r.code}</span>
-                    <span className="text-xs text-[var(--text)]">{r.safehouse}</span>
-                    <span className="text-xs text-[var(--text)]">· Target: {r.type}</span>
+                    <span className="font-medium text-[var(--color-on-surface)] text-sm">{r.code}</span>
+                    <span className="text-xs text-[var(--color-on-surface-variant)]">{r.safehouse}</span>
+                    <span className="text-xs text-[var(--color-on-surface-variant)]">· Target: {r.type}</span>
                   </div>
                   {/* Progress bar */}
                   <div className="mt-2 flex items-center gap-2">
-                    <div className="flex-1 h-2.5 rounded-full bg-[var(--border)] overflow-hidden">
+                    <div className="flex-1 h-2.5 rounded-full bg-[var(--color-outline-variant)] overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -264,7 +264,7 @@ export function MLPage() {
                         }}
                       />
                     </div>
-                    <span className="text-sm font-bold text-[var(--text-h)] w-10 text-right">{pct}%</span>
+                    <span className="text-sm font-bold text-[var(--color-on-surface)] w-10 text-right">{pct}%</span>
                   </div>
                 </div>
                 {/* Readiness badge */}
@@ -329,27 +329,27 @@ export function MLPage() {
 
         {/* Prediction result */}
         {roiResult && (
-          <div className="mt-5 p-4 rounded-xl border-2 border-[var(--accent-border)] bg-[var(--accent-bg)]">
-            <p className="text-sm font-semibold text-[var(--accent)] mb-3">
+          <div className="mt-5 p-4 rounded-xl border-2 border-[var(--color-outline-variant)] bg-[rgba(0, 76, 90, 0.08)]">
+            <p className="text-sm font-semibold text-[var(--color-primary)] mb-3">
               Prediction: {platform} · {postType}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <p className="text-xs text-[var(--text)] mb-1">Est. Engagement Rate</p>
-                <p className="text-2xl font-bold text-[var(--text-h)]">{roiResult.engagementRate}</p>
+                <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Est. Engagement Rate</p>
+                <p className="text-2xl font-bold text-[var(--color-on-surface)]">{roiResult.engagementRate}</p>
               </div>
               <div>
-                <p className="text-xs text-[var(--text)] mb-1">Est. Donation Value</p>
-                <p className="text-2xl font-bold text-[var(--accent)]">{roiResult.estimatedDonations}</p>
+                <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Est. Donation Value</p>
+                <p className="text-2xl font-bold text-[var(--color-primary)]">{roiResult.estimatedDonations}</p>
               </div>
               <div>
-                <p className="text-xs text-[var(--text)] mb-1">Model Confidence</p>
+                <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Model Confidence</p>
                 <span className={`badge ${confidenceBadgeClass(roiResult.confidence)} text-sm font-semibold`}>
                   {roiResult.confidence}
                 </span>
               </div>
             </div>
-            <p className="text-xs text-[var(--text)] mt-3">
+            <p className="text-xs text-[var(--color-on-surface-variant)] mt-3">
               Placeholder predictions — wire <code>POST /api/ml/social-roi-predict</code> once the pipeline is ready.
             </p>
           </div>

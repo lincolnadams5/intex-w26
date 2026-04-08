@@ -21,7 +21,7 @@ export function Pagination({ page, totalPages, totalItems, pageSize, onPageChang
       >
         ← Previous
       </button>
-      <span className="text-sm text-[var(--text)]">
+      <span className="text-sm text-[var(--color-on-surface-variant)]">
         Showing {start}–{end} of {totalItems}
       </span>
       <button

@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { Breadcrumbs } from '../../components/admin/Breadcrumbs'
+import { ProfileCard } from '../../components/admin/ProfileCard'
 
 // Nav items visible to both Admin and Staff
 const baseNavItems = [
@@ -10,8 +12,6 @@ const baseNavItems = [
   { to: '/admin/safehouses', label: 'Safehouses',     icon: '🏡' },
   { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
   { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
-  { to: '/admin/home-visits', label: 'Home Visits', icon: '📋' },
-  { to: '/admin/process-recording', label: 'Process Recording', icon: '📋' },
 ]
 
 // Nav item visible only to Admin
@@ -31,27 +31,24 @@ export function AdminLayout() {
     navigate('/')
   }
 
-  // First letter of the user's name for the avatar bubble
-  const initial = user?.fullName?.charAt(0).toUpperCase() ?? 'U'
-
   return (
-    <div className="flex min-h-svh bg-[var(--bg-alt)]">
+    <div className="flex min-h-svh bg-[var(--color-surface-container-low)]">
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--bg)] border-r border-[var(--border)] flex flex-col transition-all duration-[300ms] ease-in-out`}
+        className={`${sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
       >
         {/* Brand */}
-        <div className="px-5 py-5 border-b border-[var(--border)]">
-          <span className="text-[18px] font-bold text-[var(--text-h)] tracking-tight leading-tight font-[family-name:var(--heading)]">
+        <div className="px-5 py-5 border-b border-[var(--color-outline-variant)]">
+          <span className="text-[18px] font-bold text-[var(--color-on-surface)] tracking-tight leading-tight font-[family-name:var(--font-display)]">
             Pag-asa Sanctuary
           </span>
-          <p className="text-xs text-[var(--text)] mt-0.5 font-[family-name:var(--sans)]">
+          <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5 font-[family-name:var(--font-body)]">
             {isAdmin ? 'Admin Portal' : 'Staff Portal'}
           </p>
         </div>
 
         {/* Nav */}
-        <nav className="flex flex-col gap-1 p-3 flex-1">
+        <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
           {navItems.map(({ to, label, icon }) => (
             <NavLink
               key={to}
@@ -60,8 +57,8 @@ export function AdminLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline ${
                   isActive
-                    ? 'bg-[var(--accent-bg)] text-[var(--accent)]'
-                    : 'text-[var(--text)] hover:bg-[var(--bg-alt)] hover:text-[var(--text-h)]'
+                    ? 'bg-[rgba(0, 76, 90, 0.08)] text-[var(--color-primary)]'
+                    : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] hover:text-[var(--color-on-surface)]'
                 }`
               }
             >
@@ -72,10 +69,17 @@ export function AdminLayout() {
         </nav>
 
         {/* Sidebar footer */}
-        <div className="p-3 border-t border-[var(--border)]">
+        <div className="p-3 border-t border-[var(--color-outline-variant)] flex flex-col gap-1">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] hover:text-[var(--color-on-surface)] transition-colors no-underline"
+          >
+            <span className="text-base leading-none">🏠</span>
+            Return to Home
+          </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--text)] hover:bg-[var(--alert-bg)] hover:text-[var(--alert)] transition-all duration-[300ms] ease-in-out"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--color-on-surface-variant)] hover:bg-[var(--color-error-container)] hover:text-[var(--color-error)] transition-all duration-[300ms] ease-in-out"
           >
             <span className="text-base leading-none">🚪</span>
             Log Out
@@ -86,24 +90,25 @@ export function AdminLayout() {
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="bg-[var(--bg)] border-b border-[var(--border)] px-6 py-3 flex items-center justify-between flex-shrink-0">
+        <header className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] px-6 py-3 flex items-center justify-between flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(o => !o)}
-            className="p-2 rounded-lg text-[var(--text)] hover:bg-[var(--bg-alt)] transition-colors"
+            className="p-2 rounded-lg text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] transition-colors"
             aria-label="Toggle sidebar"
           >
             ☰
           </button>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-[var(--text)] hidden sm:block">
-              {user?.email ?? ''}
-            </span>
-            <div className="w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              {initial}
-            </div>
-          </div>
+          <ProfileCard
+            name={user?.fullName ?? 'User'}
+            email={user?.email ?? ''}
+          />
         </header>
+
+        {/* Breadcrumb bar */}
+        <div className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] px-6 py-2">
+          <Breadcrumbs />
+        </div>
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-6">

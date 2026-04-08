@@ -6,13 +6,15 @@ public class RegisterDto
 {
     [Required]
     [EmailAddress]
+    [StringLength(256)]
     public string Email { get; set; } = string.Empty;
 
     [Required]
+    [StringLength(100, MinimumLength = 1)]
     public string FullName { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(14, ErrorMessage = "Password must be at least 14 characters")]
+    [StringLength(256, MinimumLength = 14)]
     public string Password { get; set; } = string.Empty;
 
     [Required]

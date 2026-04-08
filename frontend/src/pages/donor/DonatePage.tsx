@@ -37,9 +37,9 @@ export default function DonatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--surface)]">
+    <div className="min-h-screen bg-[var(--color-surface)]">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary-container)] text-white py-10 px-6 text-center">
+      <header className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white py-10 px-6 text-center">
         <div className="max-w-xl mx-auto">
           <Link to="/my-donations" className="inline-block text-white/80 hover:text-white text-sm mb-4 transition-colors">
             ← Back to My Donations
@@ -64,8 +64,8 @@ export default function DonatePage() {
                   type="button"
                   className={`py-4 px-3 rounded-lg font-semibold text-base transition-all ${
                     selectedPreset === amount
-                      ? 'bg-[var(--primary)] text-white shadow-[var(--shadow-ambient)]'
-                      : 'bg-[var(--surface-container-high)] text-[var(--on-surface)] hover:bg-[var(--surface-container-highest)]'
+                      ? 'bg-[var(--color-primary)] text-white shadow-[var(--shadow-ambient)]'
+                      : 'bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-highest)]'
                   }`}
                   onClick={() => handlePresetClick(amount)}
                 >
@@ -74,18 +74,18 @@ export default function DonatePage() {
               ))}
             </div>
             <div className="mt-5">
-              <label htmlFor="custom" className="block text-sm text-[var(--on-surface-variant)] mb-2">
+              <label htmlFor="custom" className="block text-sm text-[var(--color-on-surface-variant)] mb-2">
                 Or enter a custom amount (PHP)
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-[var(--outline)] font-medium">₱</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-[var(--color-outline)] font-medium">₱</span>
                 <input
                   type="text"
                   id="custom"
                   placeholder="0"
                   value={customAmount}
                   onChange={handleCustomChange}
-                  className="w-full pl-10 pr-4 py-4 text-xl font-semibold bg-[var(--surface-container-high)] rounded-lg focus:bg-[var(--surface-container-highest)] focus:shadow-[0_2px_0_0_var(--primary)] outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-4 text-xl font-semibold bg-[var(--color-surface-container-high)] rounded-lg focus:bg-[var(--color-surface-container-highest)] focus:shadow-[0_2px_0_0_var(--color-primary)] outline-none transition-all"
                 />
               </div>
             </div>
@@ -93,27 +93,27 @@ export default function DonatePage() {
 
           {/* Recurring Option */}
           <section className="mb-8">
-            <label className="flex items-center gap-3 p-4 bg-[var(--surface-container-low)] rounded-lg cursor-pointer hover:bg-[var(--surface-container)] transition-colors">
+            <label className="flex items-center gap-3 p-4 bg-[var(--color-surface-container-low)] rounded-lg cursor-pointer hover:bg-[var(--color-surface-container)] transition-colors">
               <input
                 type="checkbox"
                 checked={isRecurring}
                 onChange={e => setIsRecurring(e.target.checked)}
-                className="w-5 h-5 accent-[var(--primary)]"
+                className="w-5 h-5 accent-[var(--color-primary)]"
               />
-              <span className="text-[var(--on-surface)]">Make this a monthly recurring donation</span>
+              <span className="text-[var(--color-on-surface)]">Make this a monthly recurring donation</span>
             </label>
           </section>
 
           {/* Summary */}
           {activeAmount > 0 && (
-            <section className="bg-[var(--surface-container-low)] rounded-lg p-5 mb-6">
+            <section className="bg-[var(--color-surface-container-low)] rounded-lg p-5 mb-6">
               <div className="flex justify-between items-center py-2">
-                <span className="text-[var(--on-surface-variant)]">Donation Amount</span>
-                <span className="text-xl font-bold text-[var(--primary)]">{formatCurrency(activeAmount)}</span>
+                <span className="text-[var(--color-on-surface-variant)]">Donation Amount</span>
+                <span className="text-xl font-bold text-[var(--color-primary)]">{formatCurrency(activeAmount)}</span>
               </div>
               {isRecurring && (
-                <div className="flex justify-between items-center py-2 border-t border-[var(--surface-container-high)]">
-                  <span className="text-[var(--on-surface-variant)] text-sm">Frequency</span>
+                <div className="flex justify-between items-center py-2 border-t border-[var(--color-surface-container-high)]">
+                  <span className="text-[var(--color-on-surface-variant)] text-sm">Frequency</span>
                   <span className="text-sm">Monthly</span>
                 </div>
               )}
@@ -122,9 +122,9 @@ export default function DonatePage() {
 
           {/* Impact Preview */}
           {activeAmount >= 500 && (
-            <section className="bg-[var(--surface-container-low)] rounded-lg p-5 mb-6 border-l-[3px] border-[var(--secondary)]">
-              <h4 className="text-sm font-semibold text-[var(--secondary)] mb-2">Your Impact</h4>
-              <p className="text-sm text-[var(--on-surface-variant)] leading-relaxed">
+            <section className="bg-[var(--color-surface-container-low)] rounded-lg p-5 mb-6 border-l-[3px] border-[var(--color-secondary)]">
+              <h4 className="text-sm font-semibold text-[var(--color-secondary)] mb-2">Your Impact</h4>
+              <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed">
                 {activeAmount >= 25000
                   ? 'Could provide a full month of care for a survivor, including housing, food, education, and counseling.'
                   : activeAmount >= 10000
@@ -149,7 +149,7 @@ export default function DonatePage() {
             {isSubmitting ? 'Processing...' : `Donate ${activeAmount > 0 ? formatCurrency(activeAmount) : ''}`}
           </button>
 
-          <p className="text-center text-xs text-[var(--outline)] mt-4">
+          <p className="text-center text-xs text-[var(--color-outline)] mt-4">
             Your donation is secure and encrypted. You will receive a receipt via email.
           </p>
         </form>

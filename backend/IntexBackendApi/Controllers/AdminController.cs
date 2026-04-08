@@ -97,6 +97,35 @@ public class AdminController : ControllerBase
         return Ok(new { message = "User deactivated" });
     }
 
+    // PUT /api/admin/users/{id}/activate
+    // Re-activates a previously deactivated user account.
+    [HttpPut("users/{id}/activate")]
+    public async Task<IActionResult> Activate(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null) return NotFound(new { message = "User not found" });
+
+        user.IsActive = true;
+        await _userManager.UpdateAsync(user);
+
+        return Ok(new { message = "User activated" });
+    }
+
+    // DELETE /api/admin/users/{id}
+    // Permanently deletes a user account. Use with caution.
+    [HttpDelete("users/{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null) return NotFound(new { message = "User not found" });
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+            return StatusCode(500, new { message = "Failed to delete user", errors = result.Errors });
+
+        return Ok(new { message = "User deleted" });
+    }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  DASHBOARD

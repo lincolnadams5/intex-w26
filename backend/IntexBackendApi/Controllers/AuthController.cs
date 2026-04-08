@@ -1,12 +1,15 @@
 using IntexBackendApi.DTOs;
 using IntexBackendApi.Models;
+using IntexBackendApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace IntexBackendApi.Controllers;
 
@@ -17,15 +20,21 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _config;
+    private readonly IEmailService _emailService;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IConfiguration config)
+        IConfiguration config,
+        IEmailService emailService,
+        IHttpClientFactory httpClientFactory)
     {
-        _userManager  = userManager;
-        _signInManager = signInManager;
-        _config        = config;
+        _userManager        = userManager;
+        _signInManager      = signInManager;
+        _config             = config;
+        _emailService       = emailService;
+        _httpClientFactory  = httpClientFactory;
     }
 
     // POST /api/auth/register
@@ -54,7 +63,14 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Registration failed", errors });
         }
 
-        await _userManager.AddToRoleAsync(user, "Donor");
+        var roleResult = await _userManager.AddToRoleAsync(user, "Donor");
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            return StatusCode(500, new { message = "Registration failed: could not assign user role" });
+        }
+
+        await _emailService.SendWelcomeEmailAsync(user.Email!, user.FullName);
 
         var token   = await GenerateJwtTokenAsync(user);
         var profile = await BuildProfileDtoAsync(user);
@@ -63,7 +79,8 @@ public class AuthController : ControllerBase
     }
 
     // POST /api/auth/login
-    // Authenticates the user. If 2FA is enabled, returns Requires2FA=true with no token.
+    // Authenticates the user. If 2FA is enabled, generates a code and emails it,
+    // then returns Requires2FA=true with no token.
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
@@ -80,9 +97,12 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
             return Unauthorized(new { message = "Invalid email or password" });
 
-        // 2FA check — return a partial response so the client can request the second factor
+        // 2FA — generate a real token and email it, then return a partial response
         if (user.TwoFactorEnabled)
         {
+            var code = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            await _emailService.SendTwoFactorCodeAsync(user.Email!, user.FullName, code);
+
             return Ok(new AuthResponseDto
             {
                 Requires2FA = true,
@@ -123,8 +143,6 @@ public class AuthController : ControllerBase
 
     // POST /api/auth/enable-2fa
     // Enables two-factor authentication for the current user.
-    // ⚠️  STUB: Email sending is not yet wired to a real provider.
-    //     See intex-resources/user-authentication/2fa-email-provider-setup.md to complete.
     [HttpPost("enable-2fa")]
     [Authorize]
     public async Task<IActionResult> Enable2FA()
@@ -134,8 +152,6 @@ public class AuthController : ControllerBase
         if (user is null) return NotFound();
 
         await _userManager.SetTwoFactorEnabledAsync(user, true);
-
-        // TODO: When email provider is configured, send a confirmation email here.
         return Ok(new { message = "Two-factor authentication enabled. A verification code will be sent to your email on next login." });
     }
 
@@ -155,23 +171,120 @@ public class AuthController : ControllerBase
 
     // POST /api/auth/verify-2fa
     // Verifies the 2FA code submitted after a Requires2FA login response.
-    // ⚠️  STUB: Token generation/validation needs an email provider to actually send codes.
-    //     See intex-resources/user-authentication/2fa-email-provider-setup.md to complete.
     [HttpPost("verify-2fa")]
     public async Task<IActionResult> Verify2FA([FromBody] Verify2FADto dto)
     {
         var user = await _userManager.FindByIdAsync(dto.UserId);
-        if (user is null)
+        if (user is null || !user.IsActive)
             return Unauthorized(new { message = "Invalid session" });
 
-        // TODO: Replace with real verification once email provider is wired up.
-        // var valid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", dto.Code);
-        // if (!valid) return Unauthorized(new { message = "Invalid or expired code" });
+        var valid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", dto.Code);
+        if (!valid)
+            return Unauthorized(new { message = "Invalid or expired code" });
 
-        // STUB: accept any 6-digit code for now
-        if (dto.Code.Length != 6 || !dto.Code.All(char.IsDigit))
-            return Unauthorized(new { message = "Invalid code format" });
+        var token   = await GenerateJwtTokenAsync(user);
+        var profile = await BuildProfileDtoAsync(user);
 
+        return Ok(new AuthResponseDto { Token = token, User = profile });
+    }
+
+    // POST /api/auth/forgot-password
+    // Generates a password reset token and emails the link.
+    // Always returns 200 to prevent email enumeration.
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if (user is not null)
+        {
+            var resetToken    = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken  = Uri.EscapeDataString(resetToken);
+            var frontendBase  = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
+            var resetLink     = $"{frontendBase}/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
+
+            await _emailService.SendPasswordResetAsync(user.Email!, user.FullName, resetLink);
+        }
+
+        return Ok(new { message = "If that email exists, a reset link has been sent." });
+    }
+
+    // POST /api/auth/reset-password
+    // Accepts { email, token, newPassword } and resets the user's password.
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user is null)
+            return BadRequest(new { message = "Invalid request." });
+
+        var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+
+        if (!result.Succeeded)
+            return BadRequest(new { message = "Reset failed.", errors = result.Errors.Select(e => e.Description) });
+
+        return Ok(new { message = "Password has been reset successfully." });
+    }
+
+    // POST /api/auth/google-signin
+    // Verifies a Google ID token, then finds or creates the user and returns a JWT.
+    // The ID token is produced by @react-oauth/google on the frontend.
+    [HttpPost("google-signin")]
+    public async Task<IActionResult> GoogleSignIn([FromBody] GoogleCredentialDto dto)
+    {
+        var googleClientId = _config["Google:ClientId"]
+            ?? throw new InvalidOperationException("Google:ClientId not configured.");
+
+        // Verify the ID token by calling Google's tokeninfo endpoint
+        var http = _httpClientFactory.CreateClient();
+        var tokenInfoUrl = $"https://oauth2.googleapis.com/tokeninfo?id_token={dto.Credential}";
+        var response = await http.GetAsync(tokenInfoUrl);
+
+        if (!response.IsSuccessStatusCode)
+            return Unauthorized(new { message = "Invalid Google credential" });
+
+        var payload = await response.Content.ReadFromJsonAsync<GoogleTokenPayload>();
+
+        if (payload is null)
+            return Unauthorized(new { message = "Could not parse Google token" });
+
+        // Verify that this token was issued for OUR app (prevents token substitution attacks)
+        if (payload.Aud != googleClientId)
+            return Unauthorized(new { message = "Token audience mismatch" });
+
+        if (!string.Equals(payload.EmailVerified, "true", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized(new { message = "Google account email is not verified" });
+
+        // Find existing user or create a new one
+        var user = await _userManager.FindByEmailAsync(payload.Email);
+
+        if (user is null)
+        {
+            user = new ApplicationUser
+            {
+                UserName       = payload.Email,
+                Email          = payload.Email,
+                FullName       = !string.IsNullOrWhiteSpace(payload.Name) ? payload.Name : payload.Email,
+                EmailConfirmed = true,   // Google has already verified the email
+                IsActive       = true,
+                CreatedAt      = DateTime.UtcNow,
+            };
+
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                var errors = createResult.Errors.Select(e => e.Description);
+                return BadRequest(new { message = "Account creation failed", errors });
+            }
+
+            await _userManager.AddToRoleAsync(user, "Donor");
+            await _emailService.SendWelcomeEmailAsync(user.Email!, user.FullName);
+        }
+
+        if (!user.IsActive)
+            return Unauthorized(new { message = "This account has been deactivated" });
+
+        // Google authentication bypasses 2FA — the user has already authenticated with Google
         var token   = await GenerateJwtTokenAsync(user);
         var profile = await BuildProfileDtoAsync(user);
 
@@ -182,7 +295,7 @@ public class AuthController : ControllerBase
 
     private async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
     {
-        var roles = await _userManager.GetRolesAsync(user);
+        var roles  = await _userManager.GetRolesAsync(user);
         var jwtKey = _config["Jwt:Key"]!;
         var key    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
@@ -193,7 +306,6 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.FullName),
         };
 
-        // Add each role as a claim so [Authorize(Roles = "...")] works on controllers
         foreach (var role in roles)
             claims.Add(new Claim(ClaimTypes.Role, role));
 

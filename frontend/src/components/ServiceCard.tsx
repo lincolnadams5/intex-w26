@@ -12,11 +12,11 @@ export function ServiceCard({
   return (
     <a
       href={href}
-      className="group bg-[var(--bg)] border border-[var(--border)] rounded-[24px] p-7 no-underline transition-all duration-[300ms] ease-in-out flex flex-col hover:border-[var(--accent-border)] hover:shadow-[var(--shadow)] hover:-translate-y-1"
+      className="group bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)] rounded-[24px] p-7 no-underline transition-all duration-[300ms] ease-in-out flex flex-col hover:border-[var(--color-outline-variant)] hover:shadow-[var(--shadow-ambient)] hover:-translate-y-1"
     >
-      <h3 className="mb-2 text-[var(--text-h)]">{title}</h3>
-      <p className="text-sm text-[var(--text)] grow">{description}</p>
-      <span className="mt-4 text-sm font-medium text-[var(--text)] transition-colors duration-200 group-hover:text-[var(--accent)]">
+      <h3 className="mb-2 text-[var(--color-on-surface)]">{title}</h3>
+      <p className="text-sm text-[var(--color-on-surface-variant)] grow">{description}</p>
+      <span className="mt-4 text-sm font-medium text-[var(--color-on-surface-variant)] transition-colors duration-200 group-hover:text-[var(--color-primary)]">
         {linkText}
       </span>
     </a>

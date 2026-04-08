@@ -4,7 +4,7 @@ import { AdminLayout } from './pages/(admin)/AdminLayout'
 import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
-import { ResidentsPage } from './pages/(admin)/residents/ResidentsPage'
+import { ResidentsPage } from './pages/(admin)/residents/Residents'
 import { SafehousePage } from './pages/(admin)/safehouses/SafehousePage'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
@@ -14,6 +14,8 @@ import Donors from './pages/Donors'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Login from './pages/login/Login'
 import Register from './pages/login/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Unauthorized from './pages/Unauthorized'
 import DonorDashboard from './pages/donor/DonorDashboard'
 import DonatePage from './pages/donor/DonatePage'
@@ -21,22 +23,29 @@ import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
 import { useEffect } from 'react'
-import ProcessRecording from './pages/(admin)/processRecording/ProcessRecording'
-import HomeVisits from './pages/(admin)/visits/HomeVisits'
+import { useLocation } from 'react-router-dom'
+import { trackPageView } from './utils/analytics'
+import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
+import HomeVisits from './pages/(admin)/dashboard/home-visitation/HomeVisits'
 
-function App() {
+function AnalyticsTracker() {
+  const location = useLocation()
+
   useEffect(() => {
     const consent = getCookie('cookie_consent')
     if (consent === 'accepted') {
-      console.log('Tracking ENABLED')
       document.cookie = 'analytics=true; path=/'
-    } else {
-      console.log('Tracking BLOCKED')
     }
-  }, [])
+    trackPageView(location.pathname)
+  }, [location.pathname])
 
+  return null
+}
+
+function App() {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <CookieBanner />
       <Routes>
         {/* ── Public routes — no auth required ── */}
@@ -46,6 +55,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ── Donor dashboard — any authenticated user (non-admin/staff will use this) ── */}
@@ -77,14 +88,15 @@ function App() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+            {/* Admin dashboard has multiple sub-pages for different functionalities */}
+            <Route path="/admin/dashboard/process-recording" element={<ProcessRecording />} />
+            <Route path="/admin/dashboard/home-visits" element={<HomeVisits />} />
           <Route path="donors" element={<DonorsPage />} />
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="safehouses" element={<SafehousePage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="users" element={<UsersPage />} />
-          <Route path="process-recording" element={<ProcessRecording />} />
-          <Route path="home-visits" element={<HomeVisits />} />
         </Route>
 
         {/* ── Staff portal — requires Staff role ── */}
@@ -98,7 +110,7 @@ function App() {
         >
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="residents" element={<ResidentsPage />} />
+          <Route path="residents" element={<Residents />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 
