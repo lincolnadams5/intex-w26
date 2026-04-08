@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Footer } from '../../components/Footer'
 
 const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQCwFDpDFmhS3BLjo2OwfxXfr7hfXrO56Z37FaxidHie8o6zqG0n6j8je2HSN4F_Ge5mqdmtreC81GXPGtAOwOKtPiVYRC01Z2_yTHmfoiuCm2iGqdidluqe5HE9uMMo7UsUeG6JG1Ox92Zlbu-v9hjZKQmKf0HGQsln63qSPj1ry0sKoJ2AkfDkzTqZWXxTsI_8OySd7ZX1fofx9EHZFcyNUFaxHvrN1pDXok1HjYSJIhW9unrzawZwlNEBUbjblCMAzE8RAtWWI'
 
@@ -250,8 +249,6 @@ export function Landing() {
         </section>
 
       </main>
-
-      <Footer />
     </>
   )
 }
