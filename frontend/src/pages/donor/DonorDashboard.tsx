@@ -36,9 +36,9 @@ export default function DonorDashboard() {
   const { user } = useAuth()
 
   return (
-    <div className="min-h-screen bg-[var(--surface)]">
+    <div className="min-h-screen bg-[var(--color-surface)]">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary-container)] text-white py-10 px-6">
+      <header className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white py-10 px-6">
         <div className="max-w-[1200px] mx-auto flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-white mb-1">Welcome back, {user?.fullName?.split(' ')[0] || 'Donor'}</h1>
@@ -52,21 +52,21 @@ export default function DonorDashboard() {
         {/* Summary Cards */}
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary-container)] text-white rounded-xl p-6 flex flex-col gap-1">
+            <div className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white rounded-xl p-6 flex flex-col gap-1">
               <span className="text-3xl font-bold font-[family-name:var(--font-display)]">{formatCurrency(mockMetrics.totalMonetary)}</span>
               <span className="text-white/80 text-sm">Total Monetary Donations</span>
             </div>
-            <div className="bg-[var(--surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
-              <span className="text-3xl font-bold text-[var(--primary)] font-[family-name:var(--font-display)]">{mockMetrics.totalDonations}</span>
-              <span className="text-[var(--on-surface-variant)] text-sm">Total Donations</span>
+            <div className="bg-[var(--color-surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{mockMetrics.totalDonations}</span>
+              <span className="text-[var(--color-on-surface-variant)] text-sm">Total Donations</span>
             </div>
-            <div className="bg-[var(--surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
-              <span className="text-3xl font-bold text-[var(--primary)] font-[family-name:var(--font-display)]">{mockMetrics.inKindItems}</span>
-              <span className="text-[var(--on-surface-variant)] text-sm">In-Kind Items Donated</span>
+            <div className="bg-[var(--color-surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{mockMetrics.inKindItems}</span>
+              <span className="text-[var(--color-on-surface-variant)] text-sm">In-Kind Items Donated</span>
             </div>
-            <div className="bg-[var(--surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
-              <span className="text-3xl font-bold text-[var(--primary)] font-[family-name:var(--font-display)]">{mockMetrics.yearsSupporting}</span>
-              <span className="text-[var(--on-surface-variant)] text-sm">Years Supporting</span>
+            <div className="bg-[var(--color-surface-container-low)] rounded-xl p-6 flex flex-col gap-1">
+              <span className="text-3xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{mockMetrics.yearsSupporting}</span>
+              <span className="text-[var(--color-on-surface-variant)] text-sm">Years Supporting</span>
             </div>
           </div>
         </section>
@@ -76,13 +76,13 @@ export default function DonorDashboard() {
           <div className="mb-6">
             <div className="horizon-line"></div>
             <h3 className="mb-1">Your Impact</h3>
-            <p className="text-[var(--on-surface-variant)]">See how your generosity has made a difference</p>
+            <p className="text-[var(--color-on-surface-variant)]">See how your generosity has made a difference</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {mockImpact.map((item, idx) => (
-              <div key={idx} className="bg-[var(--surface-container-lowest)] rounded-xl p-5 border-l-[3px] border-[var(--secondary)] shadow-[var(--shadow-ambient)]">
-                <span className="block text-xl font-bold text-[var(--secondary)] mb-1">{item.metric}</span>
-                <span className="text-sm text-[var(--on-surface-variant)] leading-relaxed">{item.description}</span>
+              <div key={idx} className="bg-[var(--surface-container-lowest)] rounded-xl p-5 border-l-[3px] border-[var(--color-secondary)] shadow-[var(--shadow-ambient)]">
+                <span className="block text-xl font-bold text-[var(--color-secondary)] mb-1">{item.metric}</span>
+                <span className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed">{item.description}</span>
               </div>
             ))}
           </div>
@@ -133,9 +133,9 @@ export default function DonorDashboard() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-[var(--surface-container-low)] rounded-xl p-10 text-center">
+        <section className="bg-[var(--color-surface-container-low)] rounded-xl p-10 text-center">
           <h2 className="mb-3">Continue Making a Difference</h2>
-          <p className="text-[var(--on-surface-variant)] max-w-lg mx-auto mb-8">
+          <p className="text-[var(--color-on-surface-variant)] max-w-lg mx-auto mb-8">
             Your support helps provide safety, healing, and hope to survivors. Every contribution matters.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
@@ -145,7 +145,7 @@ export default function DonorDashboard() {
         </section>
       </main>
 
-      <footer className="text-center py-6 text-[var(--on-surface-variant)] text-sm">
+      <footer className="text-center py-6 text-[var(--color-on-surface-variant)] text-sm">
         <p>Questions about your donations? Contact us at donations@pagasasanctuary.org</p>
       </footer>
     </div>

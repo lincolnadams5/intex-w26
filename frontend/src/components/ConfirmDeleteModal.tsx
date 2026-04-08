@@ -41,20 +41,20 @@ export function ConfirmDeleteModal({
     >
       {/* Modal card — stop click propagation so clicking inside doesn't close */}
       <div
-        className="bg-[var(--bg)] rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4"
+        className="bg-[var(--color-surface-container-lowest)] rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 space-y-4"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-[var(--text-h)]">
+        <h2 className="text-lg font-semibold text-[var(--color-on-surface)]">
           Confirm Deletion
         </h2>
 
-        <p className="text-sm text-[var(--text)]">
+        <p className="text-sm text-[var(--color-on-surface-variant)]">
           You are about to permanently delete{' '}
-          <span className="font-semibold text-[var(--alert)]">{itemName}</span>.
+          <span className="font-semibold text-[var(--color-error)]">{itemName}</span>.
           This action <strong>cannot be undone</strong>.
         </p>
 
-        <p className="text-sm text-[var(--text)]">
+        <p className="text-sm text-[var(--color-on-surface-variant)]">
           Type <span className="font-mono font-bold">DELETE</span> to confirm:
         </p>
 
@@ -63,7 +63,7 @@ export function ConfirmDeleteModal({
           value={typed}
           onChange={e => setTyped(e.target.value)}
           placeholder="DELETE"
-          className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm bg-[var(--bg-alt)] text-[var(--text-h)] focus:outline-none focus:ring-2 focus:ring-[var(--alert)]"
+          className="w-full border border-[var(--color-outline-variant)] rounded-lg px-3 py-2 text-sm bg-[var(--color-surface-container-low)] text-[var(--color-on-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-error)]"
           autoFocus
         />
 
@@ -71,7 +71,7 @@ export function ConfirmDeleteModal({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--text)] hover:bg-[var(--bg-alt)] transition-colors border border-[var(--border)]"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] transition-colors border border-[var(--color-outline-variant)]"
           >
             Cancel
           </button>
@@ -79,7 +79,7 @@ export function ConfirmDeleteModal({
           <button
             onClick={onConfirm}
             disabled={!confirmed || isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--alert)] hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--color-error)] hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Deleting...' : 'Delete'}
           </button>

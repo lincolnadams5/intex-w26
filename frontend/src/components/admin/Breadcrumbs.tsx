@@ -43,7 +43,7 @@ export function Breadcrumbs() {
       {parentCrumb && (
         <Link
           to={parentCrumb.to}
-          className="flex items-center gap-1 text-sm text-[var(--text)] hover:text-[var(--text-h)] transition-colors no-underline flex-shrink-0"
+          className="flex items-center gap-1 text-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] transition-colors no-underline flex-shrink-0"
           aria-label={`Back to ${parentCrumb.label}`}
         >
           ← Back
@@ -51,7 +51,7 @@ export function Breadcrumbs() {
       )}
 
       {parentCrumb && (
-        <span className="text-[var(--border)] select-none">|</span>
+        <span className="text-[var(--color-outline-variant)] select-none">|</span>
       )}
 
       {/* Breadcrumb trail */}
@@ -59,17 +59,17 @@ export function Breadcrumbs() {
         {crumbs.map((crumb, i) => (
           <span key={crumb.to} className="flex items-center gap-1">
             {i > 0 && (
-              <span className="text-[var(--text)] opacity-40 mx-0.5">/</span>
+              <span className="text-[var(--color-on-surface-variant)] opacity-40 mx-0.5">/</span>
             )}
             {i < crumbs.length - 1 ? (
               <Link
                 to={crumb.to}
-                className="text-[var(--text)] hover:text-[var(--accent)] transition-colors no-underline"
+                className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors no-underline"
               >
                 {crumb.label}
               </Link>
             ) : (
-              <span className="text-[var(--text-h)] font-medium">{crumb.label}</span>
+              <span className="text-[var(--color-on-surface)] font-medium">{crumb.label}</span>
             )}
           </span>
         ))}
