@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-import { StatCard }    from '../../../../components/admin/StatCard'
-import { PageHeader }  from '../../../../components/admin/PageHeader'
-import { SectionCard } from '../../../../components/admin/SectionCard'
-import { RiskBadge }   from '../../../../components/admin/RiskBadge'
-import { LoadingState } from '../../../../components/admin/LoadingState'
+import { StatCard }    from '../../../components/admin/StatCard'
+import { PageHeader }  from '../../../components/admin/PageHeader'
+import { SectionCard } from '../../../components/admin/SectionCard'
+import { RiskBadge }   from '../../../components/admin/RiskBadge'
+import { LoadingState } from '../../../components/admin/LoadingState'
 import {
   getResidentsSummary,
   getSafehousesOverview,
@@ -20,7 +20,7 @@ import {
   type RiskEscalation,
   type RecentRecording,
   type RecentIncident,
-} from '../../../../lib/adminApi'
+} from '../../../lib/adminApi'
 
 // ── Risk level chart colors ───────────────────────────────────────────────────
 const RISK_COLORS = {
@@ -53,7 +53,7 @@ function OccupancyBar({ occupancy, capacity }: { occupancy: number; capacity: nu
   )
 }
 
-export function HomeVisitation() {
+export function Residents() {
   // ── Data state ──────────────────────────────────────────────────────────────
   const [summary, setSummary]           = useState<ResidentsSummary | null>(null)
   const [safehouses, setSafehouses]     = useState<SafehouseOverviewRow[]>([])
