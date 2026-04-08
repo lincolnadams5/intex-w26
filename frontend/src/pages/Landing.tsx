@@ -19,7 +19,7 @@ export function Landing() {
       >
         <div className="absolute inset-0 bg-gradient-to-r from-[#1a3a3a]/95 via-[#1a3a3a]/70 to-transparent"></div>
         
-        <Header transparent />
+        <Header />
 
         <div className="relative flex-1 flex items-center py-16 md:py-24">
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 w-full">

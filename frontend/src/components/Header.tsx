@@ -1,11 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-interface HeaderProps {
-  transparent?: boolean;
-}
-
-export function Header({ transparent = false }: HeaderProps) {
+export function Header() {
   const { isAuthenticated, role, user, logout } = useAuth()
   const navigate = useNavigate()
 
