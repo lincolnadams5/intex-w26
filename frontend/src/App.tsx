@@ -11,7 +11,10 @@ import { ImpactDashboard } from './pages/ImpactDashboard'
 import Donors from './pages/Donors'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Login from './pages/login/Login'
+import Register from './pages/login/Register'
 import Unauthorized from './pages/Unauthorized'
+import DonorDashboard from './pages/donor/DonorDashboard'
+import DonatePage from './pages/donor/DonatePage'
 import CookieBanner from './components/CookieBanner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { getCookie } from './utils/cookies'
@@ -39,7 +42,26 @@ function App() {
         <Route path="/donor" element={<Donors />} /> 
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+
+        {/* ── Donor dashboard — any authenticated user (non-admin/staff will use this) ── */}
+        <Route
+          path="/my-donations"
+          element={
+            <ProtectedRoute allowedRoles={['Donor', 'Admin', 'Staff']}>
+              <DonorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/donate"
+          element={
+            <ProtectedRoute allowedRoles={['Donor', 'Admin', 'Staff']}>
+              <DonatePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ── Admin portal — requires Admin role ── */}
         <Route

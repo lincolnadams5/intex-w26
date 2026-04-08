@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import './Login.css'
 
@@ -22,7 +22,7 @@ export default function Login() {
 
   // Already logged in — redirect to the appropriate home for their role
   if (isAuthenticated) {
-    const dest = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : '/'
+    const dest = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : role === 'Donor' ? '/my-donations' : '/'
     return <Navigate to={dest} replace />
   }
 
@@ -68,7 +68,8 @@ export default function Login() {
       } else {
         localStorage.setItem('token', data.token)
         // Reload to let AuthProvider re-hydrate from localStorage
-        const dest = data.user?.role === 'Admin' ? '/admin/dashboard' : data.user?.role === 'Staff' ? '/staff/dashboard' : '/'
+        const r = data.user?.role
+        const dest = r === 'Admin' ? '/admin/dashboard' : r === 'Staff' ? '/staff/dashboard' : r === 'Donor' ? '/my-donations' : '/'
         window.location.href = dest
       }
     } catch {
@@ -159,6 +160,13 @@ export default function Login() {
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
+
+          <p style={{ textAlign: 'center', marginTop: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: '#4f46e5', textDecoration: 'none', fontWeight: 500 }}>
+              Register
+            </Link>
+          </p>
         </form>
       </div>
     </div>
