@@ -16,8 +16,8 @@ DONATIONS_FILE = DATA_RAW / "donations.csv"
 
 # --- Modeling constants ---
 SEED = 42
-TEST_SIZE = 0.2
-AT_RISK_DAYS = 90          # label: no donation in this many days = at-risk
+TEST_SIZE = 0.25
+AT_RISK_DAYS = 200         # label: no donation in this many days = at-risk
 HISTORICAL_CUTOFF_DAYS = 180  # look-back window for historical label construction
 
 # --- Target ---

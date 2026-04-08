@@ -1,0 +1,28 @@
+{
+  "trained_at": "2026-04-08T16:06:06.875685+00:00",
+  "n_train": 649,
+  "n_test": 163,
+  "p99_cap_php": 353729.38719999924,
+  "explanatory": {
+    "classifier": "RandomForest",
+    "regressor": "RandomForest",
+    "cv_stage1_roc_auc": 0.9764,
+    "cv_stage2_r2": 0.6832,
+    "test_stage1_auc": 0.9843,
+    "test_stage2_r2": 0.768,
+    "test_stage2_rmse_php": 53923.44,
+    "n_features": 28,
+    "go": true
+  },
+  "recommendation": {
+    "classifier": "LogReg",
+    "regressor": "Ridge",
+    "cv_stage1_roc_auc": 0.8976,
+    "cv_stage2_r2": 0.4424,
+    "test_stage1_auc": 0.8852,
+    "test_stage2_r2": 0.5152,
+    "test_stage2_rmse_php": 75026.89,
+    "n_features": 17,
+    "go": true
+  }
+}
