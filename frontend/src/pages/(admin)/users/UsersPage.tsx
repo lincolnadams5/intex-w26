@@ -122,7 +122,7 @@ export function UsersPage() {
                         value={user.role}
                         disabled={saving === user.id}
                         onChange={e => handleRoleChange(user, e.target.value)}
-                        className="text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 bg-[var(--bg)] text-[var(--text-h)] disabled:opacity-50"
+                        className="text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 bg-[var(--bg)] text-[var(--text-h)] disabled:opacity-50 hover:cursor-pointer"
                       >
                         {ROLES.map(r => <option key={r}>{r}</option>)}
                       </select>
@@ -161,7 +161,7 @@ export function UsersPage() {
                       <button
                         disabled={saving === user.id}
                         onClick={() => handleDeactivate(user)}
-                        className="text-xs text-[var(--alert)] hover:underline disabled:opacity-50 transition-opacity"
+                        className="text-xs text-[var(--alert)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
                       >
                         {saving === user.id ? 'Saving…' : 'Deactivate'}
                       </button>
