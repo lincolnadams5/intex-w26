@@ -151,3 +151,6 @@ pag_asa_erd.html
 password.txt
 
 frontend/.env
+
+backend/**/bin/
+backend/**/obj/
