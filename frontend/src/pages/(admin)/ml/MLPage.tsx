@@ -1,25 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PageHeader }  from '../../../components/admin/PageHeader'
 import { SectionCard } from '../../../components/admin/SectionCard'
+import {
+  getDonorRiskScores,
+  markDonorContacted,
+  type DonorRiskScore,
+} from '../../../lib/adminApi'
 
-// ── Placeholder data ───────────────────────────────────────────────────────────
-// These sections will be wired to live ML endpoints once the pipelines are ready.
-// Each section documents the planned API route and input features.
-
-// Section 1 — Donor Churn Risk
-// Endpoint: GET /api/ml/donor-churn-risk
-// Features: first_donation_date, donation frequency, days since last donation,
-//           is_recurring, lifetime giving total, acquisition_channel
-const MOCK_CHURN = [
-  { donor: 'Roberto Reyes',         lastDonation: '2025-09-12', totalGiven: '₱48,000',  score: 0.91, label: 'Very High Risk' },
-  { donor: 'Anna Villanueva',       lastDonation: '2025-10-30', totalGiven: '₱22,500',  score: 0.78, label: 'High Risk' },
-  { donor: 'Pacific Resources Corp.', lastDonation: '2025-11-14', totalGiven: '₱120,000', score: 0.74, label: 'High Risk' },
-  { donor: 'Elena Castillo',        lastDonation: '2025-12-01', totalGiven: '₱15,200',  score: 0.61, label: 'Moderate Risk' },
-  { donor: 'Marcos Bautista',       lastDonation: '2025-12-18', totalGiven: '₱8,400',   score: 0.55, label: 'Moderate Risk' },
-  { donor: 'Sunrise Foundation',    lastDonation: '2026-01-07', totalGiven: '₱74,000',  score: 0.48, label: 'Moderate Risk' },
-  { donor: 'Cora Mendoza',          lastDonation: '2026-01-22', totalGiven: '₱5,600',   score: 0.41, label: 'Low-Moderate Risk' },
-  { donor: 'BDO Foundation',        lastDonation: '2026-02-03', totalGiven: '₱200,000', score: 0.37, label: 'Low-Moderate Risk' },
-]
+function riskLabel(score: number) {
+  if (score >= 0.75) return 'Very High Risk'
+  if (score >= 0.60) return 'High Risk'
+  if (score >= 0.40) return 'Moderate Risk'
+  return 'Low Risk'
+}
 
 // Section 2 — Resident Reintegration Readiness
 // Endpoint: GET /api/ml/reintegration-readiness
@@ -105,6 +98,31 @@ function confidenceBadgeClass(c: string) {
 }
 
 export function MLPage() {
+  const [riskScores, setRiskScores]   = useState<DonorRiskScore[]>([])
+  const [riskLoading, setRiskLoading] = useState(true)
+  const [riskError, setRiskError]     = useState<string | null>(null)
+  const [contacting, setContacting]   = useState<number | null>(null)
+
+  useEffect(() => {
+    getDonorRiskScores()
+      .then(setRiskScores)
+      .catch(() => setRiskError('Failed to load risk scores.'))
+      .finally(() => setRiskLoading(false))
+  }, [])
+
+  async function handleMarkContacted(supporterId: number) {
+    setContacting(supporterId)
+    await markDonorContacted(supporterId)
+    setRiskScores(prev =>
+      prev.map(d =>
+        d.supporterId === supporterId
+          ? { ...d, contactedAt: new Date().toISOString() }
+          : d
+      )
+    )
+    setContacting(null)
+  }
+
   const [platform, setPlatform]   = useState('Instagram')
   const [postType, setPostType]   = useState('Testimonial')
   const [roiResult, setRoiResult] = useState<RoiResult>(null)
@@ -133,6 +151,13 @@ export function MLPage() {
         subtitle="Donors predicted to lapse within 90 days, sorted by urgency. A score of 100% means the model is highly confident this donor will stop giving without outreach."
         titleIcon="📉"
       >
+        {riskScores.length > 0 && (() => {
+          const latest = riskScores.reduce((max, d) => d.scoredAt && (!max || d.scoredAt > max) ? d.scoredAt : max, null as string | null)
+          return latest
+            ? <p className="text-xs text-[var(--text-muted)] mb-3">Last updated {new Date(latest).toLocaleDateString()}</p>
+            : null
+        })()}
+
         {/* Action guidance */}
         <div className="p-3 bg-[var(--bg-alt)] rounded-lg border border-[var(--border)] text-xs text-[var(--text)] mb-4">
           <strong className="text-[var(--text-h)]">How to act on this: </strong>
@@ -140,34 +165,61 @@ export function MLPage() {
           Send automated email sequences to donors in the 40–75% range.
         </div>
 
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Donor</th>
-                <th>Last Donation</th>
-                <th>Total Given</th>
-                <th>Churn Risk</th>
-                <th>Assessment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_CHURN.map((d, i) => (
-                <tr key={i}>
-                  <td className="font-medium text-[var(--text-h)]">{d.donor}</td>
-                  <td className="text-[var(--text)] text-xs">{d.lastDonation}</td>
-                  <td className="font-medium">{d.totalGiven}</td>
-                  <td><ScoreBar score={d.score} /></td>
-                  <td>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${churnBadgeClass(d.score)}`}>
-                      {d.label}
-                    </span>
-                  </td>
+        {riskLoading && (
+          <p className="text-sm text-[var(--text)] py-4">Loading risk scores…</p>
+        )}
+        {riskError && (
+          <p className="text-sm text-[var(--alert)] py-4">{riskError}</p>
+        )}
+        {!riskLoading && !riskError && riskScores.length === 0 && (
+          <p className="text-sm text-[var(--text)] py-4">
+            No scores available. Run <code>python -m jobs.run_inference</code> to populate donor risk scores.
+          </p>
+        )}
+        {!riskLoading && !riskError && riskScores.length > 0 && (
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Donor</th>
+                  <th>Total Given</th>
+                  <th>Churn Risk</th>
+                  <th>Assessment</th>
+                  <th>Outreach</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {riskScores.map(d => (
+                  <tr key={d.supporterId} className={d.contactedAt ? 'opacity-50' : ''}>
+                    <td className="font-medium text-[var(--text-h)]">{d.donorName}</td>
+                    <td className="font-medium">₱{d.totalGiven.toLocaleString()}</td>
+                    <td><ScoreBar score={d.riskScore} /></td>
+                    <td>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${churnBadgeClass(d.riskScore)}`}>
+                        {riskLabel(d.riskScore)}
+                      </span>
+                    </td>
+                    <td>
+                      {d.contactedAt ? (
+                        <span className="text-xs text-[var(--text)]">
+                          Contacted {d.contactedAt.split('T')[0]}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleMarkContacted(d.supporterId)}
+                          disabled={contacting === d.supporterId}
+                          className="btn btn-sm text-xs px-2 py-1"
+                        >
+                          {contacting === d.supporterId ? 'Saving…' : 'Mark Contacted'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </SectionCard>
 
       {/* ── Section 2: Resident Reintegration Readiness ──────────────────────── */}

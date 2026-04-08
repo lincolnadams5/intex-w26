@@ -6,7 +6,8 @@ import { useAuth } from '../../hooks/useAuth'
 const baseNavItems = [
   { to: '/admin/dashboard', label: 'Overview',      icon: '⊞' },
   { to: '/admin/donors',    label: 'Donor Activity', icon: '💰' },
-  { to: '/admin/residents', label: 'Residents',      icon: '🏠' },
+  { to: '/admin/residents',  label: 'Residents',      icon: '🏠' },
+  { to: '/admin/safehouses', label: 'Safehouses',     icon: '🏡' },
   { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
   { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
   { to: '/admin/home-visits', label: 'Home Visits', icon: '📋' },

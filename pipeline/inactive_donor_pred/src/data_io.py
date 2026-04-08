@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / '.env', override=True)
 
 
 def load_csv(supporters_path, donations_path) -> tuple[pd.DataFrame, pd.DataFrame]:

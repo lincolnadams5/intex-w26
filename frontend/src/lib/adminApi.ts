@@ -279,6 +279,25 @@ export const getSocialTopPosts = () =>
   get<TopPost[]>('/api/admin/social/top-posts')
 
 
+// ── ML Predictions ────────────────────────────────────────────────────────────
+
+export interface DonorRiskScore {
+  supporterId: number
+  donorName: string
+  riskScore: number
+  atRiskPred: number
+  scoredAt: string | null
+  contactedAt: string | null
+  totalGiven: number
+}
+
+export const getDonorRiskScores = () =>
+  get<DonorRiskScore[]>('/api/admin/ml/donor-risk-scores')
+
+export const markDonorContacted = (supporterId: number) =>
+  authFetch(`/api/admin/ml/donor-risk-scores/${supporterId}/contacted`, { method: 'PUT' })
+
+
 // ── User Management ───────────────────────────────────────────────────────────
 
 export interface UserProfile {

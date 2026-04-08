@@ -5,6 +5,7 @@ import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
 import { ResidentsPage } from './pages/(admin)/residents/ResidentsPage'
+import { SafehousePage } from './pages/(admin)/safehouses/SafehousePage'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
 import { UsersPage } from './pages/(admin)/users/UsersPage'
@@ -78,6 +79,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="donors" element={<DonorsPage />} />
           <Route path="residents" element={<ResidentsPage />} />
+          <Route path="safehouses" element={<SafehousePage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="users" element={<UsersPage />} />
