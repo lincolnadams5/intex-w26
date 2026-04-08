@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Header } from '../components/Header'
-import { Footer } from '../components/Footer'
+import { Footer } from '../../components/Footer'
 
 const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQCwFDpDFmhS3BLjo2OwfxXfr7hfXrO56Z37FaxidHie8o6zqG0n6j8je2HSN4F_Ge5mqdmtreC81GXPGtAOwOKtPiVYRC01Z2_yTHmfoiuCm2iGqdidluqe5HE9uMMo7UsUeG6JG1Ox92Zlbu-v9hjZKQmKf0HGQsln63qSPj1ry0sKoJ2AkfDkzTqZWXxTsI_8OySd7ZX1fofx9EHZFcyNUFaxHvrN1pDXok1HjYSJIhW9unrzawZwlNEBUbjblCMAzE8RAtWWI'
 
@@ -8,8 +7,8 @@ const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQCwFDpD
 export function Landing() {
   return (
     <>
-      {/* Hero Section with integrated header */}
-      <section 
+      {/* Hero Section */}
+      <section
         className="relative min-h-[90vh] flex flex-col"
         style={{
           backgroundImage: `url(${HERO_IMAGE})`,
@@ -18,8 +17,6 @@ export function Landing() {
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-[#1a3a3a]/95 via-[#1a3a3a]/70 to-transparent"></div>
-        
-        <Header />
 
         <div className="relative flex-1 flex items-center py-16 md:py-24">
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 w-full">
@@ -33,14 +30,14 @@ export function Landing() {
                 Pag-asa provides high-security safe homes and holistic rehabilitation for girls who are survivors of trafficking and abuse in the Philippines.
               </p>
               <div className="flex gap-5 flex-wrap">
-                <Link 
-                  to="/donate" 
+                <Link
+                  to="/donate"
                   className="px-10 py-4 bg-[var(--color-secondary)] text-[var(--color-on-secondary)] font-semibold text-sm uppercase tracking-wider rounded hover:shadow-[0_12px_40px_rgba(0,76,90,0.2)] transition-all"
                 >
                   Empower a Survivor
                 </Link>
-                <a 
-                  href="#mission" 
+                <a
+                  href="#mission"
                   className="px-10 py-4 bg-transparent border-2 border-white/40 text-white font-semibold text-sm uppercase tracking-wider rounded hover:bg-white/10 hover:border-white/60 transition-all"
                 >
                   Our Mission
@@ -75,7 +72,7 @@ export function Landing() {
               {/* Right: Image with floating card */}
               <div className="relative">
                 <div className="rounded-2xl overflow-hidden shadow-[var(--shadow-elevated)]">
-                  <img 
+                  <img
                     src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=500&fit=crop"
                     alt="Safe home interior"
                     className="w-full h-[400px] lg:h-[500px] object-cover"
@@ -201,8 +198,8 @@ export function Landing() {
             </div>
 
             <div className="text-center mt-12">
-              <Link 
-                to="/impact" 
+              <Link
+                to="/impact"
                 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[var(--color-primary)] hover:text-[var(--color-primary-container)] transition-colors"
               >
                 View Full Impact Dashboard
@@ -235,8 +232,8 @@ export function Landing() {
                   Your Email Address
                 </label>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     placeholder="email@impact.org"
                     className="flex-1 px-4 py-3 rounded bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 focus:bg-white/15 transition-all"
                   />

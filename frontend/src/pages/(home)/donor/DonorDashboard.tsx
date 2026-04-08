@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../../hooks/useAuth'
 
 const mockDonations = [
   { id: 1, date: '2026-03-15', type: 'Monetary', amount: 5000, currency: 'PHP', campaign: 'Year-End Hope', status: 'Completed' },
@@ -116,8 +116,8 @@ export default function DonorDashboard() {
                     </td>
                     <td>{donation.campaign}</td>
                     <td>
-                      {donation.type === 'Monetary' 
-                        ? formatCurrency(donation.amount!) 
+                      {donation.type === 'Monetary'
+                        ? formatCurrency(donation.amount!)
                         : donation.items}
                     </td>
                     <td>
