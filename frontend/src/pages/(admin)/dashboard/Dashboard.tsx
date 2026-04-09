@@ -55,7 +55,7 @@ export function Dashboard() {
   }, [])
 
   if (loading) return <LoadingState />
-  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+  if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
 
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
@@ -99,8 +99,8 @@ export function Dashboard() {
         >
           <span className="text-3xl mr-3">🏡</span>
           <div>
-            <p className="font-semibold text-[var(--text-h)]">Record a Visitation</p>
-            <p className="text-xs text-[var(--text)] mt-0.5">Opens home visitation form</p>
+            <p className="font-semibold text-[var(--color-on-surface)]">Record a Visitation</p>
+            <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">Opens home visitation form</p>
           </div>
         </Link>
 
@@ -111,8 +111,8 @@ export function Dashboard() {
         >
           <span className="text-3xl mr-3">📋</span>
           <div>
-            <p className="font-semibold text-[var(--text-h)]">Record a Process</p>
-            <p className="text-xs text-[var(--text)] mt-0.5">Opens process recording form</p>
+            <p className="font-semibold text-[var(--color-on-surface)]">Record a Process</p>
+            <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">Opens process recording form</p>
           </div>
         </Link>
       </div>
@@ -122,41 +122,41 @@ export function Dashboard() {
         {isAdmin && (
           <Link to={`${base}/donors`} className="card card-interactive no-underline block group">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-[var(--text-h)]">Donor Activity</span>
+              <span className="text-sm font-semibold text-[var(--color-on-surface)]">Donor Activity</span>
               <span className="text-xl">💰</span>
             </div>
-            <p className="text-xs text-[var(--text)]">Trends, campaigns, and allocations</p>
-            <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View donors →</p>
+            <p className="text-xs text-[var(--color-on-surface-variant)]">Trends, campaigns, and allocations</p>
+            <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View donors →</p>
           </Link>
         )}
 
         <Link to={`${base}/residents`} className="card card-interactive no-underline block group">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-[var(--text-h)]">Residents</span>
+            <span className="text-sm font-semibold text-[var(--color-on-surface)]">Residents</span>
             <span className="text-xl">🏠</span>
           </div>
-          <p className="text-xs text-[var(--text)]">Safehouse occupancy and risk levels</p>
-          <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View residents →</p>
+          <p className="text-xs text-[var(--color-on-surface-variant)]">Safehouse occupancy and risk levels</p>
+          <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View residents →</p>
         </Link>
 
         {isAdmin && (
           <Link to={`${base}/social`} className="card card-interactive no-underline block group">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-[var(--text-h)]">Social Media</span>
+              <span className="text-sm font-semibold text-[var(--color-on-surface)]">Social Media</span>
               <span className="text-xl">📱</span>
             </div>
-            <p className="text-xs text-[var(--text)]">Engagement, referrals, and top posts</p>
-            <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View social →</p>
+            <p className="text-xs text-[var(--color-on-surface-variant)]">Engagement, referrals, and top posts</p>
+            <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View social →</p>
           </Link>
         )}
 
         <Link to={`${base}/ml`} className="card card-interactive no-underline block group">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-[var(--text-h)]">ML Insights</span>
+            <span className="text-sm font-semibold text-[var(--color-on-surface)]">ML Insights</span>
             <span className="text-xl">🤖</span>
           </div>
-          <p className="text-xs text-[var(--text)]">Churn risk, reintegration, and ROI</p>
-          <p className="text-xs text-[var(--accent)] mt-3 group-hover:underline">View insights →</p>
+          <p className="text-xs text-[var(--color-on-surface-variant)]">Churn risk, reintegration, and ROI</p>
+          <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View insights →</p>
         </Link>
       </div>
 
@@ -169,18 +169,18 @@ export function Dashboard() {
           subtitle="Latest events across donations, sessions, visitations, and incidents"
         >
           {activity.length === 0 ? (
-            <p className="text-sm text-[var(--text)]">No recent activity found.</p>
+            <p className="text-sm text-[var(--color-on-surface-variant)]">No recent activity found.</p>
           ) : (
-            <div className="flex flex-col divide-y divide-[var(--border)]">
+            <div className="flex flex-col divide-y divide-[var(--color-outline-variant)]">
               {activity.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 py-3">
                   <span className="text-lg mt-0.5 flex-shrink-0">
                     {ACTIVITY_ICONS[item.type] ?? '📌'}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-h)]">{item.label}</p>
-                    <p className="text-xs text-[var(--text)] mt-0.5">{item.detail}</p>
-                    <p className="text-xs text-[var(--text)] mt-0.5 opacity-70">
+                    <p className="text-sm font-medium text-[var(--color-on-surface)]">{item.label}</p>
+                    <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">{item.detail}</p>
+                    <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5 opacity-70">
                       {formatDate(item.date)}
                     </p>
                   </div>
@@ -197,7 +197,7 @@ export function Dashboard() {
           titleIcon="📅"
         >
           {conferences.length === 0 ? (
-            <p className="text-sm text-[var(--text)]">No upcoming conferences.</p>
+            <p className="text-sm text-[var(--color-on-surface-variant)]">No upcoming conferences.</p>
           ) : (
             <div className="table-container">
               <table>
@@ -212,14 +212,14 @@ export function Dashboard() {
                 <tbody>
                   {conferences.map((c, i) => (
                     <tr key={i}>
-                      <td className="font-medium text-[var(--text-h)]">{c.residentCode}</td>
-                      <td className="text-[var(--text)] text-xs">
+                      <td className="font-medium text-[var(--color-on-surface)]">{c.residentCode}</td>
+                      <td className="text-[var(--color-on-surface-variant)] text-xs">
                         {formatDate(c.conferenceDate)}
                       </td>
                       <td className="text-xs">
                         <span className="badge">{c.planCategory ?? '—'}</span>
                       </td>
-                      <td className="text-xs text-[var(--text)]">{c.status ?? '—'}</td>
+                      <td className="text-xs text-[var(--color-on-surface-variant)]">{c.status ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,0 +1,94 @@
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+
+interface Props {
+  onSuccess: () => void
+}
+
+export function RegisterForm({ onSuccess }: Props) {
+  const { register } = useAuth()
+
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+    if (password.length < 14) {
+      setError('Password must be at least 14 characters')
+      return
+    }
+
+    setIsLoading(true)
+    const result = await register(email, fullName, password, confirmPassword)
+    setIsLoading(false)
+
+    if (!result.ok) {
+      setError(result.error ?? 'Registration failed')
+      return
+    }
+
+    onSuccess()
+  }
+
+  return (
+    <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      <div className="form-group mb-0">
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={fullName}
+          onChange={e => setFullName(e.target.value)}
+          required
+          disabled={isLoading}
+        />
+      </div>
+      <div className="form-group mb-0">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          disabled={isLoading}
+        />
+      </div>
+      <div className="form-group mb-0">
+        <input
+          type="password"
+          placeholder="Password (min 14 characters)"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+          disabled={isLoading}
+          minLength={14}
+        />
+      </div>
+      <div className="form-group mb-0">
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
+          required
+          disabled={isLoading}
+        />
+      </div>
+
+      {error && <p className="text-[var(--color-error)] text-sm text-center">{error}</p>}
+
+      <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
+        {isLoading ? 'Creating Account...' : 'Register'}
+      </button>
+    </form>
+  )
+}

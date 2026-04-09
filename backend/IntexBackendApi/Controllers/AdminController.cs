@@ -97,6 +97,35 @@ public class AdminController : ControllerBase
         return Ok(new { message = "User deactivated" });
     }
 
+    // PUT /api/admin/users/{id}/activate
+    // Re-activates a previously deactivated user account.
+    [HttpPut("users/{id}/activate")]
+    public async Task<IActionResult> Activate(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null) return NotFound(new { message = "User not found" });
+
+        user.IsActive = true;
+        await _userManager.UpdateAsync(user);
+
+        return Ok(new { message = "User activated" });
+    }
+
+    // DELETE /api/admin/users/{id}
+    // Permanently deletes a user account. Use with caution.
+    [HttpDelete("users/{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null) return NotFound(new { message = "User not found" });
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+            return StatusCode(500, new { message = "Failed to delete user", errors = result.Errors });
+
+        return Ok(new { message = "User deleted" });
+    }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  DASHBOARD
@@ -108,7 +137,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetDashboardSummary()
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
-        var startOfMonth = new DateOnly(today.Year, today.Month, 1);
+        var startOfMonth = new DateOnly(today.Year, today.Month, 1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
         var activeResidents = await _db.Residents
             .CountAsync(r => r.CaseStatus == "Active");
@@ -139,7 +168,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetDashboardActivity()
     {
         // DonationDate is a 'date' column → compare with DateOnly
-        var cutoffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+        var cutoffDate = DateTime.UtcNow.AddDays(-30);
         // IncidentDate, SessionDate, VisitDate are 'timestamptz' → must be UTC
         var cutoffTs   = DateTime.UtcNow.AddDays(-30);
 
@@ -154,7 +183,7 @@ public class AdminController : ControllerBase
                     Type   = "donation",
                     Label  = $"{s.DisplayName ?? "Anonymous"} donated",
                     Detail = $"{d.DonationType} — {(d.Amount.HasValue ? $"₱{d.Amount:N0}" : d.EstimatedValue.HasValue ? $"₱{d.EstimatedValue:N0} est." : "—")}",
-                    Date   = d.DonationDate!.Value.ToDateTime(TimeOnly.MinValue),
+                    Date   = d.DonationDate!.Value,
                 })
             .OrderByDescending(x => x.Date)
             .Take(5)
@@ -288,7 +317,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetDonorTrends()
     {
         var today   = DateOnly.FromDateTime(DateTime.Today);
-        var cutoff  = new DateOnly(today.Year, today.Month, 1).AddMonths(-11);
+        var cutoff  = new DateOnly(today.Year, today.Month, 1).AddMonths(-11).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
         var raw = await _db.Donations
             .Where(d => d.DonationType == "Monetary" && d.DonationDate >= cutoff)

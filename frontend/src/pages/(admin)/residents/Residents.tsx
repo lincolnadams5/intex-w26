@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-import { StatCard }    from '../../../../components/admin/StatCard'
-import { PageHeader }  from '../../../../components/admin/PageHeader'
-import { SectionCard } from '../../../../components/admin/SectionCard'
-import { RiskBadge }   from '../../../../components/admin/RiskBadge'
-import { LoadingState } from '../../../../components/admin/LoadingState'
+import { StatCard }    from '../../../components/admin/StatCard'
+import { PageHeader }  from '../../../components/admin/PageHeader'
+import { SectionCard } from '../../../components/admin/SectionCard'
+import { RiskBadge }   from '../../../components/admin/RiskBadge'
+import { LoadingState } from '../../../components/admin/LoadingState'
 import {
   getResidentsSummary,
   getSafehousesOverview,
@@ -20,7 +20,7 @@ import {
   type RiskEscalation,
   type RecentRecording,
   type RecentIncident,
-} from '../../../../lib/adminApi'
+} from '../../../lib/adminApi'
 
 // ── Risk level chart colors ───────────────────────────────────────────────────
 const RISK_COLORS = {
@@ -39,21 +39,21 @@ function severityClass(s: string) {
 
 // ── Occupancy progress bar ────────────────────────────────────────────────────
 function OccupancyBar({ occupancy, capacity }: { occupancy: number; capacity: number }) {
-  if (capacity === 0) return <span className="text-xs text-[var(--text)]">—</span>
+  if (capacity === 0) return <span className="text-xs text-[var(--color-on-surface-variant)]">—</span>
   const pct = Math.round((occupancy / capacity) * 100)
   const color = pct >= 90 ? '#ef4444' : pct >= 75 ? '#f97316' : '#0d9488'
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm font-medium">{occupancy}/{capacity}</span>
-      <div className="w-20 h-2 rounded-full bg-[var(--border)] overflow-hidden">
+      <div className="w-20 h-2 rounded-full bg-[var(--color-outline-variant)] overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-xs text-[var(--text)]">{pct}%</span>
+      <span className="text-xs text-[var(--color-on-surface-variant)]">{pct}%</span>
     </div>
   )
 }
 
-export function HomeVisitation() {
+export function Residents() {
   // ── Data state ──────────────────────────────────────────────────────────────
   const [summary, setSummary]           = useState<ResidentsSummary | null>(null)
   const [safehouses, setSafehouses]     = useState<SafehouseOverviewRow[]>([])
@@ -85,7 +85,7 @@ export function HomeVisitation() {
   }, [])
 
   if (loading) return <LoadingState />
-  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+  if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
 
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
@@ -140,8 +140,8 @@ export function HomeVisitation() {
             <tbody>
               {safehouses.map(row => (
                 <tr key={row.safehouseId}>
-                  <td className="font-medium text-[var(--text-h)]">{row.name}</td>
-                  <td className="text-[var(--text)] text-xs">{row.region}</td>
+                  <td className="font-medium text-[var(--color-on-surface)]">{row.name}</td>
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">{row.region}</td>
                   <td>
                     <OccupancyBar occupancy={row.occupancy} capacity={row.capacity} />
                   </td>
@@ -179,7 +179,7 @@ export function HomeVisitation() {
         <div className="h-[240px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={riskByHouse} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
               <XAxis dataKey="safehouseName" tick={{ fontSize: 12 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
@@ -201,7 +201,7 @@ export function HomeVisitation() {
         titleIcon="⚠️"
       >
         {escalations.length === 0 ? (
-          <p className="text-sm text-[var(--text)]">No risk escalations found.</p>
+          <p className="text-sm text-[var(--color-on-surface-variant)]">No risk escalations found.</p>
         ) : (
           <div className="table-container">
             <table>
@@ -217,11 +217,11 @@ export function HomeVisitation() {
               <tbody>
                 {escalations.map(r => (
                   <tr key={r.internalCode}>
-                    <td className="font-medium text-[var(--text-h)]">{r.internalCode}</td>
-                    <td className="text-[var(--text)] text-xs">{r.safehouseName}</td>
+                    <td className="font-medium text-[var(--color-on-surface)]">{r.internalCode}</td>
+                    <td className="text-[var(--color-on-surface-variant)] text-xs">{r.safehouseName}</td>
                     <td><RiskBadge level={r.initialRiskLevel} /></td>
                     <td><RiskBadge level={r.currentRiskLevel} /></td>
-                    <td className="text-[var(--text)] text-xs">{r.lengthOfStay}</td>
+                    <td className="text-[var(--color-on-surface-variant)] text-xs">{r.lengthOfStay}</td>
                   </tr>
                 ))}
               </tbody>
@@ -236,7 +236,7 @@ export function HomeVisitation() {
         {/* Recent process recordings (last 7 days) */}
         <SectionCard title="Recent Process Recordings" subtitle="Last 7 days">
           {recordings.length === 0 ? (
-            <p className="text-sm text-[var(--text)]">No recordings in the past 7 days.</p>
+            <p className="text-sm text-[var(--color-on-surface-variant)]">No recordings in the past 7 days.</p>
           ) : (
             <div className="table-container">
               <table>
@@ -251,15 +251,15 @@ export function HomeVisitation() {
                 <tbody>
                   {recordings.map(r => (
                     <tr key={r.recordingId}>
-                      <td className="font-medium text-[var(--text-h)]">{r.residentCode}</td>
-                      <td className="text-[var(--text)] text-xs">{r.socialWorker}</td>
-                      <td className="text-[var(--text)] text-xs">
+                      <td className="font-medium text-[var(--color-on-surface)]">{r.residentCode}</td>
+                      <td className="text-[var(--color-on-surface-variant)] text-xs">{r.socialWorker}</td>
+                      <td className="text-[var(--color-on-surface-variant)] text-xs">
                         {r.sessionDate?.split('T')[0] ?? '—'}
                       </td>
                       <td className="text-xs">
                         {r.concernsFlagged
                           ? <span className="text-orange-600">⚑ Flagged</span>
-                          : <span className="text-[var(--text)]">None</span>
+                          : <span className="text-[var(--color-on-surface-variant)]">None</span>
                         }
                       </td>
                     </tr>
@@ -273,7 +273,7 @@ export function HomeVisitation() {
         {/* Recent incident reports (last 14 days) */}
         <SectionCard title="Recent Incidents" subtitle="Last 14 days">
           {incidents.length === 0 ? (
-            <p className="text-sm text-[var(--text)]">No incidents in the past 14 days.</p>
+            <p className="text-sm text-[var(--color-on-surface-variant)]">No incidents in the past 14 days.</p>
           ) : (
             <div className="table-container">
               <table>
@@ -289,8 +289,8 @@ export function HomeVisitation() {
                 <tbody>
                   {incidents.map(inc => (
                     <tr key={inc.incidentId}>
-                      <td className="font-medium text-[var(--text-h)]">{inc.residentCode}</td>
-                      <td className="text-[var(--text)] text-xs">{inc.incidentType}</td>
+                      <td className="font-medium text-[var(--color-on-surface)]">{inc.residentCode}</td>
+                      <td className="text-[var(--color-on-surface-variant)] text-xs">{inc.incidentType}</td>
                       <td>
                         <span className={`badge ${severityClass(inc.severity)} text-xs`}>
                           {inc.severity}

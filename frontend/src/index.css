@@ -1,489 +1,436 @@
 @import "tailwindcss";
 
 /* ============================================
-   Global Styles & Design Tokens
+   Tailwind Theme Extension
    Design system: "The Anchored Horizon"
    See intex-resources/ai-context/design.md
    ============================================ */
 
-:root {
+@theme {
   /* ── Primary: Deep Teal (Ocean-Deep) ── */
-  --primary: #004c5a;
-  --primary-container: #006677;
-  --primary-fixed: #007a8f;
-  --on-primary: #ffffff;
-  --on-primary-container: #e0f4f7;
+  --color-primary: #004c5a;
+  --color-primary-container: #006677;
+  --color-primary-fixed: #007a8f;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #e0f4f7;
 
   /* ── Secondary: Warm Gold (Beacon/Highlighter) ── */
-  --secondary: #c9a227;
-  --secondary-container: #f5e6b3;
-  --on-secondary: #1a1c1a;
-  --on-secondary-container: #4a3f1a;
+  --color-secondary: #c9a227;
+  --color-secondary-container: #f5e6b3;
+  --color-on-secondary: #1a1c1a;
+  --color-on-secondary-container: #4a3f1a;
 
   /* ── Surface Hierarchy (Stacked Paper Layers) ── */
-  --surface: #faf9f6;
-  --surface-container-lowest: #ffffff;
-  --surface-container-low: #f4f3ef;
-  --surface-container: #eeeee9;
-  --surface-container-high: #e8e7e3;
-  --surface-container-highest: #e2e1dc;
+  --color-surface: #faf9f6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f3ef;
+  --color-surface-container: #eeeee9;
+  --color-surface-container-high: #e8e7e3;
+  --color-surface-container-highest: #e2e1dc;
 
   /* ── On-Surface Typography ── */
-  --on-surface: #1a1c1a;
-  --on-surface-variant: #3f484b;
-  --outline: #6f797c;
-  --outline-variant: #bec8cb;
+  --color-on-surface: #1a1c1a;
+  --color-on-surface-variant: #3f484b;
+  --color-outline: #6f797c;
+  --color-outline-variant: #bec8cb;
 
   /* ── Alert (Soft, Non-Harsh) ── */
-  --error: #ba1a1a;
-  --error-container: #ffdad6;
-  --on-error: #ffffff;
-
-  /* ── Elevation: Sky Shadows (Teal-Tinted) ── */
-  --shadow-ambient: 0 12px 40px rgba(0, 76, 90, 0.06);
-  --shadow-elevated: 0 8px 32px rgba(0, 76, 90, 0.10);
-  --shadow-floating: 0 16px 48px rgba(0, 76, 90, 0.12);
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
 
   /* ── Typography ── */
   --font-display: 'Noto Serif', Georgia, serif;
   --font-body: 'Manrope', system-ui, sans-serif;
   --font-mono: ui-monospace, Consolas, monospace;
 
-  /* ── Radii ── */
+  /* ── Border Radius (per design.md: lg = 8px for buttons) ── */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
 
-  /* ── Base Setup ── */
-  font: 16px/1.6 var(--font-body);
-  letter-spacing: 0.01em;
-  color-scheme: light;
-  color: var(--on-surface-variant);
-  background: var(--surface);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* ── Elevation: Sky Shadows (Teal-Tinted per design.md) ── */
+  --shadow-ambient: 0 12px 40px rgba(0, 76, 90, 0.06);
+  --shadow-elevated: 0 8px 32px rgba(0, 76, 90, 0.10);
+  --shadow-floating: 0 16px 48px rgba(0, 76, 90, 0.12);
 }
 
 /* ============================================
-   Base Elements
+   Base Layer - Lowest Specificity
+   Tailwind utilities will always override these
    ============================================ */
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  :root {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    color-scheme: light;
+    color: var(--color-on-surface-variant);
+    background: var(--color-surface);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  margin: 0;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-#root {
-  max-width: 100%;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-}
+  body {
+    margin: 0;
+  }
 
-/* ── Typography: Editorial Authority ── */
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--on-surface);
-  margin: 0;
-  line-height: 1.2;
-}
+  #root {
+    max-width: 100%;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+  }
 
-h1 {
-  font-size: clamp(36px, 5vw, 56px);
-  letter-spacing: -0.5px;
-}
+  /* Typography: Editorial Authority (design.md section 3) */
+  /* Headlines use Noto Serif as "Anchor" points */
+  /* on-surface (#1a1c1a) for headlines per design.md */
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0;
+    line-height: 1.2;
+  }
 
-h2 {
-  font-size: clamp(28px, 4vw, 40px);
-  letter-spacing: -0.3px;
-}
+  h1 {
+    font-size: 3.5rem;
+    letter-spacing: -0.5px;
+  }
 
-h3 {
-  font-size: clamp(20px, 2.5vw, 24px);
-}
+  h2 {
+    font-size: 2.5rem;
+    letter-spacing: -0.3px;
+  }
 
-h4 {
-  font-size: 18px;
-  font-weight: 600;
-}
+  h3 {
+    font-size: 1.5rem;
+  }
 
-p {
-  margin: 0;
-  line-height: 1.7;
-  font-size: 16px;
-}
+  h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
 
-a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: color 200ms ease;
-}
+  /* Body text uses on-surface-variant per design.md */
+  p {
+    margin: 0;
+    line-height: 1.7;
+    font-size: 1rem;
+  }
 
-a:hover {
-  color: var(--primary-container);
-}
+  /* Links use primary color */
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 200ms ease;
+  }
 
-code {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-container-high);
-  color: var(--on-surface);
+  a:hover {
+    color: var(--color-primary-container);
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-container-high);
+    color: var(--color-on-surface);
+  }
+
+  /* Tables: No Dividers, Tonal Separation (design.md section 5) */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  th, td {
+    padding: 1rem 1.25rem;
+    text-align: left;
+  }
+
+  th {
+    background: var(--color-surface-container-low);
+    font-weight: 600;
+    color: var(--color-on-surface);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+  }
+
+  /* Alternating backgrounds instead of borders (design.md "Divider Ban") */
+  tr:nth-child(even) td {
+    background: var(--color-surface-container-low);
+  }
+
+  tr:hover td {
+    background: var(--color-surface-container);
+  }
 }
 
 /* ============================================
-   Buttons — Architectural with Ambient Shadows
+   Components Layer - Reusable Patterns
    ============================================ */
 
-.btn {
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 600;
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: all 200ms ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+@layer components {
+  /* Buttons: Architectural with Ambient Shadows (design.md section 5) */
+  /* Primary: lg (8px) corner radius, ambient shadow on hover */
+  .btn {
+    @apply font-[family-name:var(--font-body)] text-[0.9375rem] font-semibold;
+    @apply py-3 px-6 rounded-lg border-none cursor-pointer;
+    @apply transition-all duration-200 ease-out;
+    @apply no-underline inline-flex items-center justify-center gap-2;
+  }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
-  color: var(--on-primary);
-}
+  /* Primary: gradient from primary to primary-container at 135deg (design.md) */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
+    color: var(--color-on-primary);
+  }
 
-.btn-primary:hover:not(:disabled) {
-  box-shadow: var(--shadow-elevated);
-  transform: translateY(-1px);
-}
+  /* Hover: shift elevation with ambient shadow, not just darken (design.md) */
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-1px);
+  }
 
-.btn-secondary {
-  background: var(--secondary-container);
-  color: var(--on-secondary-container);
-}
+  /* Secondary: Warm Gold as "Beacon" (design.md) */
+  .btn-secondary {
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+  }
 
-.btn-secondary:hover:not(:disabled) {
-  box-shadow: var(--shadow-ambient);
-}
+  .btn-secondary:hover:not(:disabled) {
+    box-shadow: var(--shadow-ambient);
+  }
 
-.btn-outline {
-  background: transparent;
-  border: 2px solid var(--primary);
-  color: var(--primary);
-}
+  .btn-outline {
+    @apply bg-transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+  }
 
-.btn-outline:hover:not(:disabled) {
-  background: var(--primary);
-  color: var(--on-primary);
-}
+  .btn-outline:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
 
-.btn-outline-light {
-  background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  color: white;
-}
+  .btn-outline-light {
+    @apply bg-transparent;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    color: white;
+  }
 
-.btn-outline-light:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: white;
-}
+  .btn-outline-light:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: white;
+  }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--on-surface-variant);
-}
+  .btn-ghost {
+    @apply bg-transparent;
+    color: var(--color-on-surface-variant);
+  }
 
-.btn-ghost:hover:not(:disabled) {
-  background: var(--surface-container-low);
-  color: var(--on-surface);
-}
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-surface-container-low);
+    color: var(--color-on-surface);
+  }
 
-.btn-small {
-  padding: 8px 16px;
-  font-size: 13px;
-}
+  .btn-small {
+    @apply py-2 px-4 text-[0.8125rem];
+  }
 
-.btn-large {
-  padding: 16px 32px;
-  font-size: 17px;
-}
+  .btn-large {
+    @apply py-4 px-8 text-[1.0625rem];
+  }
 
-/* ============================================
-   Cards — Tonal Layering, No Borders
-   ============================================ */
+  /* Cards: Tonal Layering, No Borders (design.md section 4 & 5) */
+  /* Use surface-container-lowest on surface backgrounds */
+  .card {
+    background: var(--color-surface-container-lowest);
+    @apply rounded-xl p-6 transition-all duration-200;
+  }
 
-.card {
-  background: var(--surface-container-lowest);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  transition: all 200ms ease;
-}
+  /* Ambient shadow using teal-tinted "Sky Shadow" */
+  .card-elevated {
+    box-shadow: var(--shadow-ambient);
+  }
 
-.card-elevated {
-  box-shadow: var(--shadow-ambient);
-}
+  .card-interactive:hover {
+    box-shadow: var(--shadow-elevated);
+    @apply -translate-y-0.5;
+  }
 
-.card-interactive:hover {
-  box-shadow: var(--shadow-elevated);
-  transform: translateY(-2px);
-}
+  .card-tonal {
+    background: var(--color-surface-container-low);
+  }
 
-.card-tonal {
-  background: var(--surface-container-low);
-}
+  /* Form Elements: No Borders, Tonal Backgrounds (design.md section 5) */
+  /* 8px top-radius, surface-container-high background */
+  .form-group {
+    @apply mb-5;
+  }
 
-/* ============================================
-   Form Elements — No Borders, Tonal Backgrounds
-   ============================================ */
+  .form-group label {
+    @apply block text-sm font-semibold mb-2;
+    color: var(--color-on-surface);
+  }
 
-.form-group {
-  margin-bottom: 20px;
-}
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    @apply w-full py-3.5 px-4 text-base border-none;
+    @apply transition-all duration-200;
+    font-family: var(--font-body);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--color-surface-container-high);
+    color: var(--color-on-surface);
+  }
 
-.form-group label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--on-surface);
-  margin-bottom: 8px;
-}
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: var(--color-outline);
+  }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
-  width: 100%;
-  padding: 14px 16px;
-  font-family: var(--font-body);
-  font-size: 16px;
-  border: none;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  background: var(--surface-container-high);
-  color: var(--on-surface);
-  transition: background 200ms ease, box-shadow 200ms ease;
-}
+  /* Focus: transition to surface-container-highest + 2px primary underline */
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    @apply outline-none;
+    background: var(--color-surface-container-highest);
+    box-shadow: 0 2px 0 0 var(--color-primary);
+  }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-  color: var(--outline);
-}
+  .form-group input:disabled,
+  .form-group textarea:disabled {
+    background: var(--color-surface-container);
+    @apply cursor-not-allowed opacity-60;
+  }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  outline: none;
-  background: var(--surface-container-highest);
-  box-shadow: 0 2px 0 0 var(--primary);
-}
+  .form-group textarea {
+    @apply resize-y min-h-[120px];
+    border-radius: var(--radius-md);
+  }
 
-.form-group input:disabled,
-.form-group textarea:disabled {
-  background: var(--surface-container);
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+  .form-error {
+    @apply text-[0.8125rem] mt-1.5;
+    color: var(--color-error);
+  }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 120px;
-  border-radius: var(--radius-md);
-}
-
-.form-error {
-  color: var(--error);
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-/* ============================================
-   Layout Utilities
-   ============================================ */
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
-}
-
-@media (max-width: 768px) {
+  /* Layout Utilities */
   .container {
-    padding: 0 20px;
+    @apply max-w-[1200px] mx-auto px-8;
   }
-}
 
-.section {
-  padding: 80px 32px;
-}
+  @media (max-width: 768px) {
+    .container {
+      @apply px-5;
+    }
+  }
 
-@media (max-width: 768px) {
   .section {
-    padding: 48px 20px;
+    @apply py-20 px-8;
   }
-}
 
-.section-tonal {
-  background: var(--surface-container-low);
-}
+  @media (max-width: 768px) {
+    .section {
+      @apply py-12 px-5;
+    }
+  }
 
-/* ============================================
-   The Horizon Line (Signature Element)
-   ============================================ */
+  .section-tonal {
+    background: var(--color-surface-container-low);
+  }
 
-.horizon-line {
-  width: 20%;
-  height: 2px;
-  background: var(--secondary);
-  margin-bottom: 16px;
-}
+  /* The Horizon Line: Signature Element (design.md section 5) */
+  /* 2px thick, secondary (Warm Gold), 20% container width */
+  .horizon-line {
+    @apply w-[20%] h-0.5 mb-4;
+    background: var(--color-secondary);
+  }
 
-/* ============================================
-   Navigation — Glassmorphism
-   ============================================ */
+  /* Navigation: Glassmorphism (design.md section 2) */
+  /* surface at 80% opacity with 20px backdrop-blur */
+  .nav-glass {
+    background: rgba(250, 249, 246, 0.8);
+    @apply backdrop-blur-[20px];
+  }
 
-.nav-glass {
-  background: rgba(250, 249, 246, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
+  /* Stat & Metric Components */
+  .stat-card {
+    @apply rounded-xl p-6 flex flex-col items-center gap-2 text-center;
+    background: var(--color-surface-container-low);
+  }
 
-/* ============================================
-   Stat & Metric Components
-   ============================================ */
+  .stat-number {
+    @apply text-[2.5rem] font-bold;
+    font-family: var(--font-display);
+    color: var(--color-primary);
+  }
 
-.stat-card {
-  background: var(--surface-container-low);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-align: center;
-}
+  .stat-label {
+    @apply text-sm;
+    color: var(--color-on-surface-variant);
+  }
 
-.stat-number {
-  font-family: var(--font-display);
-  font-size: 40px;
-  font-weight: 700;
-  color: var(--primary);
-}
+  /* Table Container */
+  .table-container {
+    @apply overflow-x-auto rounded-xl;
+    background: var(--color-surface-container-lowest);
+    box-shadow: var(--shadow-ambient);
+  }
 
-.stat-label {
-  font-size: 14px;
-  color: var(--on-surface-variant);
-}
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center py-1 px-3 text-xs font-semibold;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-container-high);
+    color: var(--color-on-surface-variant);
+  }
 
-/* ============================================
-   Tables — No Dividers, Tonal Separation
-   ============================================ */
+  .badge-primary {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
 
-.table-container {
-  overflow-x: auto;
-  border-radius: var(--radius-lg);
-  background: var(--surface-container-lowest);
-  box-shadow: var(--shadow-ambient);
-}
+  .badge-secondary {
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
+  }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
-}
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-800;
+  }
 
-th, td {
-  padding: 16px 20px;
-  text-align: left;
-}
+  .badge-error {
+    background: var(--color-error-container);
+    color: var(--color-error);
+  }
 
-th {
-  background: var(--surface-container-low);
-  font-weight: 600;
-  color: var(--on-surface);
-  font-family: var(--font-display);
-  font-size: 14px;
-}
+  /* Loading States */
+  .loading-spinner {
+    @apply w-6 h-6 rounded-full animate-spin;
+    border: 3px solid var(--color-surface-container-high);
+    border-top-color: var(--color-primary);
+  }
 
-tr:nth-child(even) td {
-  background: var(--surface-container-low);
-}
-
-tr:hover td {
-  background: var(--surface-container);
-}
-
-/* ============================================
-   Badges
-   ============================================ */
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  background: var(--surface-container-high);
-  color: var(--on-surface-variant);
-}
-
-.badge-primary {
-  background: var(--primary);
-  color: var(--on-primary);
-}
-
-.badge-secondary {
-  background: var(--secondary-container);
-  color: var(--on-secondary-container);
-}
-
-.badge-success {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.badge-error {
-  background: var(--error-container);
-  color: var(--error);
-}
-
-/* ============================================
-   Loading States
-   ============================================ */
-
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid var(--surface-container-high);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ============================================
-   Footer
-   ============================================ */
-
-.footer {
-  background: var(--surface-container-low);
-  margin-top: auto;
+  /* Footer */
+  .footer {
+    @apply mt-auto;
+    background: var(--color-surface-container-low);
+  }
 }

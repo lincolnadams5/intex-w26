@@ -110,10 +110,10 @@ export default function Login() {
 
   if (requires2FA) {
     return (
-      <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-[var(--surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
+      <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-[var(--color-surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
           <h2 className="text-center mb-2">Two-Factor Authentication</h2>
-          <p className="text-center text-[var(--on-surface-variant)] mb-8">
+          <p className="text-center text-[var(--color-on-surface-variant)] mb-8">
             Enter the 6-digit code sent to your email.
           </p>
           <form className="flex flex-col gap-5" onSubmit={handleVerify2FA}>
@@ -130,7 +130,7 @@ export default function Login() {
                 className="text-center text-2xl tracking-[0.5em] font-semibold"
               />
             </div>
-            {error && <p className="text-[var(--error)] text-sm text-center">{error}</p>}
+            {error && <p className="text-[var(--color-error)] text-sm text-center">{error}</p>}
             <button
               type="submit"
               className="btn btn-primary w-full"
@@ -152,8 +152,8 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--surface)] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-[var(--surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
+    <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-[var(--color-surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
         <h2 className="text-center mb-8">Welcome Back</h2>
         <form className="flex flex-col gap-5" onSubmit={handleLogin}>
           <div className="form-group mb-0">
@@ -176,7 +176,7 @@ export default function Login() {
               disabled={isLoading}
             />
           </div>
-          {error && <p className="text-[var(--error)] text-sm text-center">{error}</p>}
+          {error && <p className="text-[var(--color-error)] text-sm text-center">{error}</p>}
           <button
             type="submit"
             className="btn btn-primary w-full"
@@ -185,24 +185,24 @@ export default function Login() {
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
 
-          <p className="text-center text-sm text-[var(--on-surface-variant)]">
-            <Link to="/forgot-password" className="text-[var(--primary)] hover:underline">
+          <p className="text-center text-sm text-[var(--color-on-surface-variant)]">
+            <Link to="/forgot-password" className="text-[var(--color-primary)] hover:underline">
               Forgot password?
             </Link>
           </p>
 
-          <p className="text-center text-sm text-[var(--on-surface-variant)]">
+          <p className="text-center text-sm text-[var(--color-on-surface-variant)]">
             Don't have an account?{' '}
-            <Link to="/register" className="text-[var(--primary)] font-semibold hover:underline">
+            <Link to="/register" className="text-[var(--color-primary)] font-semibold hover:underline">
               Register
             </Link>
           </p>
 
           {/* ── Google OAuth ── */}
           <div className="flex items-center gap-3 my-1">
-            <hr className="flex-1 border-[var(--border)]" />
-            <span className="text-xs text-[var(--on-surface-variant)]">or</span>
-            <hr className="flex-1 border-[var(--border)]" />
+            <hr className="flex-1 border-[var(--color-outline-variant)]" />
+            <span className="text-xs text-[var(--color-on-surface-variant)]">or</span>
+            <hr className="flex-1 border-[var(--color-outline-variant)]" />
           </div>
 
           <div className="flex justify-center">

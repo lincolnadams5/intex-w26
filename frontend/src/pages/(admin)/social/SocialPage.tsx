@@ -75,7 +75,7 @@ function PostingHeatmap({ data, xLabels, yLabels }: {
       {/* X-axis labels (top) */}
       <div style={{ display: 'flex', marginLeft: '40px' }}>
         {xLabels.map(label => (
-          <div key={label} style={{ width: '50px', textAlign: 'center', fontSize: '10px', color: 'var(--text)', flexShrink: 0 }}>
+          <div key={label} style={{ width: '50px', textAlign: 'center', fontSize: '10px', color: 'var(--color-on-surface-variant)', flexShrink: 0 }}>
             {label}
           </div>
         ))}
@@ -84,7 +84,7 @@ function PostingHeatmap({ data, xLabels, yLabels }: {
       {/* Rows */}
       {yLabels.map((yLabel, y) => (
         <div key={yLabel} style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: '40px', fontSize: '10px', color: 'var(--text)', flexShrink: 0 }}>
+          <div style={{ width: '40px', fontSize: '10px', color: 'var(--color-on-surface-variant)', flexShrink: 0 }}>
             {yLabel}
           </div>
           {xLabels.map((_label, x) => {
@@ -158,7 +158,7 @@ export function SocialPage() {
   }, [])
 
   if (loading) return <LoadingState />
-  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+  if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
 
   // ── Sort + paginate top posts ─────────────────────────────────────────────────
   const sorted = [...topPosts].sort((a, b) =>
@@ -212,7 +212,7 @@ export function SocialPage() {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byPlatform} margin={{ left: 0, right: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
                 <XAxis dataKey="platform" tick={{ fontSize: 12 }} />
                 <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={v => [`${Number(v).toFixed(2)}%`, 'Avg Engagement']} />
@@ -230,7 +230,7 @@ export function SocialPage() {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byPostType} layout="vertical" margin={{ left: 8, right: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--color-outline-variant)" />
                 <XAxis type="number" tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                 <YAxis dataKey="postType" type="category" tick={{ fontSize: 12 }} width={100} />
                 <Tooltip formatter={v => [`${Number(v).toFixed(2)}%`, 'Avg Engagement']} />
@@ -249,7 +249,7 @@ export function SocialPage() {
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={byTopic} layout="vertical" margin={{ left: 8, right: 16 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--color-outline-variant)" />
               <XAxis type="number" tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
               <YAxis dataKey="contentTopic" type="category" tick={{ fontSize: 11 }} width={120} />
               <Tooltip formatter={v => [`${Number(v).toFixed(2)}%`, 'Avg Engagement']} />
@@ -270,7 +270,7 @@ export function SocialPage() {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={referralTrend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis yAxisId="left"  tick={{ fontSize: 11 }} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
@@ -317,11 +317,11 @@ export function SocialPage() {
       <SectionCard title="Top Posts" subtitle="Sorted by the selected metric">
         {/* Sort dropdown */}
         <div className="flex items-center gap-2 mb-4">
-          <label className="text-xs text-[var(--text)]">Sort by:</label>
+          <label className="text-xs text-[var(--color-on-surface-variant)]">Sort by:</label>
           <select
             value={sortKey as string}
             onChange={e => { setSortKey(e.target.value as keyof TopPost); setPage(1) }}
-            className="text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 bg-[var(--bg)] text-[var(--text-h)]"
+            className="text-xs border border-[var(--color-outline-variant)] rounded-lg px-2 py-1.5 bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)]"
           >
             <option value="engagementRate">Engagement Rate</option>
             <option value="likes">Likes</option>
@@ -349,19 +349,19 @@ export function SocialPage() {
               {paged.map(p => (
                 <tr key={p.postId}>
                   <td>
-                    <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-h)]">
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-on-surface)]">
                       {PLATFORM_ICON[p.platform] ?? '🌐'} {p.platform}
                     </span>
                   </td>
                   <td><span className="badge text-xs">{p.postType}</span></td>
-                  <td className="text-[var(--text)] text-xs">{p.contentTopic}</td>
-                  <td className="text-[var(--text)] text-xs">
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">{p.contentTopic}</td>
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">
                     {p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-PH') : '—'}
                   </td>
                   <td>{p.likes.toLocaleString()}</td>
                   <td>{p.shares.toLocaleString()}</td>
-                  <td className="font-medium text-[var(--accent)]">{p.donationReferrals}</td>
-                  <td className="font-bold text-[var(--text-h)]">
+                  <td className="font-medium text-[var(--color-primary)]">{p.donationReferrals}</td>
+                  <td className="font-bold text-[var(--color-on-surface)]">
                     {p.engagementRate != null ? `${Number(p.engagementRate).toFixed(2)}%` : '—'}
                   </td>
                 </tr>

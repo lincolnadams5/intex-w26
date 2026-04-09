@@ -8,8 +8,8 @@ interface PageHeaderProps {
 export function PageHeader({ title, subtitle }: PageHeaderProps) {
   return (
     <div>
-      <h2 className="text-[var(--text-h)]">{title}</h2>
-      <p className="text-sm text-[var(--text)] mt-1">{subtitle}</p>
+      <h2 className="text-[var(--color-on-surface)]">{title}</h2>
+      <p className="text-sm text-[var(--color-on-surface-variant)] mt-1">{subtitle}</p>
     </div>
   )
 }

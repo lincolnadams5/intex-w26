@@ -97,7 +97,7 @@ export function DonorsPage() {
   }, [page])
 
   if (loading) return <LoadingState />
-  if (error) return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
+  if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
 
   const allocPivoted = pivotAllocations(allocations)
   const areas        = programAreas(allocations)
@@ -148,7 +148,7 @@ export function DonorsPage() {
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trends} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis
                   tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
@@ -194,11 +194,11 @@ export function DonorsPage() {
           </div>
           <div className="flex flex-col gap-1.5 mt-2">
             {byType.map((d, i) => (
-              <div key={d.donationType} className="flex items-center gap-2 text-xs text-[var(--text)]">
+              <div key={d.donationType} className="flex items-center gap-2 text-xs text-[var(--color-on-surface-variant)]">
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                 <span className="flex-1">{d.donationType}</span>
-                <span className="font-medium text-[var(--text-h)]">{d.count}</span>
+                <span className="font-medium text-[var(--color-on-surface)]">{d.count}</span>
               </div>
             ))}
           </div>
@@ -216,7 +216,7 @@ export function DonorsPage() {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byChannel} layout="vertical" margin={{ left: 8, right: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--color-outline-variant)" />
                 <XAxis
                   type="number"
                   tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
@@ -238,7 +238,7 @@ export function DonorsPage() {
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byCampaign} layout="vertical" margin={{ left: 8, right: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--color-outline-variant)" />
                 <XAxis
                   type="number"
                   tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
@@ -261,7 +261,7 @@ export function DonorsPage() {
         <div className="h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={allocPivoted} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis
                 tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`}
@@ -302,12 +302,12 @@ export function DonorsPage() {
             <tbody>
               {recentItems.map(d => (
                 <tr key={d.donationId}>
-                  <td className="font-medium text-[var(--text-h)]">{d.donorName}</td>
+                  <td className="font-medium text-[var(--color-on-surface)]">{d.donorName}</td>
                   <td><span className="badge text-xs">{d.donationType}</span></td>
                   <td className="font-medium">₱{d.amount.toLocaleString()}</td>
-                  <td className="text-[var(--text)] text-xs">{d.donationDate?.split('T')[0] ?? '—'}</td>
-                  <td className="text-[var(--text)] text-xs">{d.campaignName}</td>
-                  <td className="text-[var(--text)] text-xs">{d.channelSource}</td>
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">{d.donationDate?.split('T')[0] ?? '—'}</td>
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">{d.campaignName}</td>
+                  <td className="text-[var(--color-on-surface-variant)] text-xs">{d.channelSource}</td>
                   <td>
                     {d.isRecurring
                       ? <span className="badge badge-success text-xs">Yes</span>
