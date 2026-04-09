@@ -5,7 +5,7 @@ import { AdminLayout } from './pages/(admin)/AdminLayout'
 import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
-import { ResidentsPage } from './pages/(admin)/residents/Residents'
+import { Residents } from './pages/(admin)/residents/Residents'
 import { SafehousePage } from './pages/(admin)/safehouses/SafehousePage'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
@@ -28,6 +28,8 @@ import { useLocation } from 'react-router-dom'
 import { trackPageView } from './utils/analytics'
 import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
 import HomeVisits from './pages/(admin)/dashboard/home-visitation/HomeVisits'
+import StaffProcessRecording from './pages/(staff)/process-recording/StaffProcessRecording'
+import StaffHomeVisits from './pages/(staff)/home-visits/StaffHomeVisits'
 import About from './pages/(home)/About'
 
 function AnalyticsTracker() {
@@ -90,7 +92,7 @@ function App() {
             <Route path="dashboard/process-recording" element={<ProcessRecording />} />
             <Route path="dashboard/home-visits" element={<HomeVisits />} />
           <Route path="donors" element={<DonorsPage />} />
-          <Route path="residents" element={<ResidentsPage />} />
+          <Route path="residents" element={<Residents />} />
           <Route path="safehouses" element={<SafehousePage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
@@ -108,7 +110,9 @@ function App() {
         >
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="residents" element={<ResidentsPage />} />
+          <Route path="residents" element={<Residents />} />
+          <Route path="process-recording" element={<StaffProcessRecording />} />
+          <Route path="home-visits" element={<StaffHomeVisits />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 

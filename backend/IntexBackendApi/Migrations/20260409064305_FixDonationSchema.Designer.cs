@@ -3,6 +3,7 @@ using System;
 using IntexBackendApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409064305_FixDonationSchema")]
+    partial class FixDonationSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,10 +100,6 @@ namespace backend.Migrations
                         .HasColumnType("text")
                         .HasColumnName("security_stamp");
 
-                    b.Property<string>("SocialWorkerCode")
-                        .HasColumnType("text")
-                        .HasColumnName("social_worker_code");
-
                     b.Property<int?>("SupporterId")
                         .HasColumnType("integer")
                         .HasColumnName("supporter_id");
@@ -148,16 +147,12 @@ namespace backend.Migrations
                         .HasColumnType("text")
                         .HasColumnName("channel_source");
 
-                    b.Property<int?>("CreatedByPartnerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("created_by_partner_id");
-
                     b.Property<string>("CurrencyCode")
                         .HasColumnType("text")
                         .HasColumnName("currency_code");
 
-                    b.Property<DateOnly?>("DonationDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("DonationDate")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("donation_date");
 
                     b.Property<string>("DonationType")
@@ -179,10 +174,6 @@ namespace backend.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text")
                         .HasColumnName("notes");
-
-                    b.Property<int?>("ReferralPostId")
-                        .HasColumnType("integer")
-                        .HasColumnName("referral_post_id");
 
                     b.Property<int>("SupporterId")
                         .HasColumnType("integer")

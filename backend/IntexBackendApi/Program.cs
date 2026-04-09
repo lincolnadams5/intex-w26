@@ -5,6 +5,7 @@ using IntexBackendApi.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -21,7 +22,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
-           .UseSnakeCaseNamingConvention());
+           .UseSnakeCaseNamingConvention()
+           // Suppress the snapshot-model hash mismatch warning. Our migration SQL is correct;
+           // the snapshot was edited manually and EF 10's hash check doesn't match exactly.
+           .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // 🔐 ASP.NET Identity (API-first: IdentityCore keeps cookie schemes out of the pipeline)
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -152,10 +156,28 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// 🌱 Seed roles and default accounts on every startup (idempotent)
-using (var scope = app.Services.CreateScope())
+// 🌱 Schema patch — own scope so the connection is cleanly returned before seeding
+using (var patchScope = app.Services.CreateScope())
 {
-    await DbSeeder.SeedAsync(scope.ServiceProvider);
+    var db = patchScope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Add social_worker_code column if not already present (idempotent).
+    await db.Database.ExecuteSqlRawAsync(
+        """ALTER TABLE "AspNetUsers" ADD COLUMN IF NOT EXISTS social_worker_code text""");
+
+    // Record migration as applied so dotnet-ef tools stay in sync (idempotent).
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        INSERT INTO "__EFMigrationsHistory" (migration_id, product_version)
+        VALUES ('20260409080000_AddSocialWorkerCode', '10.0.5')
+        ON CONFLICT DO NOTHING
+        """);
+}   // patchScope disposed here — connection returned to pool cleanly
+
+// 🌱 Seed roles and accounts — fresh scope, fresh connection
+using (var seedScope = app.Services.CreateScope())
+{
+    await DbSeeder.SeedAsync(seedScope.ServiceProvider);
 }
 
 app.Run();

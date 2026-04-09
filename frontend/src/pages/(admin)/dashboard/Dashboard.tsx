@@ -13,6 +13,12 @@ import {
   type ActivityItem,
   type ConferenceItem,
 } from '../../../lib/adminApi'
+import {
+  getStaffDashboardSummary,
+  getStaffDashboardActivity,
+  getStaffDashboardConferences,
+  type StaffDashboardSummary,
+} from '../../../lib/staffApi'
 
 // ── Activity feed icons ───────────────────────────────────────────────────────
 const ACTIVITY_ICONS: Record<string, string> = {
@@ -34,25 +40,39 @@ export function Dashboard() {
   const base = isAdmin ? '/admin' : '/staff'
 
   // ── Data state ──────────────────────────────────────────────────────────────
-  const [summary, setSummary]         = useState<DashboardSummary | null>(null)
-  const [activity, setActivity]       = useState<ActivityItem[]>([])
-  const [conferences, setConferences] = useState<ConferenceItem[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState<string | null>(null)
+  const [adminSummary, setAdminSummary]   = useState<DashboardSummary | null>(null)
+  const [staffSummary, setStaffSummary]   = useState<StaffDashboardSummary | null>(null)
+  const [activity, setActivity]           = useState<ActivityItem[]>([])
+  const [conferences, setConferences]     = useState<ConferenceItem[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState<string | null>(null)
 
   // ── Fetch all dashboard data on mount ───────────────────────────────────────
   useEffect(() => {
-    Promise.all([
-      getDashboardSummary(),
-      getDashboardActivity(),
-      getDashboardConferences(),
-    ]).then(([s, a, c]) => {
-      setSummary(s)
-      setActivity(a)
-      setConferences(c)
-    }).catch(() => setError('Failed to load dashboard data.'))
-      .finally(() => setLoading(false))
-  }, [])
+    if (isAdmin) {
+      Promise.all([
+        getDashboardSummary(),
+        getDashboardActivity(),
+        getDashboardConferences(),
+      ]).then(([s, a, c]) => {
+        setAdminSummary(s)
+        setActivity(a)
+        setConferences(c)
+      }).catch(() => setError('Failed to load dashboard data.'))
+        .finally(() => setLoading(false))
+    } else {
+      Promise.all([
+        getStaffDashboardSummary(),
+        getStaffDashboardActivity(),
+        getStaffDashboardConferences(),
+      ]).then(([s, a, c]) => {
+        setStaffSummary(s)
+        setActivity(a as ActivityItem[])
+        setConferences(c)
+      }).catch(() => setError('Failed to load dashboard data.'))
+        .finally(() => setLoading(false))
+    }
+  }, [isAdmin])
 
   if (loading) return <LoadingState />
   if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
@@ -61,40 +81,61 @@ export function Dashboard() {
     <div className="flex flex-col gap-6 max-w-[1200px]">
       <PageHeader
         title="Dashboard Overview"
-        subtitle="Welcome back. Here's a summary of what's happening across the organization."
+        subtitle={
+          isAdmin
+            ? 'Welcome back. Here\'s a summary of what\'s happening across the organization.'
+            : 'Welcome back. Here\'s a summary of your safehouse activity.'
+        }
       />
 
       {/* ── Stat cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Active Residents"
-          value={summary?.activeResidents ?? '—'}
+          value={(isAdmin ? adminSummary?.activeResidents : staffSummary?.activeResidents) ?? '—'}
           icon="🏠"
         />
         <StatCard
           label="High / Critical Risk"
-          value={summary?.highCriticalRisk ?? '—'}
+          value={(isAdmin ? adminSummary?.highCriticalRisk : staffSummary?.highCriticalRisk) ?? '—'}
           icon="⚠️"
           subtitle="active residents"
         />
-        <StatCard
-          label="Active Donors"
-          value={summary?.activeDonors ?? '—'}
-          icon="👤"
-        />
-        <StatCard
-          label="Donations This Month"
-          value={summary ? `₱${summary.monthlyDonationsTotal.toLocaleString()}` : '—'}
-          icon="💰"
-          accent
-        />
+        {isAdmin ? (
+          <>
+            <StatCard
+              label="Active Donors"
+              value={adminSummary?.activeDonors ?? '—'}
+              icon="👤"
+            />
+            <StatCard
+              label="Donations This Month"
+              value={adminSummary ? `₱${adminSummary.monthlyDonationsTotal.toLocaleString()}` : '—'}
+              icon="💰"
+              accent
+            />
+          </>
+        ) : (
+          <>
+            <StatCard
+              label="My Recordings This Month"
+              value={staffSummary?.myRecordingsThisMonth ?? '—'}
+              icon="📋"
+            />
+            <StatCard
+              label="Upcoming Conferences"
+              value={staffSummary?.upcomingConferences ?? '—'}
+              icon="📅"
+              accent
+            />
+          </>
+        )}
       </div>
 
       {/* ── Quick action buttons ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Placeholder — links to home visitation form (teammate's page) */}
         <Link
-          to={`${base}/dashboard/home-visits`}
+          to={isAdmin ? `${base}/dashboard/home-visits` : `${base}/home-visits`}
           className="card card-interactive flex no-underline block group"
         >
           <span className="text-3xl mr-3">🏡</span>
@@ -104,14 +145,13 @@ export function Dashboard() {
           </div>
         </Link>
 
-        {/* Placeholder — links to process recording form (teammate's page) */}
         <Link
-          to={`${base}/dashboard/process-recording`}
+          to={isAdmin ? `${base}/dashboard/process-recording` : `${base}/process-recording`}
           className="card card-interactive flex no-underline block group"
         >
           <span className="text-3xl mr-3">📋</span>
           <div>
-            <p className="font-semibold text-[var(--color-on-surface)]">Record a Process</p>
+            <p className="font-semibold text-[var(--color-on-surface)]">Record a Process Session</p>
             <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">Opens process recording form</p>
           </div>
         </Link>
@@ -135,7 +175,9 @@ export function Dashboard() {
             <span className="text-sm font-semibold text-[var(--color-on-surface)]">Residents</span>
             <span className="text-xl">🏠</span>
           </div>
-          <p className="text-xs text-[var(--color-on-surface-variant)]">Safehouse occupancy and risk levels</p>
+          <p className="text-xs text-[var(--color-on-surface-variant)]">
+            {isAdmin ? 'Safehouse occupancy and risk levels' : 'Your caseload and resident records'}
+          </p>
           <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View residents →</p>
         </Link>
 
@@ -166,7 +208,11 @@ export function Dashboard() {
         {/* Recent activity feed */}
         <SectionCard
           title="Recent Activity"
-          subtitle="Latest events across donations, sessions, visitations, and incidents"
+          subtitle={
+            isAdmin
+              ? 'Latest events across donations, sessions, visitations, and incidents'
+              : 'Latest sessions, visitations, and incidents at your safehouse'
+          }
         >
           {activity.length === 0 ? (
             <p className="text-sm text-[var(--color-on-surface-variant)]">No recent activity found.</p>
