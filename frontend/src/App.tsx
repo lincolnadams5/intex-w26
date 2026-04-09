@@ -61,6 +61,7 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/donate" element={<DonatePage />} />
+          <Route path="/about" element={<About />} />
           <Route
             path="/my-donations"
             element={
