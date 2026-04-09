@@ -325,13 +325,14 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         return new UserProfileDto
         {
-            Id          = user.Id,
-            Email       = user.Email!,
-            FullName    = user.FullName,
-            Role        = roles.FirstOrDefault() ?? string.Empty,
-            SafehouseId = user.SafehouseId,
-            SupporterId = user.SupporterId,
-            CreatedAt   = user.CreatedAt,
+            Id               = user.Id,
+            Email            = user.Email!,
+            FullName         = user.FullName,
+            Role             = roles.FirstOrDefault() ?? string.Empty,
+            SafehouseId      = user.SafehouseId,
+            SupporterId      = user.SupporterId,
+            SocialWorkerCode = user.SocialWorkerCode,
+            CreatedAt        = user.CreatedAt,
         };
     }
 }
