@@ -8,7 +8,8 @@ import { ProfileCard } from '../../components/ProfileCard'
 const baseNavItems = [
   { to: '/admin/dashboard', label: 'Overview',      icon: '⊞' },
   { to: '/admin/donors',    label: 'Donor Activity', icon: '💰' },
-  { to: '/admin/residents', label: 'Residents',      icon: '🏠' },
+  { to: '/admin/residents',  label: 'Residents',      icon: '🏠' },
+  { to: '/admin/safehouses', label: 'Safehouses',     icon: '🏡' },
   { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
   { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
 ]
@@ -34,7 +35,7 @@ export function AdminLayout() {
     <div className="flex min-h-svh bg-[var(--color-surface-container-low)]">
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
+        className={`${sidebarOpen ? 'w-45' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-[var(--color-outline-variant)]">

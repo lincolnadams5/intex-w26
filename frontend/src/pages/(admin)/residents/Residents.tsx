@@ -12,17 +12,13 @@ import { LoadingState } from '../../../components/admin/LoadingState'
 import { Pagination }  from '../../../components/admin/Pagination'
 import {
   getResidentsSummary,
+  getResidentsList,
+  getResidentAlerts,
   getSafehousesOverview,
-  getRiskBySafehouse,
-  getRiskEscalations,
-  getRecentRecordings,
-  getRecentIncidents,
   type ResidentsSummary,
+  type ResidentRow,
+  type ResidentAlerts,
   type SafehouseOverviewRow,
-  type RiskBySafehouse,
-  type RiskEscalation,
-  type RecentRecording,
-  type RecentIncident,
 } from '../../../lib/adminApi'
 import {
   getStaffResidentsSummary,
@@ -333,8 +329,8 @@ export function Residents() {
   if (isAdmin) return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
       <PageHeader
-        title="Residents & Safehouses"
-        subtitle="Occupancy, risk levels, recent sessions, and incident reports across all safehouses."
+        title="Residents"
+        subtitle="Full resident roster with risk levels, reintegration readiness, and alert flags."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

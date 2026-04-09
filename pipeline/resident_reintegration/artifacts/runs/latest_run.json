@@ -1,15 +1,16 @@
 {
-  "trained_at": "2026-04-07T19:46:50.895986+00:00",
-  "best_model": "RandomForest",
-  "cv_precision": 0.7833,
-  "cv_f1": 0.7476,
-  "train_rows": 31,
-  "test_rows": 8,
-  "feature_cols": [
-    "case_status",
-    "sex",
-    "birth_status",
-    "case_category",
+  "run_timestamp": "2026-04-08T17:29:36.187011",
+  "model_name": "RandomForest",
+  "model_path": "C:\\Users\\apier\\OneDrive\\Documents\\Code\\Intex-II\\intex-w26\\pipeline\\resident_reintegration\\artifacts\\models\\reintegration_model.joblib",
+  "seed": 42,
+  "test_size": 0.2,
+  "cv_folds": 5,
+  "n_labeled": 39,
+  "n_in_progress": 21,
+  "n_train": 31,
+  "n_test": 8,
+  "n_features": 52,
+  "numeric_features": [
     "sub_cat_orphaned",
     "sub_cat_cicl",
     "sub_cat_at_risk",
@@ -18,8 +19,6 @@
     "is_pwd",
     "has_special_needs",
     "age_upon_admission",
-    "referral_source",
-    "reintegration_type",
     "current_risk_numeric",
     "risk_delta",
     "length_of_stay_days",
@@ -58,5 +57,187 @@
     "inc_high_severity_count",
     "inc_pct_unresolved",
     "inc_critical_count"
+  ],
+  "categorical_features": [
+    "case_status",
+    "sex",
+    "birth_status",
+    "case_category",
+    "referral_source",
+    "reintegration_type"
+  ],
+  "cv_results": {
+    "LogisticRegression": {
+      "precision_mean": 0.65,
+      "precision_std": 0.2,
+      "f1_mean": 0.6333333333333332,
+      "f1_std": 0.1238095238095238,
+      "precision_folds": [
+        0.5,
+        0.75,
+        1.0,
+        0.5,
+        0.5
+      ],
+      "f1_folds": [
+        0.6666666666666666,
+        0.8571428571428571,
+        0.5,
+        0.5714285714285714,
+        0.5714285714285714
+      ]
+    },
+    "RandomForest": {
+      "precision_mean": 0.7833333333333333,
+      "precision_std": 0.11303883305208781,
+      "f1_mean": 0.7476190476190476,
+      "f1_std": 0.1441213900040148,
+      "precision_folds": [
+        0.75,
+        0.75,
+        1.0,
+        0.75,
+        0.6666666666666666
+      ],
+      "f1_folds": [
+        0.8571428571428571,
+        0.8571428571428571,
+        0.5,
+        0.8571428571428571,
+        0.6666666666666666
+      ]
+    }
+  },
+  "test_metrics": {
+    "precision": 0.6666666666666666,
+    "recall": 1.0,
+    "f1": 0.8,
+    "roc_auc": 1.0
+  },
+  "thresholds": {
+    "precision_min": 0.75,
+    "f1_min": 0.7
+  },
+  "go_no_go": "GO",
+  "readiness_bands": {
+    "ready_for_review": [
+      0.6,
+      1.0
+    ],
+    "developing": [
+      0.3,
+      0.6
+    ],
+    "low_readiness": [
+      0.0,
+      0.3
+    ]
+  },
+  "in_progress_scores": [
+    {
+      "resident_id": "27",
+      "readiness_score": 0.679379,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "12",
+      "readiness_score": 0.669421,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "58",
+      "readiness_score": 0.658126,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "6",
+      "readiness_score": 0.637569,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "1",
+      "readiness_score": 0.632888,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "54",
+      "readiness_score": 0.6325,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "35",
+      "readiness_score": 0.618269,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "14",
+      "readiness_score": 0.615114,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "41",
+      "readiness_score": 0.603463,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "16",
+      "readiness_score": 0.603105,
+      "readiness_band": "Ready for Review"
+    },
+    {
+      "resident_id": "60",
+      "readiness_score": 0.596493,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "7",
+      "readiness_score": 0.584091,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "23",
+      "readiness_score": 0.562398,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "47",
+      "readiness_score": 0.561045,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "36",
+      "readiness_score": 0.555901,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "33",
+      "readiness_score": 0.555438,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "18",
+      "readiness_score": 0.549982,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "31",
+      "readiness_score": 0.510066,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "45",
+      "readiness_score": 0.472642,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "55",
+      "readiness_score": 0.396378,
+      "readiness_band": "Developing"
+    },
+    {
+      "resident_id": "43",
+      "readiness_score": 0.394934,
+      "readiness_band": "Developing"
+    }
   ]
 }

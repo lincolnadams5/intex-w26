@@ -26,6 +26,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InterventionPlan> InterventionPlans => Set<InterventionPlan>();
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
 
+    // --- ML predictions ---
+    public DbSet<DonorRiskScore> DonorRiskScores => Set<DonorRiskScore>();
+    public DbSet<ResidentReintegrationScore> ResidentReintegrationScores => Set<ResidentReintegrationScore>();
+    public DbSet<PostAnalyticsScore> PostAnalyticsScores => Set<PostAnalyticsScore>();
+    public DbSet<DonorOutreachProfile> DonorOutreachProfiles => Set<DonorOutreachProfile>();
+    public DbSet<DonorUpgradeScore> DonorUpgradeScores => Set<DonorUpgradeScore>();
+
     // --- Outreach domain ---
     public DbSet<SocialMediaPost> SocialMediaPosts => Set<SocialMediaPost>();
     public DbSet<SafehouseMonthlyMetric> SafehouseMonthlyMetrics => Set<SafehouseMonthlyMetric>();
