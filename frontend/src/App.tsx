@@ -27,6 +27,7 @@ import { useLocation } from 'react-router-dom'
 import { trackPageView } from './utils/analytics'
 import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
 import HomeVisits from './pages/(admin)/dashboard/home-visitation/HomeVisits'
+import About from './pages/(home)/About'
 
 function AnalyticsTracker() {
   const location = useLocation()
@@ -53,6 +54,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/impact" element={<ImpactDashboard />} />
           <Route path="/donor" element={<Donors />} />
+          <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/donate" element={<DonatePage />} />
