@@ -462,7 +462,6 @@ export function Residents() {
           )}
         </SectionCard>
       </div>
-      </div>
     </div>
   </div>
   )
