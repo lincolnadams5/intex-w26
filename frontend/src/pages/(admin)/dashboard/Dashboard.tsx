@@ -20,14 +20,6 @@ import {
   type StaffDashboardSummary,
 } from '../../../lib/staffApi'
 
-// ── Activity feed icons ───────────────────────────────────────────────────────
-const ACTIVITY_ICONS: Record<string, string> = {
-  donation:   '💰',
-  incident:   '⚠️',
-  recording:  '📋',
-  visitation: '🏡',
-}
-
 // ── Date display helper ───────────────────────────────────────────────────────
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-PH', {
@@ -80,39 +72,38 @@ export function Dashboard() {
   return (
     <div className="flex flex-col gap-6 max-w-[1200px]">
       <PageHeader
-        title="Dashboard Overview"
-        subtitle={
-          isAdmin
-            ? 'Welcome back. Here\'s a summary of what\'s happening across the organization.'
-            : 'Welcome back. Here\'s a summary of your safehouse activity.'
-        }
+        title="Overview"
+        subtitle="Here's a summary of what's happening across the organization."
       />
 
-      {/* ── Stat cards ──────────────────────────────────────────────────────── */}
+      {/* ── Metrics ─────────────────────────────────────────────────────────── */}
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Metrics</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Active Residents"
-          value={(isAdmin ? adminSummary?.activeResidents : staffSummary?.activeResidents) ?? '—'}
-          icon="🏠"
+          value={summary?.activeResidents ?? '—'}
+          color="#0d9488"
+          icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
         />
         <StatCard
-          label="High / Critical Risk"
+          label="High Risk Residents"
           value={(isAdmin ? adminSummary?.highCriticalRisk : staffSummary?.highCriticalRisk) ?? '—'}
-          icon="⚠️"
-          subtitle="active residents"
+          color="#f97316"
+          icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>}
         />
         {isAdmin ? (
           <>
             <StatCard
               label="Active Donors"
               value={adminSummary?.activeDonors ?? '—'}
-              icon="👤"
+              color="#3b82f6"
+          icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 21C12 21 3 14.5 3 8.5a4.5 4.5 0 0 1 9-0.5 4.5 4.5 0 0 1 9 .5C21 14.5 12 21 12 21z"/></svg>}
             />
             <StatCard
               label="Donations This Month"
               value={adminSummary ? `₱${adminSummary.monthlyDonationsTotal.toLocaleString()}` : '—'}
-              icon="💰"
-              accent
+              color="#c9a227"
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="18"/><path d="M15 9.5C15 8.1 13.66 7 12 7s-3 1.1-3 2.5S10.34 12 12 12s3 1.4 3 2.5S13.66 17 12 17s-3-1.1-3-2.5"/></svg>}
             />
           </>
         ) : (
@@ -132,77 +123,39 @@ export function Dashboard() {
         )}
       </div>
 
-      {/* ── Quick action buttons ─────────────────────────────────────────────── */}
+      {/* ── Actions ─────────────────────────────────────────────────────────── */}
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Actions</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link
           to={isAdmin ? `${base}/dashboard/home-visits` : `${base}/home-visits`}
-          className="card card-interactive flex no-underline block group"
+          className="card card-interactive flex items-center gap-4 no-underline group"
         >
-          <span className="text-3xl mr-3">🏡</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 flex-shrink-0 text-[var(--color-primary)] opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V7l7-4 7 4v12a2 2 0 0 1-2 2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 21V12h6v9" />
+          </svg>
           <div>
             <p className="font-semibold text-[var(--color-on-surface)]">Record a Visitation</p>
-            <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">Opens home visitation form</p>
           </div>
         </Link>
 
         <Link
           to={isAdmin ? `${base}/dashboard/process-recording` : `${base}/process-recording`}
-          className="card card-interactive flex no-underline block group"
+          className="card card-interactive flex items-center gap-4 no-underline group"
         >
-          <span className="text-3xl mr-3">📋</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 flex-shrink-0 text-[var(--color-primary)] opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6M9 16h4" />
+          </svg>
           <div>
-            <p className="font-semibold text-[var(--color-on-surface)]">Record a Process Session</p>
-            <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">Opens process recording form</p>
+            <p className="font-semibold text-[var(--color-on-surface)]">Record a Process</p>
           </div>
         </Link>
       </div>
 
-      {/* ── Domain navigation cards ──────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {isAdmin && (
-          <Link to={`${base}/donors`} className="card card-interactive no-underline block group">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-[var(--color-on-surface)]">Donor Activity</span>
-              <span className="text-xl">💰</span>
-            </div>
-            <p className="text-xs text-[var(--color-on-surface-variant)]">Trends, campaigns, and allocations</p>
-            <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View donors →</p>
-          </Link>
-        )}
-
-        <Link to={`${base}/residents`} className="card card-interactive no-underline block group">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-[var(--color-on-surface)]">Residents</span>
-            <span className="text-xl">🏠</span>
-          </div>
-          <p className="text-xs text-[var(--color-on-surface-variant)]">
-            {isAdmin ? 'Safehouse occupancy and risk levels' : 'Your caseload and resident records'}
-          </p>
-          <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View residents →</p>
-        </Link>
-
-        {isAdmin && (
-          <Link to={`${base}/social`} className="card card-interactive no-underline block group">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-[var(--color-on-surface)]">Social Media</span>
-              <span className="text-xl">📱</span>
-            </div>
-            <p className="text-xs text-[var(--color-on-surface-variant)]">Engagement, referrals, and top posts</p>
-            <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View social →</p>
-          </Link>
-        )}
-
-        <Link to={`${base}/ml`} className="card card-interactive no-underline block group">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-[var(--color-on-surface)]">ML Insights</span>
-            <span className="text-xl">🤖</span>
-          </div>
-          <p className="text-xs text-[var(--color-on-surface-variant)]">Churn risk, reintegration, and ROI</p>
-          <p className="text-xs text-[var(--color-primary)] mt-3 group-hover:underline">View insights →</p>
-        </Link>
-      </div>
-
-      {/* ── Bottom row: activity feed + upcoming conferences ─────────────────── */}
+      {/* ── History & Upcoming ───────────────────────────────────────────────── */}
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--color-on-surface-variant)]">History & Upcoming</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Recent activity feed */}
@@ -220,9 +173,6 @@ export function Dashboard() {
             <div className="flex flex-col divide-y divide-[var(--color-outline-variant)]">
               {activity.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 py-3">
-                  <span className="text-lg mt-0.5 flex-shrink-0">
-                    {ACTIVITY_ICONS[item.type] ?? '📌'}
-                  </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--color-on-surface)]">{item.label}</p>
                     <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">{item.detail}</p>
@@ -240,7 +190,6 @@ export function Dashboard() {
         <SectionCard
           title="Upcoming Case Conferences"
           subtitle="Scheduled from today onward"
-          titleIcon="📅"
         >
           {conferences.length === 0 ? (
             <p className="text-sm text-[var(--color-on-surface-variant)]">No upcoming conferences.</p>
