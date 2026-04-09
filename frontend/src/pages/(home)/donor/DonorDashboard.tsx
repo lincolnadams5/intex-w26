@@ -58,13 +58,11 @@ export default function DonorDashboard() {
     <div className="min-h-screen bg-[var(--color-surface)]">
       {/* Header */}
       <header className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white py-10 px-6">
-        <div className="max-w-[1200px] mx-auto flex justify-between items-center flex-wrap gap-4">
-          <div>
+          <div className="max-w-[80vh] mx-auto gap-4 flex flex-col items-center text-center">
             <h1 className="text-white mb-1">Welcome back, {user?.fullName?.split(' ')[0] || 'Donor'}</h1>
             <p className="text-white/80 text-lg">Thank you for your continued support of Pag-asa Sanctuary</p>
           </div>
-          <Link to="/" className="btn btn-outline-light">Back to Home</Link>
-        </div>
+
       </header>
 
       <main className="max-w-[1200px] mx-auto px-6 py-10 flex flex-col gap-10">
