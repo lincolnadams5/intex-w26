@@ -257,10 +257,10 @@ public class AdminController : ControllerBase
     [HttpGet("dashboard/conferences")]
     public async Task<IActionResult> GetDashboardConferences()
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var nowUtc = DateTime.UtcNow;
 
         var conferences = await _db.InterventionPlans
-            .Where(ip => ip.CaseConferenceDate >= today)
+            .Where(ip => ip.CaseConferenceDate >= nowUtc)
             .Join(_db.Residents,
                 ip => ip.ResidentId,
                 r  => r.ResidentId,
@@ -453,7 +453,7 @@ public class AdminController : ControllerBase
     [HttpGet("residents/summary")]
     public async Task<IActionResult> GetResidentsSummary()
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var nowUtc = DateTime.UtcNow;
 
         var activeResidents = await _db.Residents
             .CountAsync(r => r.CaseStatus == "Active");
@@ -466,7 +466,7 @@ public class AdminController : ControllerBase
             .CountAsync(r => r.ReintegrationStatus == "In Progress");
 
         var upcomingConferences = await _db.InterventionPlans
-            .CountAsync(ip => ip.CaseConferenceDate >= today);
+            .CountAsync(ip => ip.CaseConferenceDate >= nowUtc);
 
         return Ok(new
         {

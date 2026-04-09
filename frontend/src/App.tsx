@@ -27,6 +27,8 @@ import { useLocation } from 'react-router-dom'
 import { trackPageView } from './utils/analytics'
 import ProcessRecording from './pages/(admin)/dashboard/process-recording/ProcessRecording'
 import HomeVisits from './pages/(admin)/dashboard/home-visitation/HomeVisits'
+import StaffProcessRecording from './pages/(staff)/process-recording/StaffProcessRecording'
+import StaffHomeVisits from './pages/(staff)/home-visits/StaffHomeVisits'
 import About from './pages/(home)/About'
 
 function AnalyticsTracker() {
@@ -106,6 +108,8 @@ function App() {
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="residents" element={<Residents />} />
+          <Route path="process-recording" element={<StaffProcessRecording />} />
+          <Route path="home-visits" element={<StaffHomeVisits />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 

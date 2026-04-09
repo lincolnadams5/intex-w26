@@ -18,4 +18,7 @@ public class ApplicationUser : IdentityUser
 
     // Null for Admin and Staff accounts
     public int? SupporterId { get; set; }
+
+    // SW-XX code for social workers (Staff only); null for Admin and Donor accounts
+    public string? SocialWorkerCode { get; set; }
 }

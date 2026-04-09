@@ -13,9 +13,9 @@ public class InterventionPlan
     public string? PlanDescription { get; set; }
     public string? ServicesProvided { get; set; }
     public decimal? TargetValue { get; set; }
-    public DateOnly? TargetDate { get; set; }
+    public DateTime? TargetDate { get; set; }
     public string? Status { get; set; }
-    public DateOnly? CaseConferenceDate { get; set; }
+    public DateTime? CaseConferenceDate { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
