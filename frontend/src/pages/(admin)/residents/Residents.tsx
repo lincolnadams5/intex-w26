@@ -204,6 +204,15 @@ export function ResidentsPage() {
         <StatCard label="Unresolved High Incidents" value={summary?.unresolvedHighIncidents ?? '—'}  icon="🚨" subtitle="high severity" />
       </div>
 
+      {/* ── Risk level legend ───────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 rounded-lg bg-[var(--color-surface-container-low)] text-xs text-[var(--color-on-surface-variant)]">
+        <span className="font-semibold text-[var(--color-on-surface)] mr-1">Risk Level:</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="Low" /> Child is stable, in a safe environment, case progressing well.</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="Medium" /> Some concerns present — family instability, unresolved trauma, or slow progress.</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="High" /> Active safety concerns, unresolved incidents, or significant barriers to reintegration.</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="Critical" /> Immediate danger or acute crisis requiring urgent intervention.</span>
+      </div>
+
       {/* ── Main content: residents table + alerts side panel ───────────────── */}
       <div className="flex gap-4 items-start">
 
