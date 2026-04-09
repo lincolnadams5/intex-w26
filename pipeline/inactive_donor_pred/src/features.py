@@ -11,12 +11,12 @@ def build_donation_features(supporters: pd.DataFrame, donations: pd.DataFrame, r
                     Defaults to today (use a past date for historical label construction).
     """
     if reference_date is None:
-        reference_date = pd.Timestamp.now(tz="UTC").tz_localize(None)
+        reference_date = pd.Timestamp.now(tz="UTC")
     else:
-        reference_date = pd.Timestamp(reference_date)
+        reference_date = pd.Timestamp(reference_date, tz="UTC")
 
     donations = donations.copy()
-    donations["donation_date"] = pd.to_datetime(donations["donation_date"])
+    donations["donation_date"] = pd.to_datetime(donations["donation_date"], utc=True)
 
     # Only use donations up to reference_date (prevents future leakage)
     past_donations = donations[donations["donation_date"] <= reference_date]
@@ -43,7 +43,7 @@ def build_donation_features(supporters: pd.DataFrame, donations: pd.DataFrame, r
 
     # Join to supporters
     supporters = supporters.copy()
-    supporters["supporter_tenure_days"] = (reference_date - pd.to_datetime(supporters["created_at"])).dt.days
+    supporters["supporter_tenure_days"] = (reference_date - pd.to_datetime(supporters["created_at"], utc=True)).dt.days
 
     df = supporters.merge(agg, on="supporter_id", how="left")
 

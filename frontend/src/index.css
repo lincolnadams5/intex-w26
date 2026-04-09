@@ -74,6 +74,13 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* ── Semantic aliases used by admin UI components ── */
+    --card:   var(--color-surface-container-lowest);
+    --text:   var(--color-on-surface-variant);
+    --text-h: var(--color-on-surface);
+    --border: var(--color-outline-variant);
+    --alert:  var(--color-error);
   }
 
   * {
@@ -296,7 +303,7 @@
     @apply w-full py-3.5 px-4 text-base border-none;
     @apply transition-all duration-200;
     font-family: var(--font-body);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-radius: var(--radius-md) var(--radius-md);
     background: var(--color-surface-container-high);
     color: var(--color-on-surface);
   }

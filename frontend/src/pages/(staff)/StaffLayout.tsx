@@ -2,21 +2,21 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Breadcrumbs } from '../../components/admin/Breadcrumbs'
-import { ProfileCard } from '../../components/admin/ProfileCard'
+import { ProfileCard } from '../../components/ProfileCard'
 
 // Nav items visible to both Admin and Staff
 const baseNavItems = [
-  { to: '/staff/dashboard', label: 'Overview',      icon: '⊞' },
-  { to: '/staff/residents', label: 'Residents',      icon: '🏠' },
-  { to: '/staff/ml',        label: 'ML Insights',    icon: '🤖' },
+  { to: '/staff/dashboard',          label: 'Overview',           icon: '⊞' },
+  { to: '/staff/residents',          label: 'Residents',          icon: '🏠' },
+  { to: '/staff/process-recording',  label: 'Process Recording',  icon: '📋' },
+  { to: '/staff/home-visits',        label: 'Home Visitation',    icon: '🏡' },
+  { to: '/staff/ml',                 label: 'ML Insights',        icon: '🤖' },
 ]
 
 export function StaffLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
-  const { user, isStaff, logout } = useAuth()
-
-  const navItems = isStaff ? [...baseNavItems] : baseNavItems
+  const { isStaff, logout } = useAuth()
 
   function handleLogout() {
     logout()
@@ -41,7 +41,7 @@ export function StaffLayout() {
 
         {/* Nav */}
         <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
-          {navItems.map(({ to, label, icon }) => (
+          {baseNavItems.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -91,10 +91,7 @@ export function StaffLayout() {
             ☰
           </button>
 
-          <ProfileCard
-            name={user?.fullName ?? 'User'}
-            email={user?.email ?? ''}
-          />
+          <ProfileCard />
         </header>
 
         {/* Breadcrumb bar */}

@@ -97,6 +97,10 @@ namespace backend.Migrations
                         .HasColumnType("text")
                         .HasColumnName("security_stamp");
 
+                    b.Property<string>("SocialWorkerCode")
+                        .HasColumnType("text")
+                        .HasColumnName("social_worker_code");
+
                     b.Property<int?>("SupporterId")
                         .HasColumnType("integer")
                         .HasColumnName("supporter_id");

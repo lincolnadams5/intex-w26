@@ -39,6 +39,7 @@ sys.path.insert(0, str(PIPELINE_ROOT))
 
 from src.config import (
     ARTIFACTS_MODELS,
+    ARTIFACTS_RUNS,
     DATA_PROCESSED,
     LOGS,
     PREDICTIONS_TABLE,
@@ -63,6 +64,29 @@ def score_to_band(score: float) -> str:
     return "Low Readiness"
 
 
+def _load_artifact():
+    """Load model and feature_cols regardless of how the artifact was saved."""
+    model_path = ARTIFACTS_MODELS / "reintegration_model.joblib"
+    if not model_path.exists():
+        raise FileNotFoundError(
+            f"Model artifact not found at {model_path}. "
+            "Run notebooks 03 → 04 first to train and save the model."
+        )
+    artifact = joblib.load(model_path)
+    if isinstance(artifact, dict):
+        return artifact["model"], artifact["feature_cols"]
+    # Bare pipeline saved by master_crispdm_pipeline.ipynb — load feature list from run metadata
+    run_meta = ARTIFACTS_RUNS / "latest_run.json"
+    if not run_meta.exists():
+        raise FileNotFoundError(
+            "Model is a bare pipeline but latest_run.json is missing. "
+            "Re-save as: joblib.dump({'model': pipe, 'feature_cols': cols}, path)"
+        )
+    meta = json.load(open(run_meta))
+    feature_cols = meta["numeric_features"] + meta["categorical_features"]
+    return artifact, feature_cols
+
+
 # ── Validation (score residents with known outcomes) ─────────────────────────
 
 def run_validation(source: str) -> pd.DataFrame:
@@ -79,13 +103,7 @@ def run_validation(source: str) -> pd.DataFrame:
     print(f"    {len(labeled)} residents with known outcomes.")
 
     print("[2/3] Loading model and scoring...")
-    model_path = ARTIFACTS_MODELS / "reintegration_model.joblib"
-    if not model_path.exists():
-        raise FileNotFoundError(f"Model artifact not found at {model_path}.")
-
-    artifact     = joblib.load(model_path)
-    model        = artifact["model"]
-    feature_cols = artifact["feature_cols"]
+    model, feature_cols = _load_artifact()
 
     X = labeled.reindex(columns=feature_cols)
     scores = model.predict_proba(X)[:, 1]
@@ -152,16 +170,7 @@ def run_inference(source: str, sink: str, dry_run: bool = False) -> pd.DataFrame
 
     # 3. Load model artifact and score
     print("[3/4] Loading model and scoring...")
-    model_path = ARTIFACTS_MODELS / "reintegration_model.joblib"
-    if not model_path.exists():
-        raise FileNotFoundError(
-            f"Model artifact not found at {model_path}. "
-            "Run notebooks 03 → 04 first to train and save the model."
-        )
-
-    artifact     = joblib.load(model_path)
-    model        = artifact["model"]
-    feature_cols = artifact["feature_cols"]
+    model, feature_cols = _load_artifact()
 
     # Align columns — fill any missing features with NaN (pipeline handles imputation)
     X_infer = in_progress.reindex(columns=feature_cols)

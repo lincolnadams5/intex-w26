@@ -9,6 +9,7 @@ export interface UserProfile {
   role: 'Admin' | 'Staff' | 'Donor'
   safehouseId: number | null
   supporterId: number | null
+  socialWorkerCode: string | null
   createdAt: string
 }
 

@@ -8,6 +8,7 @@ public class UserProfileDto
     public string Role { get; set; } = string.Empty;
     public int? SafehouseId { get; set; }
     public int? SupporterId { get; set; }
+    public string? SocialWorkerCode { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsActive { get; set; }
 }
