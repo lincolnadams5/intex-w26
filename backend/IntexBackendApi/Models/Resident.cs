@@ -38,7 +38,7 @@ public class Resident
     public bool? FamilyIndigenous { get; set; }
     public bool? FamilyParentPwd { get; set; }
     public bool? FamilyInformalSettler { get; set; }
-    public DateTime? DateOfAdmission { get; set; }
+    public DateOnly? DateOfAdmission { get; set; }
     public string? AgeUponAdmission { get; set; }
     public string? PresentAge { get; set; }
     public string? LengthOfStay { get; set; }

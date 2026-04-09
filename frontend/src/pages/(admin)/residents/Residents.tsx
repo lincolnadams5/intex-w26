@@ -15,10 +15,18 @@ import {
   getResidentsList,
   getResidentAlerts,
   getSafehousesOverview,
+  getRiskBySafehouse,
+  getRiskEscalations,
+  getRecentRecordings,
+  getRecentIncidents,
   type ResidentsSummary,
   type ResidentRow,
   type ResidentAlerts,
   type SafehouseOverviewRow,
+  type RiskBySafehouse,
+  type RiskEscalation,
+  type RecentRecording,
+  type RecentIncident,
 } from '../../../lib/adminApi'
 import {
   getStaffResidentsSummary,
