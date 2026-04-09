@@ -16,6 +16,7 @@ import {
   getDonationsByCampaign,
   getDonationAllocations,
   getRecentDonations,
+  getDonorImpactSummary,
   type DonorsSummary,
   type MonthlyTotal,
   type DonationByType,
@@ -23,6 +24,7 @@ import {
   type DonationByCampaign,
   type AllocationRow,
   type RecentDonation,
+  type ImpactSummaryItem,
 } from '../../../lib/adminApi'
 
 // ── Chart colors ──────────────────────────────────────────────────────────────
@@ -62,6 +64,7 @@ export function DonorsPage() {
   const [byChannel, setByChannel]   = useState<DonationByChannel[]>([])
   const [byCampaign, setByCampaign] = useState<DonationByCampaign[]>([])
   const [allocations, setAllocations] = useState<AllocationRow[]>([])
+  const [impactSummary, setImpactSummary] = useState<ImpactSummaryItem[]>([])
   const [recentItems, setRecentItems] = useState<RecentDonation[]>([])
   const [totalDonations, setTotalDonations] = useState(0)
   const [page, setPage]             = useState(1)
@@ -77,13 +80,15 @@ export function DonorsPage() {
       getDonationsByChannel(),
       getDonationsByCampaign(),
       getDonationAllocations(),
-    ]).then(([s, t, bt, bc, bcp, alloc]) => {
+      getDonorImpactSummary(),
+    ]).then(([s, t, bt, bc, bcp, alloc, impact]) => {
       setSummary(s)
       setTrends(t)
       setByType(bt)
       setByChannel(bc)
       setByCampaign(bcp)
       setAllocations(alloc)
+      setImpactSummary(impact)
     }).catch(() => setError('Failed to load donor data.'))
       .finally(() => setLoading(false))
   }, [])
@@ -283,6 +288,54 @@ export function DonorsPage() {
           </ResponsiveContainer>
         </div>
       </SectionCard>
+
+      {/* ── Donation → Resident Impact ──────────────────────────────────────── */}
+      {impactSummary.length > 0 && (
+        <SectionCard
+          title="Donations Funding Resident Progress"
+          subtitle="Funds allocated per safehouse (last 90 days) and current resident readiness"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {impactSummary.map(item => (
+              <div
+                key={item.safehouseName}
+                className="rounded-lg border border-[var(--color-outline-variant)] p-4 flex flex-col gap-2"
+              >
+                <p className="font-semibold text-sm text-[var(--color-on-surface)]">{item.safehouseName}</p>
+                <p className="text-xs text-[var(--color-on-surface-variant)]">
+                  <span className="font-medium text-[var(--color-on-surface)]">
+                    ₱{item.totalFunded.toLocaleString()}
+                  </span>{' '}
+                  allocated this quarter
+                </p>
+                <div className="flex flex-col gap-1 mt-1">
+                  {item.residentsReady > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                      <span className="text-emerald-600 font-medium">{item.residentsReady} Ready for Review</span>
+                    </div>
+                  )}
+                  {item.residentsDeveloping > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                      <span className="text-[var(--color-on-surface-variant)]">{item.residentsDeveloping} Developing</span>
+                    </div>
+                  )}
+                  {item.residentsLow > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-[var(--color-outline)] flex-shrink-0" />
+                      <span className="text-[var(--color-on-surface-variant)]">{item.residentsLow} Low Readiness</span>
+                    </div>
+                  )}
+                  {item.residentsReady === 0 && item.residentsDeveloping === 0 && item.residentsLow === 0 && (
+                    <span className="text-xs text-[var(--color-on-surface-variant)]">No readiness scores yet</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      )}
 
       {/* ── Recent donations table ───────────────────────────────────────────── */}
       <SectionCard title="Recent Donations" subtitle="Latest contributions across all types">

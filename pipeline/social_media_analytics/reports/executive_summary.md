@@ -1,6 +1,6 @@
 # Executive Summary — Social Media Analytics Pipeline
 **Organization:** Lighthouse PH  
-**Trained:** 2026-04-08  
+**Trained:** 2026-04-09  
 **Source:** master_crispdm_pipeline.ipynb  
 
 ---

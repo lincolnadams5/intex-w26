@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Breadcrumbs } from '../../components/admin/Breadcrumbs'
-import { ProfileCard } from '../../components/admin/ProfileCard'
+import { ProfileCard } from '../../components/ProfileCard'
 
 // Nav items visible to both Admin and Staff
 const baseNavItems = [
   { to: '/admin/dashboard', label: 'Overview',      icon: '⊞' },
   { to: '/admin/donors',    label: 'Donor Activity', icon: '💰' },
-  { to: '/admin/residents', label: 'Residents',      icon: '🏠' },
+  { to: '/admin/residents',  label: 'Residents',      icon: '🏠' },
+  { to: '/admin/safehouses', label: 'Safehouses',     icon: '🏡' },
   { to: '/admin/social',    label: 'Social Media',   icon: '📱' },
   { to: '/admin/ml',        label: 'ML Insights',    icon: '🤖' },
 ]
@@ -21,7 +22,7 @@ const adminNavItems = [
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
-  const { user, isAdmin, logout } = useAuth()
+  const { isAdmin, logout } = useAuth()
 
   const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems
 
@@ -34,7 +35,7 @@ export function AdminLayout() {
     <div className="flex min-h-svh bg-[var(--color-surface-container-low)]">
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
+        className={`${sidebarOpen ? 'w-45' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-[var(--color-outline-variant)]">
@@ -98,10 +99,7 @@ export function AdminLayout() {
             ☰
           </button>
 
-          <ProfileCard
-            name={user?.fullName ?? 'User'}
-            email={user?.email ?? ''}
-          />
+          <ProfileCard />
         </header>
 
         {/* Breadcrumb bar */}

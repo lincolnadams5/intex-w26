@@ -13,7 +13,7 @@ public class Resident
     public int? SafehouseId { get; set; }
     public string? CaseStatus { get; set; }
     public string? Sex { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? BirthStatus { get; set; }
     public string? PlaceOfBirth { get; set; }
     public string? Religion { get; set; }
@@ -32,28 +32,29 @@ public class Resident
     public string? PwdType { get; set; }
     public bool? HasSpecialNeeds { get; set; }
     public string? SpecialNeedsDiagnosis { get; set; }
+    [Column("family_is_4ps")]
     public bool? FamilyIs4ps { get; set; }
     public bool? FamilySoloParent { get; set; }
     public bool? FamilyIndigenous { get; set; }
     public bool? FamilyParentPwd { get; set; }
     public bool? FamilyInformalSettler { get; set; }
-    public DateOnly? DateOfAdmission { get; set; }
+    public DateTime? DateOfAdmission { get; set; }
     public string? AgeUponAdmission { get; set; }
     public string? PresentAge { get; set; }
     public string? LengthOfStay { get; set; }
     public string? ReferralSource { get; set; }
     public string? ReferringAgencyPerson { get; set; }
-    public DateOnly? DateColbRegistered { get; set; }
-    public DateOnly? DateColbObtained { get; set; }
+    public DateTime? DateColbRegistered { get; set; }
+    public DateTime? DateColbObtained { get; set; }
     public string? AssignedSocialWorker { get; set; }
     public string? InitialCaseAssessment { get; set; }
-    public DateOnly? DateCaseStudyPrepared { get; set; }
+    public DateTime? DateCaseStudyPrepared { get; set; }
     public string? ReintegrationType { get; set; }
     public string? ReintegrationStatus { get; set; }
     public string? InitialRiskLevel { get; set; }
     public string? CurrentRiskLevel { get; set; }
-    public DateOnly? DateEnrolled { get; set; }
-    public DateOnly? DateClosed { get; set; }
+    public DateTime? DateEnrolled { get; set; }
+    public DateTime? DateClosed { get; set; }
     public DateTime? CreatedAt { get; set; }
     public string? NotesRestricted { get; set; }
 }

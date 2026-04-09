@@ -69,6 +69,14 @@ export function ProfileCard() {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-[#e5e7e9] rounded-xl shadow-lg py-1.5 z-50">
           <Link
+            to="/donate"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#3f484b] hover:bg-[#f5f5f0] transition-colors no-underline"
+          >
+            Donate
+          </Link>
+
+          <Link
             to="/my-donations"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#3f484b] hover:bg-[#f5f5f0] transition-colors no-underline"

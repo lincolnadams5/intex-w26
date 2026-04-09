@@ -26,10 +26,34 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InterventionPlan> InterventionPlans => Set<InterventionPlan>();
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
 
+    // --- ML predictions ---
+    public DbSet<DonorRiskScore> DonorRiskScores => Set<DonorRiskScore>();
+    public DbSet<ResidentReintegrationScore> ResidentReintegrationScores => Set<ResidentReintegrationScore>();
+    public DbSet<PostAnalyticsScore> PostAnalyticsScores => Set<PostAnalyticsScore>();
+    public DbSet<DonorOutreachProfile> DonorOutreachProfiles => Set<DonorOutreachProfile>();
+    public DbSet<DonorUpgradeScore> DonorUpgradeScores => Set<DonorUpgradeScore>();
+
     // --- Outreach domain ---
     public DbSet<SocialMediaPost> SocialMediaPosts => Set<SocialMediaPost>();
     public DbSet<SafehouseMonthlyMetric> SafehouseMonthlyMetrics => Set<SafehouseMonthlyMetric>();
     public DbSet<PublicImpactSnapshot> PublicImpactSnapshots => Set<PublicImpactSnapshot>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<Supporter>()
+            .Property(s => s.SupporterId)
+            .UseIdentityByDefaultColumn();
+
+        builder.Entity<Donation>()
+            .Property(d => d.DonationId)
+            .UseIdentityByDefaultColumn();
+
+        builder.Entity<Donation>()
+            .Ignore(d => d.CreatedByPartnerId)
+            .Ignore(d => d.ReferralPostId);
+    }
 
     // Note: DbSet<User> removed — replaced by ApplicationUser via ASP.NET Identity
     // Identity tables (asp_net_users, asp_net_roles, etc.) are managed automatically

@@ -404,8 +404,8 @@ namespace backend.Migrations
                         .HasColumnType("text")
                         .HasColumnName("social_worker");
 
-                    b.Property<DateOnly?>("VisitDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("VisitDate")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("visit_date");
 
                     b.Property<string>("VisitOutcome")
@@ -486,8 +486,8 @@ namespace backend.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("follow_up_required");
 
-                    b.Property<DateOnly?>("IncidentDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("IncidentDate")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("incident_date");
 
                     b.Property<string>("IncidentType")
@@ -502,8 +502,8 @@ namespace backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("resident_id");
 
-                    b.Property<DateOnly?>("ResolutionDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("ResolutionDate")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("resolution_date");
 
                     b.Property<bool?>("Resolved")
@@ -734,8 +734,8 @@ namespace backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("resident_id");
 
-                    b.Property<DateOnly?>("SessionDate")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("SessionDate")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("session_date");
 
                     b.Property<int?>("SessionDurationMinutes")
@@ -1082,12 +1082,12 @@ namespace backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("active_residents");
 
-                    b.Property<decimal?>("AvgEducationProgress")
-                        .HasColumnType("numeric")
+                    b.Property<double?>("AvgEducationProgress")
+                        .HasColumnType("double precision")
                         .HasColumnName("avg_education_progress");
 
-                    b.Property<decimal?>("AvgHealthScore")
-                        .HasColumnType("numeric")
+                    b.Property<double?>("AvgHealthScore")
+                        .HasColumnType("double precision")
                         .HasColumnName("avg_health_score");
 
                     b.Property<int?>("HomeVisitationCount")
@@ -1098,12 +1098,12 @@ namespace backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("incident_count");
 
-                    b.Property<DateOnly?>("MonthEnd")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("MonthEnd")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("month_end");
 
-                    b.Property<DateOnly?>("MonthStart")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("MonthStart")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("month_start");
 
                     b.Property<string>("Notes")
@@ -1137,8 +1137,8 @@ namespace backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("avg_view_duration_seconds");
 
-                    b.Property<decimal?>("BoostBudgetPhp")
-                        .HasColumnType("numeric")
+                    b.Property<double?>("BoostBudgetPhp")
+                        .HasColumnType("double precision")
                         .HasColumnName("boost_budget_php");
 
                     b.Property<string>("CallToActionType")
@@ -1181,12 +1181,12 @@ namespace backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("donation_referrals");
 
-                    b.Property<decimal?>("EngagementRate")
-                        .HasColumnType("numeric")
+                    b.Property<double?>("EngagementRate")
+                        .HasColumnType("double precision")
                         .HasColumnName("engagement_rate");
 
-                    b.Property<decimal?>("EstimatedDonationValuePhp")
-                        .HasColumnType("numeric")
+                    b.Property<double?>("EstimatedDonationValuePhp")
+                        .HasColumnType("double precision")
                         .HasColumnName("estimated_donation_value_php");
 
                     b.Property<bool?>("FeaturesResidentStory")

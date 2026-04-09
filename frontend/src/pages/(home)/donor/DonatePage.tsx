@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { RegisterForm } from '../../../components/RegisterForm'
 import { LoginForm } from '../../../components/LoginForm'
+import { authFetch } from '../../../lib/api'
 
 type AuthTab = 'register' | 'login'
 
@@ -30,11 +31,30 @@ export default function DonatePage() {
     setCustomAmount(e.target.value.replace(/[^0-9]/g, ''))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitError, setSubmitError] = useState('')
+
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     if (!activeAmount || activeAmount <= 0) return
     setIsSubmitting(true)
-    setTimeout(() => navigate('/my-donations'), 800)
+    setSubmitError('')
+
+    try {
+      const res = await authFetch('/api/donations', {
+        method: 'POST',
+        body: JSON.stringify({ amount: activeAmount, isRecurring, campaignName: null }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setSubmitError(data?.message ?? 'Donation failed. Please try again.')
+        return
+      }
+      navigate('/my-donations')
+    } catch {
+      setSubmitError('Network error. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const formatCurrency = (amount: number) =>
@@ -183,6 +203,9 @@ export default function DonatePage() {
             )}
 
             {/* Submit */}
+            {submitError && (
+              <p className="text-[var(--color-error)] text-sm text-center mb-2">{submitError}</p>
+            )}
             <button
               type="submit"
               className="btn btn-primary btn-large w-full"

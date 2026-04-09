@@ -1,321 +1,438 @@
-import { useEffect, useState } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts'
+import { useEffect, useMemo, useState } from 'react'
 import { StatCard }    from '../../../components/admin/StatCard'
 import { PageHeader }  from '../../../components/admin/PageHeader'
 import { SectionCard } from '../../../components/admin/SectionCard'
 import { RiskBadge }   from '../../../components/admin/RiskBadge'
 import { LoadingState } from '../../../components/admin/LoadingState'
+import { ResidentDetailModal } from '../../../components/admin/ResidentDetailModal'
 import {
   getResidentsSummary,
+  getResidentsList,
+  getResidentAlerts,
   getSafehousesOverview,
-  getRiskBySafehouse,
-  getRiskEscalations,
-  getRecentRecordings,
-  getRecentIncidents,
   type ResidentsSummary,
+  type ResidentRow,
+  type ResidentAlerts,
   type SafehouseOverviewRow,
-  type RiskBySafehouse,
-  type RiskEscalation,
-  type RecentRecording,
-  type RecentIncident,
 } from '../../../lib/adminApi'
 
-// ── Risk level chart colors ───────────────────────────────────────────────────
-const RISK_COLORS = {
-  Low:      '#22c55e',
-  Medium:   '#d97706',
-  High:     '#f97316',
-  Critical: '#DB7981',
+// ── Readiness badge ────────────────────────────────────────────────────────────
+// For In Progress residents: shows ML readiness band.
+// For all others: shows reintegration status as a neutral badge.
+
+function ReadinessBadge({ band, reintegrationStatus }: { band: string | null; reintegrationStatus: string | null }) {
+  if (reintegrationStatus !== 'In Progress') {
+    if (!reintegrationStatus) return <span className="badge text-xs">—</span>
+    if (reintegrationStatus === 'Completed') return <span className="badge badge-success text-xs">Completed</span>
+    if (reintegrationStatus === 'On Hold') return <span className="badge badge-warning text-xs">On Hold</span>
+    return <span className="badge badge-ghost text-xs">{reintegrationStatus}</span>
+  }
+  // In Progress — show ML band
+  if (!band) return <span className="badge text-xs">—</span>
+  if (band === 'Ready for Review') return <span className="badge badge-success text-xs">{band}</span>
+  if (band === 'Developing')       return <span className="badge badge-info text-xs">{band}</span>
+  if (band === 'Low Readiness')    return <span className="badge badge-error text-xs">{band}</span>
+  return <span className="badge text-xs">{band}</span>
 }
 
-// ── Severity badge classes ────────────────────────────────────────────────────
-function severityClass(s: string) {
-  if (s === 'High')     return 'badge-error'
-  if (s === 'Moderate') return 'badge-warning'
-  return 'badge'
+// ── Severity badge ─────────────────────────────────────────────────────────────
+
+function SeverityBadge({ level }: { level: string }) {
+  if (level === 'Critical') return <span className="badge badge-error text-xs">Critical</span>
+  if (level === 'High')     return <span className="badge badge-error text-xs opacity-80">High</span>
+  if (level === 'Medium')   return <span className="badge badge-warning text-xs">Medium</span>
+  if (level === 'Low')      return <span className="badge badge-ghost text-xs">Low</span>
+  return <span className="badge text-xs">{level}</span>
 }
 
-// ── Occupancy progress bar ────────────────────────────────────────────────────
-function OccupancyBar({ occupancy, capacity }: { occupancy: number; capacity: number }) {
-  if (capacity === 0) return <span className="text-xs text-[var(--color-on-surface-variant)]">—</span>
-  const pct = Math.round((occupancy / capacity) * 100)
-  const color = pct >= 90 ? '#ef4444' : pct >= 75 ? '#f97316' : '#0d9488'
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-medium">{occupancy}/{capacity}</span>
-      <div className="w-20 h-2 rounded-full bg-[var(--color-outline-variant)] overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
-      </div>
-      <span className="text-xs text-[var(--color-on-surface-variant)]">{pct}%</span>
-    </div>
-  )
+// ── Unified alert row ──────────────────────────────────────────────────────────
+
+type AlertRow = {
+  key: string
+  residentCode: string
+  safehouseName: string
+  type: 'Risk Escalation' | 'High Incident' | 'No Recording'
+  detail: string
+  severity: string
 }
 
-export function Residents() {
-  // ── Data state ──────────────────────────────────────────────────────────────
+// ── Unique values helper ───────────────────────────────────────────────────────
+
+function unique<T>(arr: T[]): T[] {
+  return Array.from(new Set(arr))
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
+export function ResidentsPage() {
   const [summary, setSummary]           = useState<ResidentsSummary | null>(null)
+  const [alerts, setAlerts]             = useState<ResidentAlerts | null>(null)
+  const [residents, setResidents]       = useState<ResidentRow[]>([])
   const [safehouses, setSafehouses]     = useState<SafehouseOverviewRow[]>([])
-  const [riskByHouse, setRiskByHouse]   = useState<RiskBySafehouse[]>([])
-  const [escalations, setEscalations]   = useState<RiskEscalation[]>([])
-  const [recordings, setRecordings]     = useState<RecentRecording[]>([])
-  const [incidents, setIncidents]       = useState<RecentIncident[]>([])
   const [loading, setLoading]           = useState(true)
+  const [tableLoading, setTableLoading] = useState(false)
   const [error, setError]               = useState<string | null>(null)
 
-  // ── Fetch all data on mount ──────────────────────────────────────────────────
+  // Filters
+  const [search, setSearch]                       = useState('')
+  const [statusFilter, setStatusFilter]           = useState('Active')
+  const [safehouseFilter, setSafehouseFilter]     = useState('')
+  const [riskFilter, setRiskFilter]               = useState('')
+  const [reintTypeFilter, setReintTypeFilter]     = useState('')
+  const [incidentFilter, setIncidentFilter]       = useState('')
+
+  // Modal
+  const [selectedResidentId, setSelectedResidentId] = useState<number | null>(null)
+
+  // Alert filters
+  const [alertSafehouseFilter, setAlertSafehouseFilter] = useState('')
+  const [alertTypeFilter, setAlertTypeFilter]           = useState('')
+  const [alertSeverityFilter, setAlertSeverityFilter]   = useState('')
+
+  // Initial load
   useEffect(() => {
     Promise.all([
       getResidentsSummary(),
+      getResidentAlerts(),
       getSafehousesOverview(),
-      getRiskBySafehouse(),
-      getRiskEscalations(),
-      getRecentRecordings(),
-      getRecentIncidents(),
-    ]).then(([s, sh, rb, esc, rec, inc]) => {
+      getResidentsList({ status: 'Active' }),
+    ]).then(([s, a, sh, r]) => {
       setSummary(s)
+      setAlerts(a)
       setSafehouses(sh)
-      setRiskByHouse(rb)
-      setEscalations(esc)
-      setRecordings(rec)
-      setIncidents(inc)
+      setResidents(r)
     }).catch(() => setError('Failed to load residents data.'))
       .finally(() => setLoading(false))
   }, [])
 
+  // Re-fetch when backend filters change (status / safehouse)
+  useEffect(() => {
+    if (loading) return
+    setTableLoading(true)
+    getResidentsList({
+      status: statusFilter || undefined,
+      safehouseId: safehouseFilter ? Number(safehouseFilter) : undefined,
+    })
+      .then(setResidents)
+      .catch(() => setError('Failed to load residents.'))
+      .finally(() => setTableLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, safehouseFilter])
+
+  // Client-side filtered view (search / risk / reint / incident filters)
+  const filtered = useMemo(() => {
+    let rows = residents
+    if (search)          rows = rows.filter(r => r.internalCode.toLowerCase().includes(search.toLowerCase()))
+    if (riskFilter)      rows = rows.filter(r => r.currentRiskLevel === riskFilter)
+    if (reintTypeFilter) rows = rows.filter(r => r.reintegrationType === reintTypeFilter)
+    if (incidentFilter === 'true')  rows = rows.filter(r => r.hasUnresolvedIncident)
+    if (incidentFilter === 'false') rows = rows.filter(r => !r.hasUnresolvedIncident)
+    return rows
+  }, [residents, search, riskFilter, reintTypeFilter, incidentFilter])
+
+  // Dropdown options derived from currently-loaded resident list
+  const reintTypeOptions = useMemo(
+    () => unique(residents.map(r => r.reintegrationType).filter(Boolean) as string[]),
+    [residents]
+  )
+
+  // Normalize all alerts into a unified list
+  const allAlerts = useMemo((): AlertRow[] => {
+    if (!alerts) return []
+    const rows: AlertRow[] = []
+    for (const r of alerts.riskEscalations) {
+      rows.push({
+        key:           `esc-${r.internalCode}`,
+        residentCode:  r.internalCode,
+        safehouseName: r.safehouseName,
+        type:          'Risk Escalation',
+        detail:        `${r.initialRiskLevel} → ${r.currentRiskLevel}`,
+        severity:      r.currentRiskLevel,
+      })
+    }
+    for (const i of alerts.unresolvedHighIncidents) {
+      rows.push({
+        key:           `inc-${i.incidentId}`,
+        residentCode:  i.residentCode,
+        safehouseName: i.safehouseName,
+        type:          'High Incident',
+        detail:        i.incidentType ?? '—',
+        severity:      'High',
+      })
+    }
+    for (const r of alerts.noRecentRecording) {
+      rows.push({
+        key:           `rec-${r.residentId}`,
+        residentCode:  r.internalCode,
+        safehouseName: r.safehouseName,
+        type:          'No Recording',
+        detail:        'No session in 30+ days',
+        severity:      'Medium',
+      })
+    }
+    return rows
+  }, [alerts])
+
+  const filteredAlerts = useMemo(() => {
+    let rows = allAlerts
+    if (alertSafehouseFilter) rows = rows.filter(r => r.safehouseName === alertSafehouseFilter)
+    if (alertTypeFilter)      rows = rows.filter(r => r.type === alertTypeFilter)
+    if (alertSeverityFilter)  rows = rows.filter(r => r.severity === alertSeverityFilter)
+    return rows
+  }, [allAlerts, alertSafehouseFilter, alertTypeFilter, alertSeverityFilter])
+
+  const alertSafehouseOptions = useMemo(
+    () => unique(allAlerts.map(a => a.safehouseName)),
+    [allAlerts]
+  )
+
   if (loading) return <LoadingState />
-  if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
+  if (error)   return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6">
       <PageHeader
-        title="Residents & Safehouses"
-        subtitle="Occupancy, risk levels, recent sessions, and incident reports across all safehouses."
+        title="Residents"
+        subtitle="Full resident roster with risk levels, reintegration readiness, and alert flags."
       />
 
       {/* ── Stat cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          label="Active Residents"
-          value={summary?.activeResidents ?? '—'}
-          icon="🏠"
-        />
-        <StatCard
-          label="High / Critical Risk"
-          value={summary?.highCriticalRisk ?? '—'}
-          icon="⚠️"
-          subtitle="active residents"
-        />
-        <StatCard
-          label="Reintegration In Progress"
-          value={summary?.reintegrationInProgress ?? '—'}
-          icon="🌱"
-        />
-        <StatCard
-          label="Upcoming Conferences"
-          value={summary?.upcomingConferences ?? '—'}
-          icon="📅"
-        />
+        <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'}          icon="🏠" />
+        <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}         icon="⚠️" subtitle="active residents" />
+        <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'}  icon="🌱" />
+        <StatCard label="Unresolved High Incidents" value={summary?.unresolvedHighIncidents ?? '—'}  icon="🚨" subtitle="high severity" />
       </div>
 
-      {/* ── Safehouse overview table ─────────────────────────────────────────── */}
-      <SectionCard
-        title="Safehouse Overview"
-        subtitle="Current occupancy and latest monthly metrics per safehouse"
-      >
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Safehouse</th>
-                <th>Region</th>
-                <th>Occupancy</th>
-                <th>Avg Ed. Progress</th>
-                <th>Avg Health Score</th>
-                <th>Recordings (Mo.)</th>
-                <th>Incidents (Mo.)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {safehouses.map(row => (
-                <tr key={row.safehouseId}>
-                  <td className="font-medium text-[var(--color-on-surface)]">{row.name}</td>
-                  <td className="text-[var(--color-on-surface-variant)] text-xs">{row.region}</td>
-                  <td>
-                    <OccupancyBar occupancy={row.occupancy} capacity={row.capacity} />
-                  </td>
-                  <td className="font-medium">
-                    {row.avgEducationProgress != null
-                      ? `${Number(row.avgEducationProgress).toFixed(1)}%`
-                      : '—'}
-                  </td>
-                  <td className="font-medium">
-                    {row.avgHealthScore != null
-                      ? `${Number(row.avgHealthScore).toFixed(1)}/10`
-                      : '—'}
-                  </td>
-                  <td className="text-center">
-                    {row.processRecordingCount ?? '—'}
-                  </td>
-                  <td>
-                    {row.incidentCount != null && row.incidentCount > 0
-                      ? <span className="badge badge-error">{row.incidentCount}</span>
-                      : <span className="badge badge-success">{row.incidentCount ?? 0}</span>
-                    }
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </SectionCard>
+      {/* ── Main content: residents table + alerts side panel ───────────────── */}
+      <div className="flex gap-4 items-start">
 
-      {/* ── Risk level stacked bar ───────────────────────────────────────────── */}
-      <SectionCard
-        title="Risk Level Breakdown by Safehouse"
-        subtitle="Active resident count at each risk level per safehouse"
-      >
-        <div className="h-[240px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={riskByHouse} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
-              <XAxis dataKey="safehouseName" tick={{ fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="Low"      stackId="a" fill={RISK_COLORS.Low} />
-              <Bar dataKey="Medium"   stackId="a" fill={RISK_COLORS.Medium} />
-              <Bar dataKey="High"     stackId="a" fill={RISK_COLORS.High} />
-              <Bar dataKey="Critical" stackId="a" fill={RISK_COLORS.Critical} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </SectionCard>
-
-      {/* ── Risk escalations table ───────────────────────────────────────────── */}
-      <SectionCard
-        title="Risk Escalations Since Intake"
-        subtitle="Residents whose current risk level is higher than their initial assessment"
-        accentBorder
-        titleIcon="⚠️"
-      >
-        {escalations.length === 0 ? (
-          <p className="text-sm text-[var(--color-on-surface-variant)]">No risk escalations found.</p>
-        ) : (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Resident Code</th>
-                  <th>Safehouse</th>
-                  <th>Initial Risk</th>
-                  <th>Current Risk</th>
-                  <th>Length of Stay</th>
-                </tr>
-              </thead>
-              <tbody>
-                {escalations.map(r => (
-                  <tr key={r.internalCode}>
-                    <td className="font-medium text-[var(--color-on-surface)]">{r.internalCode}</td>
-                    <td className="text-[var(--color-on-surface-variant)] text-xs">{r.safehouseName}</td>
-                    <td><RiskBadge level={r.initialRiskLevel} /></td>
-                    <td><RiskBadge level={r.currentRiskLevel} /></td>
-                    <td className="text-[var(--color-on-surface-variant)] text-xs">{r.lengthOfStay}</td>
-                  </tr>
+        {/* ── All Residents table (left, grows) ─────────────────────────────── */}
+        <div className="flex-1 min-w-0">
+          <SectionCard
+            title="All Residents"
+            subtitle={`${filtered.length} resident${filtered.length !== 1 ? 's' : ''} shown`}
+          >
+            <div className="flex flex-wrap gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search by code…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="input input-sm w-44"
+              />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="select select-sm"
+              >
+                <option value="Active">Active</option>
+                <option value="Closed">Closed</option>
+                <option value="Transferred">Transferred</option>
+              </select>
+              <select
+                value={safehouseFilter}
+                onChange={e => setSafehouseFilter(e.target.value)}
+                className="select select-sm"
+              >
+                <option value="">All Safehouses</option>
+                {safehouses.map(s => (
+                  <option key={s.safehouseId} value={String(s.safehouseId)}>{s.name}</option>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SectionCard>
-
-      {/* ── Recent recordings + incidents ────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        {/* Recent process recordings (last 7 days) */}
-        <SectionCard title="Recent Process Recordings" subtitle="Last 7 days">
-          {recordings.length === 0 ? (
-            <p className="text-sm text-[var(--color-on-surface-variant)]">No recordings in the past 7 days.</p>
-          ) : (
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Resident</th>
-                    <th>Social Worker</th>
-                    <th>Date</th>
-                    <th>Concerns</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recordings.map(r => (
-                    <tr key={r.recordingId}>
-                      <td className="font-medium text-[var(--color-on-surface)]">{r.residentCode}</td>
-                      <td className="text-[var(--color-on-surface-variant)] text-xs">{r.socialWorker}</td>
-                      <td className="text-[var(--color-on-surface-variant)] text-xs">
-                        {r.sessionDate?.split('T')[0] ?? '—'}
-                      </td>
-                      <td className="text-xs">
-                        {r.concernsFlagged
-                          ? <span className="text-orange-600">⚑ Flagged</span>
-                          : <span className="text-[var(--color-on-surface-variant)]">None</span>
-                        }
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              </select>
+              <select
+                value={riskFilter}
+                onChange={e => setRiskFilter(e.target.value)}
+                className="select select-sm"
+              >
+                <option value="">All Risk Levels</option>
+                {['Low', 'Medium', 'High', 'Critical'].map(l => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+              <select
+                value={reintTypeFilter}
+                onChange={e => setReintTypeFilter(e.target.value)}
+                className="select select-sm"
+              >
+                <option value="">All Reint. Types</option>
+                {reintTypeOptions.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <select
+                value={incidentFilter}
+                onChange={e => setIncidentFilter(e.target.value)}
+                className="select select-sm"
+              >
+                <option value="">All Incidents</option>
+                <option value="true">Has Unresolved</option>
+                <option value="false">No Unresolved</option>
+              </select>
+              {(search || riskFilter || reintTypeFilter || incidentFilter) && (
+                <button
+                  className="text-xs text-[var(--text)] underline self-center"
+                  onClick={() => { setSearch(''); setRiskFilter(''); setReintTypeFilter(''); setIncidentFilter('') }}
+                >
+                  Clear
+                </button>
+              )}
             </div>
-          )}
-        </SectionCard>
 
-        {/* Recent incident reports (last 14 days) */}
-        <SectionCard title="Recent Incidents" subtitle="Last 14 days">
-          {incidents.length === 0 ? (
-            <p className="text-sm text-[var(--color-on-surface-variant)]">No incidents in the past 14 days.</p>
-          ) : (
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Resident</th>
-                    <th>Type</th>
-                    <th>Severity</th>
-                    <th>Resolved</th>
-                    <th>Follow-up</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incidents.map(inc => (
-                    <tr key={inc.incidentId}>
-                      <td className="font-medium text-[var(--color-on-surface)]">{inc.residentCode}</td>
-                      <td className="text-[var(--color-on-surface-variant)] text-xs">{inc.incidentType}</td>
-                      <td>
-                        <span className={`badge ${severityClass(inc.severity)} text-xs`}>
-                          {inc.severity}
-                        </span>
-                      </td>
-                      <td>
-                        {inc.resolved
-                          ? <span className="badge badge-success text-xs">Yes</span>
-                          : <span className="badge badge-error text-xs">No</span>
-                        }
-                      </td>
-                      <td>
-                        {inc.followUpRequired
-                          ? <span className="badge badge-warning text-xs">Required</span>
-                          : <span className="badge text-xs">No</span>
-                        }
-                      </td>
+            {tableLoading ? (
+              <LoadingState />
+            ) : filtered.length === 0 ? (
+              <p className="text-sm text-[var(--text)]">No residents match the current filters.</p>
+            ) : (
+              <div className="table-container overflow-y-auto" style={{ maxHeight: '520px' }}>
+                <table>
+                  <thead className="sticky top-0 bg-[var(--card)]">
+                    <tr>
+                      <th>Resident</th>
+                      <th>Safehouse</th>
+                      <th>Risk Level</th>
+                      <th>Reintegration Type</th>
+                      <th>Incident</th>
+                      <th>Health</th>
+                      <th>Length of Stay</th>
+                      <th>Readiness</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filtered.map(r => (
+                      <tr key={r.residentId}>
+                        <td className="font-medium text-[var(--text-h)] whitespace-nowrap">
+                          <button
+                            className="hover:underline text-left"
+                            onClick={() => setSelectedResidentId(r.residentId)}
+                          >
+                            {r.readinessFlag && (
+                              <span className="mr-1 text-amber-500" title="Ready for Review but still In Progress">⚑</span>
+                            )}
+                            {r.noRecentProgress && (
+                              <span className="mr-1 badge badge-ghost text-xs" title="No progress noted in last 3 sessions">No Progress</span>
+                            )}
+                            {r.internalCode}
+                          </button>
+                        </td>
+                        <td className="text-xs text-[var(--text)]">{r.safehouseName}</td>
+                        <td>
+                          {r.currentRiskLevel
+                            ? <RiskBadge level={r.currentRiskLevel} />
+                            : <span className="text-xs text-[var(--text)]">—</span>
+                          }
+                        </td>
+                        <td className="text-xs text-[var(--text)]">{r.reintegrationType ?? '—'}</td>
+                        <td>
+                          {r.hasUnresolvedIncident
+                            ? <span className="badge badge-error text-xs">Yes</span>
+                            : <span className="badge badge-ghost text-xs">No</span>
+                          }
+                        </td>
+                        <td>
+                          {r.healthTrend === 'Improving'  && <span className="badge badge-success text-xs">Improving</span>}
+                          {r.healthTrend === 'Stable'     && <span className="badge badge-ghost text-xs">Stable</span>}
+                          {r.healthTrend === 'Declining'  && <span className="badge badge-error text-xs">Declining</span>}
+                          {!r.healthTrend                 && <span className="text-xs text-[var(--text)]">—</span>}
+                        </td>
+                        <td className="text-xs text-[var(--text)]">{r.lengthOfStay ?? '—'}</td>
+                        <td><ReadinessBadge band={r.readinessBand} reintegrationStatus={r.reintegrationStatus} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        {/* ── Alerts panel (right, fixed width) ─────────────────────────────── */}
+        <div className="w-[480px] shrink-0">
+          <SectionCard
+            title={`Alerts${allAlerts.length > 0 ? ` (${filteredAlerts.length}/${allAlerts.length})` : ''}`}
+            subtitle="Risk escalations, high incidents, overdue recordings"
+            accentBorder
+            titleIcon="⚑"
+          >
+            {/* Alert filters */}
+            <div className="flex flex-col gap-2 mb-3">
+              <select
+                value={alertSafehouseFilter}
+                onChange={e => setAlertSafehouseFilter(e.target.value)}
+                className="select select-sm w-full"
+              >
+                <option value="">All Safehouses</option>
+                {alertSafehouseOptions.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select
+                value={alertTypeFilter}
+                onChange={e => setAlertTypeFilter(e.target.value)}
+                className="select select-sm w-full"
+              >
+                <option value="">All Types</option>
+                <option value="Risk Escalation">Risk Escalation</option>
+                <option value="High Incident">High Incident</option>
+                <option value="No Recording">No Recording</option>
+              </select>
+              <select
+                value={alertSeverityFilter}
+                onChange={e => setAlertSeverityFilter(e.target.value)}
+                className="select select-sm w-full"
+              >
+                <option value="">All Severities</option>
+                {['Critical', 'High', 'Medium', 'Low'].map(l => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+              {(alertSafehouseFilter || alertTypeFilter || alertSeverityFilter) && (
+                <button
+                  className="text-xs text-[var(--text)] underline self-start"
+                  onClick={() => { setAlertSafehouseFilter(''); setAlertTypeFilter(''); setAlertSeverityFilter('') }}
+                >
+                  Clear
+                </button>
+              )}
             </div>
-          )}
-        </SectionCard>
+
+            {filteredAlerts.length === 0 ? (
+              <p className="text-sm text-[var(--text)]">No alerts match filters.</p>
+            ) : (
+              <div className="overflow-y-auto" style={{ maxHeight: '460px' }}>
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-[var(--card)]">
+                    <tr className="text-left text-[var(--text-h)]">
+                      <th className="pb-1 pr-2 font-semibold">Resident</th>
+                      <th className="pb-1 pr-2 font-semibold">Type</th>
+                      <th className="pb-1 pr-2 font-semibold">Detail</th>
+                      <th className="pb-1 font-semibold">Severity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAlerts.map(a => (
+                      <tr key={a.key} className="border-t border-[var(--border)]">
+                        <td className="py-1.5 pr-2 font-medium text-[var(--text-h)] whitespace-nowrap">{a.residentCode}</td>
+                        <td className="py-1.5 pr-2 text-[var(--text)]">{a.type}</td>
+                        <td className="py-1.5 pr-2 text-[var(--text)]">{a.detail}</td>
+                        <td className="py-1.5"><SeverityBadge level={a.severity} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
       </div>
+
+      {selectedResidentId !== null && (
+        <ResidentDetailModal
+          residentId={selectedResidentId}
+          onClose={() => setSelectedResidentId(null)}
+        />
+      )}
     </div>
   )
 }
