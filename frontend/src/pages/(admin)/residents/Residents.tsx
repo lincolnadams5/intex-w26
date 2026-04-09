@@ -139,7 +139,7 @@ export function Residents() {
 
   // ── Admin state ─────────────────────────────────────────────────────────────
   const [summary, setSummary]         = useState<ResidentsSummary | null>(null)
-  const [safehouses, setSafehouses]   = useState<SafehouseOverviewRow[]>([])
+  const [_safehouses, setSafehouses]   = useState<SafehouseOverviewRow[]>([])
   const [riskByHouse, setRiskByHouse] = useState<RiskBySafehouse[]>([])
   const [escalations, setEscalations] = useState<RiskEscalation[]>([])
   const [recordings, setRecordings]   = useState<RecentRecording[]>([])
@@ -338,10 +338,10 @@ export function Residents() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'}          icon="🏠" />
-        <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}         icon="⚠️" subtitle="active residents" />
-        <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'}  icon="🌱" />
-        <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'}  icon="🚨" />
+        <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'} />
+        <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}        subtitle="active residents" />
+        <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'} />
+        <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'} />
       </div>
 
       {/* ── Risk level legend ───────────────────────────────────────────────── */}
@@ -464,6 +464,7 @@ export function Residents() {
       </div>
       </div>
     </div>
+  </div>
   )
 
 

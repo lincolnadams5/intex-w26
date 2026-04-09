@@ -185,7 +185,6 @@ export function MLPage() {
       <SectionCard
         title="Donor Churn Risk Prediction"
         subtitle="Donors predicted to lapse within 90 days, sorted by urgency. A score of 100% means the model is highly confident this donor will stop giving without outreach."
-        titleIcon="📉"
       >
         {riskScores.length > 0 && (() => {
           const latest = riskScores.reduce((max, d) => d.scoredAt && (!max || d.scoredAt > max) ? d.scoredAt : max, null as string | null)
@@ -282,7 +281,6 @@ export function MLPage() {
       <SectionCard
         title="Upgrade Potential — Donors Who Could Give More"
         subtitle="Frequent, recent donors whose average gift is below the group median. These are your best candidates for a higher-ask conversation."
-        titleIcon="⬆️"
       >
         <div className="p-3 bg-[var(--color-surface-container-low)] rounded-lg border border-[var(--color-outline-variant)] text-xs text-[var(--color-on-surface-variant)] mb-4">
           <strong className="text-[var(--color-on-surface)]">How to act on this: </strong>
@@ -331,7 +329,6 @@ export function MLPage() {
       <SectionCard
         title="Personalized Outreach Profiles"
         subtitle="Recommended channel, message template, and ask type for each donor based on their giving history."
-        titleIcon="✉️"
       >
         {outreachLoading && <p className="text-sm text-[var(--text)] py-4">Loading outreach profiles…</p>}
         {!outreachLoading && outreachProfiles.length === 0 && (
@@ -379,7 +376,6 @@ export function MLPage() {
       <SectionCard
         title="Resident Reintegration Readiness"
         subtitle="Predicted readiness for leaving the safehouse, based on education progress, health scores, counseling history, and risk trajectory."
-        titleIcon="🌱"
       >
         {/* Action guidance */}
         <div className="p-3 bg-[var(--color-surface-container-low)] rounded-lg border border-[var(--color-outline-variant)] text-xs text-[var(--color-on-surface-variant)] mb-4">
@@ -434,7 +430,6 @@ export function MLPage() {
       <SectionCard
         title="Social Media ROI Predictor"
         subtitle="Select a platform and content type to predict estimated engagement and donation referral value."
-        titleIcon="📡"
       >
         {/* Input selectors */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
