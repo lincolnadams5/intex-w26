@@ -12,16 +12,12 @@ import { LoadingState } from '../../../components/admin/LoadingState'
 import { Pagination }  from '../../../components/admin/Pagination'
 import {
   getResidentsSummary,
-  getResidentsList,
-  getResidentAlerts,
   getSafehousesOverview,
   getRiskBySafehouse,
   getRiskEscalations,
   getRecentRecordings,
   getRecentIncidents,
   type ResidentsSummary,
-  type ResidentRow,
-  type ResidentAlerts,
   type SafehouseOverviewRow,
   type RiskBySafehouse,
   type RiskEscalation,
@@ -345,7 +341,7 @@ export function Residents() {
         <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'}          icon="🏠" />
         <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}         icon="⚠️" subtitle="active residents" />
         <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'}  icon="🌱" />
-        <StatCard label="Upcoming Conferences"      value={summary?.upcomingConferences ?? '—'}      icon="📅" />
+        <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'}  icon="🚨" />
       </div>
 
       <SectionCard title="Safehouse Overview" subtitle="Current occupancy and latest monthly metrics per safehouse">
