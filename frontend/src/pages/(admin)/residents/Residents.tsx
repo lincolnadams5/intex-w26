@@ -139,7 +139,7 @@ export function Residents() {
 
   // ── Admin state ─────────────────────────────────────────────────────────────
   const [summary, setSummary]         = useState<ResidentsSummary | null>(null)
-  const [safehouses, setSafehouses]   = useState<SafehouseOverviewRow[]>([])
+  const [_safehouses, setSafehouses]   = useState<SafehouseOverviewRow[]>([])
   const [riskByHouse, setRiskByHouse] = useState<RiskBySafehouse[]>([])
   const [escalations, setEscalations] = useState<RiskEscalation[]>([])
   const [recordings, setRecordings]   = useState<RecentRecording[]>([])
