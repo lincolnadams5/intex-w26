@@ -7,10 +7,11 @@ namespace IntexBackendApi.Models;
 public class Donation
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int DonationId { get; set; }
     public int SupporterId { get; set; }
     public string? DonationType { get; set; }
-    public DateOnly? DonationDate { get; set; }
+    public DateTime? DonationDate { get; set; }
     public string? ChannelSource { get; set; }
     public string? CurrencyCode { get; set; }
     public double? Amount { get; set; }
