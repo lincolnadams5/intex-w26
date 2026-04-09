@@ -38,6 +38,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SafehouseMonthlyMetric> SafehouseMonthlyMetrics => Set<SafehouseMonthlyMetric>();
     public DbSet<PublicImpactSnapshot> PublicImpactSnapshots => Set<PublicImpactSnapshot>();
 
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<Supporter>()
+            .Property(s => s.SupporterId)
+            .UseIdentityByDefaultColumn();
+
+        builder.Entity<Donation>()
+            .Property(d => d.DonationId)
+            .UseIdentityByDefaultColumn();
+
+        builder.Entity<Donation>()
+            .Ignore(d => d.CreatedByPartnerId)
+            .Ignore(d => d.ReferralPostId);
+    }
+
     // Note: DbSet<User> removed — replaced by ApplicationUser via ASP.NET Identity
     // Identity tables (asp_net_users, asp_net_roles, etc.) are managed automatically
 }

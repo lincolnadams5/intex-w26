@@ -141,7 +141,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetDashboardSummary()
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
-        var startOfMonth = new DateOnly(today.Year, today.Month, 1);
+        var startOfMonth = new DateOnly(today.Year, today.Month, 1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
         var activeResidents = await _db.Residents
             .CountAsync(r => r.CaseStatus == "Active");
@@ -172,7 +172,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetDashboardActivity()
     {
         // DonationDate is a 'date' column → compare with DateOnly
-        var cutoffDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+        var cutoffDate = DateTime.UtcNow.AddDays(-30);
         // IncidentDate, SessionDate, VisitDate are 'timestamptz' → must be UTC
         var cutoffTs   = DateTime.UtcNow.AddDays(-30);
 
@@ -187,7 +187,7 @@ public class AdminController : ControllerBase
                     Type   = "donation",
                     Label  = $"{s.DisplayName ?? "Anonymous"} donated",
                     Detail = $"{d.DonationType} — {(d.Amount.HasValue ? $"₱{d.Amount:N0}" : d.EstimatedValue.HasValue ? $"₱{d.EstimatedValue:N0} est." : "—")}",
-                    Date   = d.DonationDate!.Value.ToDateTime(TimeOnly.MinValue),
+                    Date   = d.DonationDate!.Value,
                 })
             .OrderByDescending(x => x.Date)
             .Take(5)
@@ -321,7 +321,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetDonorTrends()
     {
         var today   = DateOnly.FromDateTime(DateTime.Today);
-        var cutoff  = new DateOnly(today.Year, today.Month, 1).AddMonths(-11);
+        var cutoff  = new DateOnly(today.Year, today.Month, 1).AddMonths(-11).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
         var raw = await _db.Donations
             .Where(d => d.DonationType == "Monetary" && d.DonationDate >= cutoff)

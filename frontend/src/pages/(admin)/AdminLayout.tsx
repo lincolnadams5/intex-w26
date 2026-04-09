@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Breadcrumbs } from '../../components/admin/Breadcrumbs'
-import { ProfileCard } from '../../components/admin/ProfileCard'
+import { ProfileCard } from '../../components/ProfileCard'
 
 // Nav items visible to both Admin and Staff
 const baseNavItems = [
@@ -22,7 +22,7 @@ const adminNavItems = [
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
-  const { user, isAdmin, logout } = useAuth()
+  const { isAdmin, logout } = useAuth()
 
   const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems
 
@@ -99,10 +99,7 @@ export function AdminLayout() {
             ☰
           </button>
 
-          <ProfileCard
-            name={user?.fullName ?? 'User'}
-            email={user?.email ?? ''}
-          />
+          <ProfileCard />
         </header>
 
         {/* Breadcrumb bar */}

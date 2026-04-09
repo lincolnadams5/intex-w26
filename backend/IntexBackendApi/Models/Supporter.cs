@@ -7,6 +7,7 @@ namespace IntexBackendApi.Models;
 public class Supporter
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int SupporterId { get; set; }
     public string? SupporterType { get; set; }
     public string? DisplayName { get; set; }

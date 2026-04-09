@@ -1,17 +1,9 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { ProfileCard } from "./ProfileCard";
 
 export function Header() {
-  const { isAuthenticated, role, user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  function handleLogout() {
-    logout()
-    navigate('/')
-  }
-
-  const portalHref = role === 'Admin' ? '/admin/dashboard' : role === 'Staff' ? '/staff/dashboard' : null
-  const isDonor = role === 'Donor'
+  const { isAuthenticated } = useAuth()
 
   return (
     <header className="sticky top-0 z-[100] bg-[#faf9f6]/95 backdrop-blur-md">
@@ -25,8 +17,8 @@ export function Header() {
         <div className="hidden md:flex items-center gap-10">
           {[
             { to: '/', label: 'Home', end: true },
+            { to: '/about', label: 'About Us', end: false },
             { to: '/impact', label: 'Impact', end: false },
-            { to: '/donate', label: 'Donate', end: false },
           ].map(({ to, label, end }) => (
             <NavLink
               key={to}
@@ -48,31 +40,22 @@ export function Header() {
         {/* Right Actions */}
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
-            <>
-              <span className="text-sm hidden sm:block text-[#3f484b]">
-                {user?.fullName ?? user?.email}
-              </span>
-              {portalHref && (
-                <Link to={portalHref} className="btn btn-small">
-                  Portal
-                </Link>
-              )}
-              {isDonor && (
-                <Link to="/my-donations" className="btn btn-primary btn-small">
-                  My Donations
-                </Link>
-              )}
-              <button onClick={handleLogout} className="btn btn-ghost btn-small">
-                Sign Out
-              </button>
-            </>
+            <ProfileCard />
           ) : (
-            <Link 
-              to="/login" 
-              className="px-6 py-2.5 text-sm font-semibold rounded bg-[#004c5a] !text-white hover:shadow-[0_12px_40px_rgba(0,76,90,0.15)] transition-all"
-            >
-              LOGIN
-            </Link>
+            <div className="flex">
+              <Link
+                to="/login"
+                className="px-6 py-2.5 text-sm font-semibold text-[#004c5a] hover:text-slate-500 transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/donate"
+                className="px-6 py-2.5 text-sm font-semibold rounded bg-[#004c5a] text-white hover:shadow-[0_12px_40px_rgba(0,76,90,0.15)] hover:translate-y-[-2px] hover:opacity-90 transition-all"
+              >
+                Donate
+              </Link>
+            </div>
           )}
         </div>
       </nav>

@@ -303,7 +303,7 @@
     @apply w-full py-3.5 px-4 text-base border-none;
     @apply transition-all duration-200;
     font-family: var(--font-body);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-radius: var(--radius-md) var(--radius-md);
     background: var(--color-surface-container-high);
     color: var(--color-on-surface);
   }

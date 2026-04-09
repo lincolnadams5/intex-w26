@@ -4,6 +4,7 @@ using IntexBackendApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
@@ -199,7 +200,7 @@ public class AuthController : ControllerBase
         if (user is not null)
         {
             var resetToken    = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var encodedToken  = Uri.EscapeDataString(resetToken);
+            var encodedToken  = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
             var frontendBase  = _config["FrontendBaseUrl"] ?? "http://localhost:5173";
             var resetLink     = $"{frontendBase}/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
 
@@ -218,7 +219,8 @@ public class AuthController : ControllerBase
         if (user is null)
             return BadRequest(new { message = "Invalid request." });
 
-        var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+        var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(dto.Token));
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
 
         if (!result.Succeeded)
             return BadRequest(new { message = "Reset failed.", errors = result.Errors.Select(e => e.Description) });
