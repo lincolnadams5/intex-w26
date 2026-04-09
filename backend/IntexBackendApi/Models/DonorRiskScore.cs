@@ -12,4 +12,5 @@ public class DonorRiskScore
     public int AtRiskPred { get; set; }
     public DateTime? ScoredAt { get; set; }
     public DateTime? ContactedAt { get; set; }
+    public string? RiskReasons { get; set; }
 }

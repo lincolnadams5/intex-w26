@@ -74,6 +74,13 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* ── Semantic aliases used by admin UI components ── */
+    --card:   var(--color-surface-container-lowest);
+    --text:   var(--color-on-surface-variant);
+    --text-h: var(--color-on-surface);
+    --border: var(--color-outline-variant);
+    --alert:  var(--color-error);
   }
 
   * {

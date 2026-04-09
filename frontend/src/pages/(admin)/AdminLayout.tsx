@@ -35,7 +35,7 @@ export function AdminLayout() {
     <div className="flex min-h-svh bg-[var(--color-surface-container-low)]">
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'w-72' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
+        className={`${sidebarOpen ? 'w-45' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-[var(--color-outline-variant)]">

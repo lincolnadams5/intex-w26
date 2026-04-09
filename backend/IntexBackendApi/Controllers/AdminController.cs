@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using IntexBackendApi.Data;
 using IntexBackendApi.DTOs;
 using IntexBackendApi.Models;
@@ -15,11 +17,13 @@ public class AdminController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly AppDbContext _db;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public AdminController(UserManager<ApplicationUser> userManager, AppDbContext db)
+    public AdminController(UserManager<ApplicationUser> userManager, AppDbContext db, IHttpClientFactory httpClientFactory)
     {
         _userManager = userManager;
         _db = db;
+        _httpClientFactory = httpClientFactory;
     }
 
     // ── Risk level ordinal helper ──────────────────────────────────────────────
@@ -257,7 +261,7 @@ public class AdminController : ControllerBase
     [HttpGet("dashboard/conferences")]
     public async Task<IActionResult> GetDashboardConferences()
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateTime.UtcNow.Date;
 
         var conferences = await _db.InterventionPlans
             .Where(ip => ip.CaseConferenceDate >= today)
@@ -398,7 +402,7 @@ public class AdminController : ControllerBase
             .Join(_db.Safehouses,
                 da => da.SafehouseId,
                 s  => s.SafehouseId,
-                (da, s) => new { da, safehouseName = s.Name ?? "Unknown" })
+                (da, s) => new { da, safehouseName = s.City ?? s.Name ?? "Unknown" })
             .Where(x => x.da.ProgramArea != null)
             .GroupBy(x => new { x.safehouseName, x.da.ProgramArea })
             .Select(g => new
@@ -445,6 +449,58 @@ public class AdminController : ControllerBase
     }
 
 
+    // GET /api/admin/donors/impact-summary
+    // Per-safehouse: total funds allocated (last 90 days) + resident readiness counts.
+    [HttpGet("donors/impact-summary")]
+    public async Task<IActionResult> GetDonorImpactSummary()
+    {
+        var cutoff = DateOnly.FromDateTime(DateTime.Today.AddDays(-90));
+
+        // Sum allocations per safehouse in the last 90 days
+        var allocations = await _db.DonationAllocations
+            .Where(da => da.AllocationDate >= cutoff)
+            .Join(_db.Safehouses,
+                da => da.SafehouseId,
+                s  => s.SafehouseId,
+                (da, s) => new { da.SafehouseId, safehouseName = s.Name ?? s.City ?? "Unknown", da.AmountAllocated })
+            .GroupBy(x => new { x.SafehouseId, x.safehouseName })
+            .Select(g => new { g.Key.SafehouseId, g.Key.safehouseName, totalFunded = g.Sum(x => x.AmountAllocated ?? 0) })
+            .ToListAsync();
+
+        // Count residents by readiness band per safehouse
+        var readiness = await _db.Residents
+            .Where(r => r.SafehouseId != null)
+            .Join(_db.ResidentReintegrationScores,
+                r  => r.ResidentId,
+                rs => rs.ResidentId,
+                (r, rs) => new { r.SafehouseId, rs.ReadinessBand })
+            .GroupBy(x => x.SafehouseId)
+            .Select(g => new
+            {
+                SafehouseId      = g.Key,
+                residentsReady   = g.Count(x => x.ReadinessBand == "Ready for Review"),
+                residentsDeveloping = g.Count(x => x.ReadinessBand == "Developing"),
+                residentsLow     = g.Count(x => x.ReadinessBand == "Low Readiness"),
+            })
+            .ToListAsync();
+
+        var result = allocations.Select(a =>
+        {
+            var r = readiness.FirstOrDefault(x => x.SafehouseId == a.SafehouseId);
+            return new
+            {
+                safehouseName       = a.safehouseName,
+                totalFunded         = a.totalFunded,
+                residentsReady      = r?.residentsReady ?? 0,
+                residentsDeveloping = r?.residentsDeveloping ?? 0,
+                residentsLow        = r?.residentsLow ?? 0,
+            };
+        }).OrderByDescending(x => x.totalFunded);
+
+        return Ok(result);
+    }
+
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  RESIDENTS & CASE MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════════════
@@ -483,7 +539,7 @@ public class AdminController : ControllerBase
         [FromQuery] int? safehouseId = null,
         [FromQuery] string? riskLevel = null,
         [FromQuery] string? reintegrationType = null,
-        [FromQuery] string? reintegrationStatus = null,
+        [FromQuery] string? hasUnresolvedIncident = null,
         [FromQuery] string? search = null)
     {
         // Step 1 — fetch matching residents joined with their safehouse name
@@ -492,7 +548,6 @@ public class AdminController : ControllerBase
                      && (!safehouseId.HasValue || r.SafehouseId == safehouseId)
                      && (riskLevel == null || r.CurrentRiskLevel == riskLevel)
                      && (reintegrationType == null || r.ReintegrationType == reintegrationType)
-                     && (reintegrationStatus == null || r.ReintegrationStatus == reintegrationStatus)
                      && (search == null || (r.InternalCode != null && r.InternalCode.Contains(search)))
                      && r.SafehouseId.HasValue)
             .Join(_db.Safehouses,
@@ -502,22 +557,22 @@ public class AdminController : ControllerBase
                 {
                     r.ResidentId,
                     internalCode         = r.InternalCode ?? "Unknown",
-                    safehouseName        = s.Name ?? "Unknown",
+                    safehouseName        = s.City ?? s.Name ?? "Unknown",
                     caseStatus           = r.CaseStatus ?? "—",
                     r.CurrentRiskLevel,
                     r.ReintegrationType,
                     r.ReintegrationStatus,
-                    r.AssignedSocialWorker,
                     r.LengthOfStay,
                 })
             .OrderBy(r => r.internalCode)
             .ToListAsync();
 
+        var ids = rows.Select(r => r.ResidentId).ToList();
+
         // Step 2 — try to fetch readiness scores; degrade gracefully if table absent
         Dictionary<int, ResidentReintegrationScore> scoreMap = new();
         try
         {
-            var ids    = rows.Select(r => r.ResidentId).ToList();
             var scores = await _db.ResidentReintegrationScores
                 .Where(sc => ids.Contains(sc.ResidentId))
                 .ToListAsync();
@@ -525,28 +580,113 @@ public class AdminController : ControllerBase
         }
         catch { /* resident_reintegration_scores table not yet created — scores will be null */ }
 
-        // Step 3 — merge and return
+        // Step 3 — fetch supplemental data for new columns
+        var unresolvedIncidentSet = (await _db.IncidentReports
+            .Where(i => i.Resolved == false && ids.Contains(i.ResidentId))
+            .Select(i => i.ResidentId)
+            .Distinct()
+            .ToListAsync()).ToHashSet();
+
+        var latestHealthNotes = (await _db.HealthWellbeingRecords
+            .Where(h => ids.Contains(h.ResidentId) && h.MedicalNotesRestricted != null)
+            .OrderByDescending(h => h.RecordDate)
+            .ToListAsync())
+            .GroupBy(h => h.ResidentId)
+            .ToDictionary(g => g.Key, g => g.First().MedicalNotesRestricted);
+
+        // Last 3 process recordings per resident; flag if none have progress_noted = true
+        var allRecentRecordings = (await _db.ProcessRecordings
+            .Where(p => ids.Contains(p.ResidentId))
+            .OrderByDescending(p => p.SessionDate)
+            .ToListAsync())
+            .GroupBy(p => p.ResidentId)
+            .ToDictionary(g => g.Key, g => g.Take(3).ToList());
+
+        // Step 4 — merge and return
         var result = rows.Select(r =>
         {
             scoreMap.TryGetValue(r.ResidentId, out var sc);
+
+            latestHealthNotes.TryGetValue(r.ResidentId, out var note);
+            string? healthTrend = null;
+            if (note != null)
+            {
+                if (note.Contains("Improving", StringComparison.OrdinalIgnoreCase)) healthTrend = "Improving";
+                else if (note.Contains("Declining", StringComparison.OrdinalIgnoreCase)) healthTrend = "Declining";
+                else if (note.Contains("Stable", StringComparison.OrdinalIgnoreCase)) healthTrend = "Stable";
+            }
+
+            allRecentRecordings.TryGetValue(r.ResidentId, out var recordings);
+            bool noRecentProgress = recordings != null
+                && recordings.Count >= 3
+                && !recordings.Any(p => p.ProgressNoted == true);
+
+            bool residentHasUnresolved = unresolvedIncidentSet.Contains(r.ResidentId);
+
             return new
             {
-                residentId           = r.ResidentId,
-                internalCode         = r.internalCode,
-                safehouseName        = r.safehouseName,
-                caseStatus           = r.caseStatus,
-                currentRiskLevel     = r.CurrentRiskLevel,
-                reintegrationType    = r.ReintegrationType,
-                reintegrationStatus  = r.ReintegrationStatus,
-                assignedSocialWorker = r.AssignedSocialWorker,
-                lengthOfStay         = r.LengthOfStay,
-                readinessBand        = sc?.ReadinessBand,
-                readinessFlag        = sc?.ReadinessBand == "Ready for Review"
-                                       && r.ReintegrationStatus == "In Progress",
+                residentId              = r.ResidentId,
+                internalCode            = r.internalCode,
+                safehouseName           = r.safehouseName,
+                caseStatus              = r.caseStatus,
+                currentRiskLevel        = r.CurrentRiskLevel,
+                reintegrationType       = r.ReintegrationType,
+                reintegrationStatus     = r.ReintegrationStatus,
+                hasUnresolvedIncident   = residentHasUnresolved,
+                healthTrend             = healthTrend,
+                noRecentProgress        = noRecentProgress,
+                lengthOfStay            = r.LengthOfStay,
+                readinessBand           = sc?.ReadinessBand,
+                readinessFlag           = sc?.ReadinessBand == "Ready for Review"
+                                          && r.ReintegrationStatus == "In Progress",
             };
         });
 
+        // Apply hasUnresolvedIncident filter after enrichment
+        if (hasUnresolvedIncident == "true")
+            result = result.Where(r => r.hasUnresolvedIncident);
+        else if (hasUnresolvedIncident == "false")
+            result = result.Where(r => !r.hasUnresolvedIncident);
+
         return Ok(result);
+    }
+
+    // GET /api/admin/residents/{id}/detail
+    // Full case snapshot for the resident detail modal.
+    [HttpGet("residents/{id}/detail")]
+    public async Task<IActionResult> GetResidentDetail(int id)
+    {
+        var resident = await _db.Residents.FindAsync(id);
+        if (resident == null) return NotFound();
+
+        var healthRecords = await _db.HealthWellbeingRecords
+            .Where(h => h.ResidentId == id)
+            .OrderByDescending(h => h.RecordDate)
+            .Take(3)
+            .ToListAsync();
+
+        var educationRecord = await _db.EducationRecords
+            .Where(e => e.ResidentId == id)
+            .OrderByDescending(e => e.RecordDate)
+            .FirstOrDefaultAsync();
+
+        var incidents = await _db.IncidentReports
+            .Where(i => i.ResidentId == id)
+            .OrderBy(i => i.Resolved)
+            .ThenByDescending(i => i.IncidentDate)
+            .ToListAsync();
+
+        var interventions = await _db.InterventionPlans
+            .Where(p => p.ResidentId == id)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+
+        var lastVisitation = await _db.HomeVisitations
+            .Where(v => v.ResidentId == id)
+            .OrderByDescending(v => v.VisitDate)
+            .FirstOrDefaultAsync();
+
+        return Ok(new { resident, healthRecords, educationRecord, incidents, interventions, lastVisitation });
     }
 
     // GET /api/admin/residents/alerts
@@ -566,7 +706,7 @@ public class AdminController : ControllerBase
                 (r, s) => new
                 {
                     internalCode     = r.InternalCode ?? "Unknown",
-                    safehouseName    = s.Name ?? "Unknown",
+                    safehouseName    = s.City ?? s.Name ?? "Unknown",
                     initialRiskLevel = r.InitialRiskLevel!,
                     currentRiskLevel = r.CurrentRiskLevel!,
                     lengthOfStay     = r.LengthOfStay ?? "—",
@@ -596,7 +736,7 @@ public class AdminController : ControllerBase
                 {
                     x.i.IncidentId,
                     residentCode  = x.residentCode,
-                    safehouseName = s.Name ?? "Unknown",
+                    safehouseName = s.City ?? s.Name ?? "Unknown",
                     incidentDate  = x.i.IncidentDate,
                     incidentType  = x.i.IncidentType ?? "—",
                 })
@@ -624,7 +764,7 @@ public class AdminController : ControllerBase
                 {
                     residentId    = r.ResidentId,
                     internalCode  = r.InternalCode ?? "Unknown",
-                    safehouseName = s.Name ?? "Unknown",
+                    safehouseName = s.City ?? s.Name ?? "Unknown",
                 })
             .OrderBy(x => x.internalCode)
             .ToListAsync();
@@ -654,8 +794,9 @@ public class AdminController : ControllerBase
             return new
             {
                 safehouseId          = s.SafehouseId,
-                name                 = s.Name ?? "Unknown",
+                name                 = s.City ?? s.Name ?? "Unknown",
                 region               = s.Region ?? "—",
+                status               = s.Status ?? "Unknown",
                 capacity             = s.CapacityGirls ?? 0,
                 occupancy            = s.CurrentOccupancy ?? 0,
                 avgEducationProgress = m?.AvgEducationProgress,
@@ -663,6 +804,39 @@ public class AdminController : ControllerBase
                 processRecordingCount = m?.ProcessRecordingCount,
                 incidentCount        = m?.IncidentCount,
             };
+        });
+
+        return Ok(result);
+    }
+
+    // GET /api/admin/safehouses/monthly-metrics
+    // Full historical monthly metrics per safehouse for trend charts.
+    [HttpGet("safehouses/monthly-metrics")]
+    public async Task<IActionResult> GetSafehouseMonthlyMetrics()
+    {
+        var metrics = await _db.SafehouseMonthlyMetrics
+            .Where(m => m.MonthStart.HasValue)
+            .Join(_db.Safehouses,
+                m => m.SafehouseId,
+                s => s.SafehouseId,
+                (m, s) => new
+                {
+                    month                = m.MonthStart!.Value,
+                    safehouseName        = s.City ?? s.Name ?? "Unknown",
+                    incidentCount        = m.IncidentCount ?? 0,
+                    avgHealthScore       = m.AvgHealthScore,
+                    avgEducationProgress = m.AvgEducationProgress,
+                })
+            .OrderBy(x => x.month)
+            .ToListAsync();
+
+        var result = metrics.Select(m => new
+        {
+            month                = m.month.ToString("MMM yyyy"),
+            safehouseName        = m.safehouseName,
+            incidentCount        = m.incidentCount,
+            avgHealthScore       = m.avgHealthScore.HasValue ? Math.Round(m.avgHealthScore.Value, 1) : (double?)null,
+            avgEducationProgress = m.avgEducationProgress.HasValue ? Math.Round(m.avgEducationProgress.Value, 1) : (double?)null,
         });
 
         return Ok(result);
@@ -678,7 +852,7 @@ public class AdminController : ControllerBase
             .Join(_db.Safehouses,
                 r => r.SafehouseId!.Value,
                 s => s.SafehouseId,
-                (r, s) => new { safehouseName = s.Name ?? "Unknown", r.CurrentRiskLevel })
+                (r, s) => new { safehouseName = s.City ?? s.Name ?? "Unknown", r.CurrentRiskLevel })
             .ToListAsync();
 
         var result = data
@@ -713,7 +887,7 @@ public class AdminController : ControllerBase
                 (r, s) => new
                 {
                     internalCode    = r.InternalCode ?? "Unknown",
-                    safehouseName   = s.Name ?? "Unknown",
+                    safehouseName   = s.City ?? s.Name ?? "Unknown",
                     initialRiskLevel = r.InitialRiskLevel!,
                     currentRiskLevel = r.CurrentRiskLevel!,
                     lengthOfStay    = r.LengthOfStay ?? "—",
@@ -784,7 +958,7 @@ public class AdminController : ControllerBase
                 {
                     x.i.IncidentId,
                     residentCode    = x.residentCode,
-                    safehouseName   = s.Name ?? "Unknown",
+                    safehouseName   = s.City ?? s.Name ?? "Unknown",
                     incidentDate    = x.i.IncidentDate,
                     incidentType    = x.i.IncidentType ?? "—",
                     severity        = x.i.Severity ?? "—",
@@ -979,6 +1153,111 @@ public class AdminController : ControllerBase
             .ToListAsync();
 
         return Ok(result);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  SOCIAL MEDIA ML PREDICTIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // GET /api/admin/social/ml-summary
+    // Aggregate stats from the post_analytics_scores ML pipeline output.
+    // Degrades gracefully if the table has not been populated yet.
+    [HttpGet("social/ml-summary")]
+    public async Task<IActionResult> GetSocialMlSummary()
+    {
+        try
+        {
+            var scores = await _db.PostAnalyticsScores.ToListAsync();
+
+            if (scores.Count == 0)
+                return Ok(new { scoredPostCount = 0, totalExpectedValuePhp = 0.0, avgPHasDonation = 0.0,
+                    highImpactCount = 0, moderateImpactCount = 0, lowImpactCount = 0, minimalImpactCount = 0 });
+
+            return Ok(new
+            {
+                scoredPostCount      = scores.Count,
+                totalExpectedValuePhp = scores.Sum(s => s.PredictedValuePhp ?? 0),
+                avgPHasDonation      = scores.Average(s => s.PHasDonation ?? 0),
+                highImpactCount      = scores.Count(s => s.ValueTier == "High Impact"),
+                moderateImpactCount  = scores.Count(s => s.ValueTier == "Moderate Impact"),
+                lowImpactCount       = scores.Count(s => s.ValueTier == "Low Impact"),
+                minimalImpactCount   = scores.Count(s => s.ValueTier == "Minimal Impact"),
+            });
+        }
+        catch
+        {
+            // post_analytics_scores table not yet created by the pipeline
+            return Ok(new { scoredPostCount = 0, totalExpectedValuePhp = 0.0, avgPHasDonation = 0.0,
+                highImpactCount = 0, moderateImpactCount = 0, lowImpactCount = 0, minimalImpactCount = 0 });
+        }
+    }
+
+    // GET /api/admin/social/ml-top-posts
+    // Top 20 posts by predicted donation value, joined with post metadata.
+    [HttpGet("social/ml-top-posts")]
+    public async Task<IActionResult> GetSocialMlTopPosts()
+    {
+        try
+        {
+            var result = await (
+                from score in _db.PostAnalyticsScores
+                join post in _db.SocialMediaPosts on score.PostId equals post.PostId into postGroup
+                from post in postGroup.DefaultIfEmpty()
+                orderby score.PredictedValuePhp descending
+                select new
+                {
+                    postId           = score.PostId,
+                    platform         = post != null ? post.Platform ?? "—" : "—",
+                    postType         = post != null ? post.PostType ?? "—" : "—",
+                    contentTopic     = post != null ? post.ContentTopic ?? "—" : "—",
+                    createdAt        = post != null ? post.CreatedAt : null,
+                    predictedValuePhp = score.PredictedValuePhp ?? 0,
+                    pHasDonation     = score.PHasDonation ?? 0,
+                    valueTier        = score.ValueTier ?? "Minimal Impact",
+                    engagementRate   = post != null ? post.EngagementRate : null,
+                    likes            = post != null ? post.Likes ?? 0 : 0,
+                    shares           = post != null ? post.Shares ?? 0 : 0,
+                }
+            ).Take(20).ToListAsync();
+
+            return Ok(result);
+        }
+        catch
+        {
+            return Ok(Array.Empty<object>());
+        }
+    }
+
+    // POST /api/admin/social/score-post
+    // Proxy to the social media recommendation FastAPI at http://localhost:8001/score.
+    // Accepts pre-publication post attributes, returns predicted P(donation) and expected value.
+    [HttpPost("social/score-post")]
+    public async Task<IActionResult> ScorePost([FromBody] JsonElement body)
+    {
+        try
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(10);
+
+            var json    = body.GetRawText();
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("http://localhost:8001/score", content);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, responseBody);
+
+            return Content(responseBody, "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(503, new { error = "Optimizer service unavailable. Ensure the FastAPI server is running on port 8001." });
+        }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(503, new { error = "Optimizer service timed out." });
+        }
     }
 }
 

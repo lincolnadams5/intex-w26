@@ -89,8 +89,8 @@ function App() {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
             {/* Admin dashboard has multiple sub-pages for different functionalities */}
-            <Route path="/admin/dashboard/process-recording" element={<ProcessRecording />} />
-            <Route path="/admin/dashboard/home-visits" element={<HomeVisits />} />
+            <Route path="dashboard/process-recording" element={<ProcessRecording />} />
+            <Route path="dashboard/home-visits" element={<HomeVisits />} />
           <Route path="donors" element={<DonorsPage />} />
           <Route path="residents" element={<ResidentsPage />} />
           <Route path="safehouses" element={<SafehousePage />} />
@@ -110,7 +110,7 @@ function App() {
         >
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="residents" element={<Residents />} />
+          <Route path="residents" element={<ResidentsPage />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 

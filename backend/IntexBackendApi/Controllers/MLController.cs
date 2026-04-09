@@ -28,6 +28,7 @@ public class MLController : ControllerBase
                     r.AtRiskPred,
                     r.ScoredAt,
                     r.ContactedAt,
+                    r.RiskReasons,
                     DonorName = s.DisplayName ?? "Anonymous",
                 })
             .OrderByDescending(x => x.RiskScore)
@@ -52,6 +53,7 @@ public class MLController : ControllerBase
             x.AtRiskPred,
             x.ScoredAt,
             x.ContactedAt,
+            riskReasons  = x.RiskReasons,
             totalGiven   = totalGivenMap.TryGetValue(x.SupporterId, out var total) ? total : 0,
         });
 
@@ -68,5 +70,55 @@ public class MLController : ControllerBase
         row.ContactedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return NoContent();
+    }
+
+    // GET /api/admin/ml/donor-outreach-profiles
+    // Returns per-donor outreach recommendations joined with display names.
+    [HttpGet("donor-outreach-profiles")]
+    public async Task<IActionResult> GetDonorOutreachProfiles()
+    {
+        var result = await _db.DonorOutreachProfiles
+            .Join(_db.Supporters, p => p.SupporterId, s => s.SupporterId,
+                (p, s) => new
+                {
+                    p.SupporterId,
+                    donorName        = s.DisplayName ?? "Anonymous",
+                    p.PreferredChannel,
+                    p.Cadence,
+                    p.MessageTemplate,
+                    p.BestDay,
+                    p.AskType,
+                    p.ScoredAt,
+                })
+            .OrderBy(x => x.donorName)
+            .ToListAsync();
+
+        return Ok(result);
+    }
+
+    // GET /api/admin/ml/donor-upgrade-scores
+    // Returns upgrade-candidate donors joined with display names, sorted by upgrade score descending.
+    [HttpGet("donor-upgrade-scores")]
+    public async Task<IActionResult> GetDonorUpgradeScores()
+    {
+        var result = await _db.DonorUpgradeScores
+            .Join(_db.Supporters, u => u.SupporterId, s => s.SupporterId,
+                (u, s) => new
+                {
+                    u.SupporterId,
+                    donorName       = s.DisplayName ?? "Anonymous",
+                    u.RfmSegment,
+                    u.UpgradeCandidate,
+                    u.UpgradeScore,
+                    u.CurrentAvgGift,
+                    u.SegmentAvgGift,
+                    suggestedAsk    = Math.Round(u.CurrentAvgGift * 1.5, 2),
+                    u.ScoredAt,
+                })
+            .Where(x => x.UpgradeCandidate)
+            .OrderByDescending(x => x.UpgradeScore)
+            .ToListAsync();
+
+        return Ok(result);
     }
 }
