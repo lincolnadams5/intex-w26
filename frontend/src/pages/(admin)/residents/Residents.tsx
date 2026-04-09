@@ -344,41 +344,17 @@ export function Residents() {
         <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'}  icon="🚨" />
       </div>
 
-      <SectionCard title="Safehouse Overview" subtitle="Current occupancy and latest monthly metrics per safehouse">
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Safehouse</th><th>Region</th><th>Occupancy</th>
-                <th>Avg Ed. Progress</th><th>Avg Health Score</th>
-                <th>Recordings (Mo.)</th><th>Incidents (Mo.)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {safehouses.map(row => (
-                <tr key={row.safehouseId}>
-                  <td className="font-medium text-[var(--color-on-surface)]">{row.name}</td>
-                  <td className="text-[var(--color-on-surface-variant)] text-xs">{row.region}</td>
-                  <td><OccupancyBar occupancy={row.occupancy} capacity={row.capacity} /></td>
-                  <td className="font-medium">
-                    {row.avgEducationProgress != null ? `${Number(row.avgEducationProgress).toFixed(1)}%` : '—'}
-                  </td>
-                  <td className="font-medium">
-                    {row.avgHealthScore != null ? `${Number(row.avgHealthScore).toFixed(1)}/10` : '—'}
-                  </td>
-                  <td className="text-center">{row.processRecordingCount ?? '—'}</td>
-                  <td>
-                    {row.incidentCount != null && row.incidentCount > 0
-                      ? <span className="badge badge-error">{row.incidentCount}</span>
-                      : <span className="badge badge-success">{row.incidentCount ?? 0}</span>
-                    }
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </SectionCard>
+      {/* ── Risk level legend ───────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 rounded-lg bg-[var(--color-surface-container-low)] text-xs text-[var(--color-on-surface-variant)]">
+        <span className="font-semibold text-[var(--color-on-surface)] mr-1">Risk Level:</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="Low" /> Child is stable, in a safe environment, case progressing well.</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="Medium" /> Some concerns present — family instability, unresolved trauma, or slow progress.</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="High" /> Active safety concerns, unresolved incidents, or significant barriers to reintegration.</span>
+        <span className="flex items-center gap-1.5"><RiskBadge level="Critical" /> Immediate danger or acute crisis requiring urgent intervention.</span>
+      </div>
+
+      {/* ── Main content: residents table + alerts side panel ───────────────── */}
+      <div className="flex gap-4 items-start">
 
       <SectionCard title="Risk Level Breakdown by Safehouse" subtitle="Active resident count at each risk level per safehouse">
         <div className="h-[240px]">

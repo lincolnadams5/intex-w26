@@ -401,6 +401,51 @@ export const getResidentDetail = (id: number) =>
 export const getResidentAlerts = () =>
   get<ResidentAlerts>('/api/admin/residents/alerts')
 
+export interface HomeVisitationForm {
+  visitDate: string
+  socialWorker: string
+  visitType: string
+  locationVisited: string
+  familyMembersPresent: string
+  purpose: string
+  observations: string
+  familyCooperationLevel: string
+  safetyConcernsNoted: boolean
+  followUpNeeded: boolean
+  followUpNotes: string
+  visitOutcome: string
+}
+
+export interface ProcessRecordingForm {
+  sessionDate: string
+  socialWorker: string
+  sessionType: string
+  sessionDurationMinutes: number | ''
+  emotionalStateObserved: string
+  emotionalStateEnd: string
+  sessionNarrative: string
+  interventionsApplied: string
+  followUpActions: string
+  progressNoted: boolean
+  concernsFlagged: boolean
+  referralMade: boolean
+  notesRestricted: string
+}
+
+export const postHomeVisitation = (residentId: number, data: HomeVisitationForm) =>
+  authFetch(`/api/admin/residents/${residentId}/home-visitation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then(r => { if (!r.ok) throw new Error('Failed to save home visitation') })
+
+export const postProcessRecording = (residentId: number, data: ProcessRecordingForm) =>
+  authFetch(`/api/admin/residents/${residentId}/process-recording`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then(r => { if (!r.ok) throw new Error('Failed to save process recording') })
+
 
 // ── Social Media Analytics ────────────────────────────────────────────────────
 
@@ -444,6 +489,7 @@ export interface HeatmapCell {
 export interface TopPost {
   postId: number
   platform: string
+  postUrl: string | null
   postType: string
   contentTopic: string
   createdAt: string | null
@@ -493,6 +539,7 @@ export interface SocialMlSummary {
 export interface SocialMlPost {
   postId: number
   platform: string
+  postUrl: string | null
   postType: string
   contentTopic: string
   createdAt: string | null
