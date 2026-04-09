@@ -19,7 +19,6 @@ export function Header() {
             { to: '/', label: 'Home', end: true },
             { to: '/about', label: 'About Us', end: false },
             { to: '/impact', label: 'Impact', end: false },
-            { to: '/donate', label: 'Donate', end: false },
           ].map(({ to, label, end }) => (
             <NavLink
               key={to}
@@ -43,12 +42,20 @@ export function Header() {
           {isAuthenticated ? (
             <ProfileCard />
           ) : (
-            <Link
-              to="/login"
-              className="px-6 py-2.5 text-sm font-semibold rounded bg-[#004c5a] !text-white hover:shadow-[0_12px_40px_rgba(0,76,90,0.15)] transition-all"
-            >
-              LOG IN / DONATE
-            </Link>
+            <div className="flex">
+              <Link
+                to="/login"
+                className="px-6 py-2.5 text-sm font-semibold text-[#004c5a] hover:text-slate-500 transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/donate"
+                className="px-6 py-2.5 text-sm font-semibold rounded bg-[#004c5a] text-white hover:shadow-[0_12px_40px_rgba(0,76,90,0.15)] hover:translate-y-[-2px] hover:opacity-90 transition-all"
+              >
+                Donate
+              </Link>
+            </div>
           )}
         </div>
       </nav>
