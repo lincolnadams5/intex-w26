@@ -3,7 +3,7 @@ namespace IntexBackendApi.DTOs;
 public class CreateResidentDto
 {
     public string? InternalCode { get; set; }
-    public DateOnly? DateOfAdmission { get; set; }
+    public DateTime? DateOfAdmission { get; set; }
     public string? ReferralSource { get; set; }
     public string? AssignedSocialWorker { get; set; }
     public string? CaseCategory { get; set; }

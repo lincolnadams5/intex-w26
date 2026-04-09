@@ -299,7 +299,7 @@ public class StaffController : ControllerBase
             .Take(pageSize)
             .Select(r => new
             {
-                r.ResidentId,
+                residentId           = r.ResidentId,
                 internalCode         = r.InternalCode ?? "—",
                 caseCategory         = r.CaseCategory ?? "—",
                 currentRiskLevel     = r.CurrentRiskLevel ?? "—",

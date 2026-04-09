@@ -111,13 +111,14 @@ export function Dashboard() {
             <StatCard
               label="My Recordings This Month"
               value={staffSummary?.myRecordingsThisMonth ?? '—'}
-              icon="📋"
+              color="#0d9488"
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><path d="M9 12h6M9 16h4" /></svg>}
             />
             <StatCard
               label="Upcoming Conferences"
               value={staffSummary?.upcomingConferences ?? '—'}
-              icon="📅"
-              accent
+              color="#c9a227"
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>}
             />
           </>
         )}
