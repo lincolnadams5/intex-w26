@@ -5,7 +5,8 @@ import { AdminLayout } from './pages/(admin)/AdminLayout'
 import { StaffLayout } from './pages/(staff)/StaffLayout'
 import { Dashboard } from './pages/(admin)/dashboard/Dashboard'
 import { DonorsPage } from './pages/(admin)/donors/DonorsPage'
-import { Residents } from './pages/(admin)/residents/Residents'
+import { ResidentsPage } from './pages/(admin)/residents/Residents'
+import { SafehousePage } from './pages/(admin)/safehouses/SafehousePage'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
 import { UsersPage } from './pages/(admin)/users/UsersPage'
@@ -85,10 +86,12 @@ function App() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-            <Route path="/admin/dashboard/process-recording" element={<ProcessRecording />} />
-            <Route path="/admin/dashboard/home-visits" element={<HomeVisits />} />
+            {/* Admin dashboard has multiple sub-pages for different functionalities */}
+            <Route path="dashboard/process-recording" element={<ProcessRecording />} />
+            <Route path="dashboard/home-visits" element={<HomeVisits />} />
           <Route path="donors" element={<DonorsPage />} />
-          <Route path="residents" element={<Residents />} />
+          <Route path="residents" element={<ResidentsPage />} />
+          <Route path="safehouses" element={<SafehousePage />} />
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="users" element={<UsersPage />} />
@@ -105,7 +108,7 @@ function App() {
         >
           <Route index element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="residents" element={<Residents />} />
+          <Route path="residents" element={<ResidentsPage />} />
           <Route path="ml" element={<MLPage />} />
         </Route>
 

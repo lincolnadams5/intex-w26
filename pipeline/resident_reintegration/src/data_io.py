@@ -8,6 +8,10 @@ Operational jobs call load_from_supabase() to pull live data.
 import os
 import pandas as pd
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / '.env', override=True)
+
 from src.config import (
     DATA_RAW, DATASETS_DIR,
     RESIDENTS_FILE, HEALTH_FILE, EDUCATION_FILE,
