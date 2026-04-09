@@ -17,6 +17,7 @@ export function Header() {
         <div className="hidden md:flex items-center gap-10">
           {[
             { to: '/', label: 'Home', end: true },
+            { to: '/about', label: 'About Us', end: false },
             { to: '/impact', label: 'Impact', end: false },
             { to: '/donate', label: 'Donate', end: false },
           ].map(({ to, label, end }) => (
