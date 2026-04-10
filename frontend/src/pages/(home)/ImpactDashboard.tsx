@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { authFetch } from '../../lib/api'
 
 interface ImpactSummary {
   totalMonetaryDonations: number
@@ -51,7 +52,6 @@ interface CampaignPerformance {
   uniqueDonors: number
 }
 
-const API_BASE = '/api/publicimpact'
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-PH', {
@@ -118,16 +118,18 @@ export function ImpactDashboard() {
           inKindRes,
           campaignsRes,
         ] = await Promise.all([
-          fetch(`${API_BASE}/summary`),
-          fetch(`${API_BASE}/donations-by-type`),
-          fetch(`${API_BASE}/donations-by-month`),
-          fetch(`${API_BASE}/allocations-by-program`),
-          fetch(`${API_BASE}/supporters-by-type`),
-          fetch(`${API_BASE}/in-kind-by-category`),
-          fetch(`${API_BASE}/campaign-performance`),
+          authFetch('/api/publicimpact/summary'),
+          authFetch('/api/publicimpact/donations-by-type'),
+          authFetch('/api/publicimpact/donations-by-month'),
+          authFetch('/api/publicimpact/allocations-by-program'),
+          authFetch('/api/publicimpact/supporters-by-type'),
+          authFetch('/api/publicimpact/in-kind-by-category'),
+          authFetch('/api/publicimpact/campaign-performance'),
         ])
 
-        if (!summaryRes.ok) throw new Error('Failed to fetch impact data')
+        const allResponses = [summaryRes, byTypeRes, byMonthRes, allocationsRes, supportersRes, inKindRes, campaignsRes]
+        const failed = allResponses.find(r => !r.ok)
+        if (failed) throw new Error(`Failed to fetch impact data (${failed.status})`)
 
         setSummary(await summaryRes.json())
         setDonationsByType(await byTypeRes.json())
