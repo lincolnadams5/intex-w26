@@ -41,6 +41,14 @@ export default function Login() {
     setIsLoading(false)
   }
 
+  const handleResendCode = async () => {
+    setIsLoading(true)
+    setError('')
+    const result = await login(email, password)
+    if (!result.ok) setError(result.error ?? 'Failed to resend code')
+    setIsLoading(false)
+  }
+
   const handleVerify2FA = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -137,6 +145,14 @@ export default function Login() {
               disabled={isLoading}
             >
               {isLoading ? 'Verifying...' : 'Verify Code'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost w-full"
+              onClick={handleResendCode}
+              disabled={isLoading}
+            >
+              Resend Code
             </button>
             <button
               type="button"

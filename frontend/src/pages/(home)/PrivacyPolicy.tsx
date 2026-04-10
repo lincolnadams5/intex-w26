@@ -47,9 +47,11 @@ export default function Privacy() {
         <div className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)] rounded-[var(--radius-lg)] p-6">
           <h2 className="text-xl mb-4">How do we store your data?</h2>
           <p className="text-[var(--color-on-surface-variant)] text-sm">
-            Your data is securely stored in protected databases. We take reasonable
-            security measures to prevent unauthorized access. Data is retained only
-            as long as necessary for operational and legal purposes.
+            Your data is stored in encrypted databases hosted on Render, a
+            cloud platform with industry-standard security practices including
+            encryption at rest and in transit. We take reasonable security
+            measures to prevent unauthorized access. Data is retained only as
+            long as necessary for operational and legal purposes.
           </p>
         </div>
 
