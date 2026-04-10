@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import houseLogo from "../assets/house-logo.png";
 
 function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
@@ -22,8 +23,9 @@ export function Footer() {
     <footer className="bg-[var(--color-surface-container-low)] border-t border-[var(--color-outline-variant)] mt-auto">
       <div className="grid grid-cols-1 md:grid-cols-[1.5fr_2fr] gap-10 md:gap-[60px] py-10 px-6 md:py-[60px] md:px-8 max-w-[1200px] mx-auto">
         <div>
-          <div className="mb-4">
-            <span className="text-[22px] font-bold text-[var(--color-on-surface)] tracking-tight">
+          <div className="mb-4 inline-flex items-center gap-2">
+            <img src={houseLogo} alt="Pag-asa Sanctuary logo" className="h-10 w-auto mb-2" /> 
+            <span className="flex text-[22px] font-bold text-[var(--color-on-surface)] tracking-tight">
               Pag-asa Sanctuary
             </span>
           </div>

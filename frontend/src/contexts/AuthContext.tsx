@@ -151,8 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('token')
-    setToken(null)
-    setUser(null)
+    window.location.href = '/'
   }
 
   const toggle2FA = async (): Promise<{ ok: boolean; error?: string }> => {
