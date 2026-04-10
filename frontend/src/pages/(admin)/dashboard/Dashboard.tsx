@@ -132,7 +132,7 @@ export function Dashboard() {
 
       {/* ── Actions ─────────────────────────────────────────────────────────── */}
       <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Actions</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className={`grid grid-cols-1 gap-4 ${isAdmin ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2'}`}>
         <Link
           to={isAdmin ? `${base}/dashboard/home-visits` : `${base}/home-visits`}
           className="card card-interactive flex items-center gap-4 no-underline group"
@@ -159,6 +159,22 @@ export function Dashboard() {
             <p className="font-semibold text-[var(--color-on-surface)]">Record a Process</p>
           </div>
         </Link>
+
+        {isAdmin && (
+          <Link
+            to="/admin/reports"
+            className="card card-interactive flex items-center gap-4 no-underline group"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 flex-shrink-0 text-[var(--color-primary)] opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <line strokeLinecap="round" strokeLinejoin="round" x1="18" y1="20" x2="18" y2="10"/>
+              <line strokeLinecap="round" strokeLinejoin="round" x1="12" y1="20" x2="12" y2="4"/>
+              <line strokeLinecap="round" strokeLinejoin="round" x1="6"  y1="20" x2="6"  y2="14"/>
+            </svg>
+            <div>
+              <p className="font-semibold text-[var(--color-on-surface)]">View Reports &amp; Analytics</p>
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* ── History & Upcoming ───────────────────────────────────────────────── */}
