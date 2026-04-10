@@ -366,6 +366,40 @@ export const getSafehouseMonthlyMetrics = () =>
 export const getRiskBySafehouse = () =>
   get<RiskBySafehouse[]>('/api/admin/residents/risk-by-safehouse')
 
+export interface SafehouseOutcomeCoefficient {
+  id: number
+  runDate: string | null
+  feature: string | null
+  betaHealth: number | null
+  seHealth: number | null
+  pHealth: number | null
+  sigHealth: string | null
+  betaEdu: number | null
+  seEdu: number | null
+  pEdu: number | null
+  sigEdu: string | null
+}
+
+export interface SafehouseOutcomeDriver {
+  id: number
+  runDate: string | null
+  safehouseId: number | null
+  safehouseName: string | null
+  region: string | null
+  varHealth: number | null
+  varEdu: number | null
+  flaggedHealth: boolean | null
+  flaggedEdu: boolean | null
+  flaggedFor: string | null
+  note: string | null
+}
+
+export const getOutcomeCoefficients = () =>
+  get<SafehouseOutcomeCoefficient[]>('/api/admin/safehouses/outcome-coefficients')
+
+export const getOutcomeDrivers = () =>
+  get<SafehouseOutcomeDriver[]>('/api/admin/safehouses/outcome-drivers')
+
 export const getRiskEscalations = () =>
   get<RiskEscalation[]>('/api/admin/residents/risk-escalations')
 

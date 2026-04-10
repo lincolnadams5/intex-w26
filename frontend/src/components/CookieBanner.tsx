@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import { setCookie, getCookie } from "../utils/cookies";
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    const consent = getCookie("cookie_consent");
+    return !consent;
+  });
 
   useEffect(() => {
-    const consent = getCookie("cookie_consent");
-    if (!consent) {
-      setVisible(true);
-    }
+    // Effect cleanup or external system updates can go here if needed
   }, []);
 
   const accept = () => {
@@ -31,22 +31,28 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-black text-white p-4 z-50">
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-        
-        <p className="text-sm">
+    <div className="fixed bottom-0 left-0 w-full bg-[var(--color-surface-container-low)] border-t border-[var(--color-outline-variant)] z-50 shadow-[var(--shadow-floating)]">
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 px-6 py-4">
+
+        <p className="text-sm text-[var(--color-on-surface-variant)]">
           We use cookies to improve your experience. See our{" "}
-          <Link to="/privacy" className="underline text-blue-300">
+          <Link to="/privacy" className="text-[var(--color-primary)] underline underline-offset-4 hover:text-[var(--color-primary-container)] transition-colors">
             Privacy Policy
           </Link>.
         </p>
 
-        <div className="flex gap-2">
-          <button onClick={accept} className="bg-green-500 px-4 py-2 rounded">
-            Accept
-          </button>
-          <button onClick={decline} className="bg-gray-500 px-4 py-2 rounded">
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={decline}
+            className="cursor-pointer px-4 py-2 text-sm font-medium rounded-[var(--radius-md)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container)] transition-colors"
+          >
             Decline
+          </button>
+          <button
+            onClick={accept}
+            className="cursor-pointer px-4 py-2 text-sm font-semibold rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white hover:opacity-90 hover:translate-y-[-1px] transition-all"
+          >
+            Accept
           </button>
         </div>
 

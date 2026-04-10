@@ -11,12 +11,45 @@ import {
   getSafehousesOverview,
   getSafehouseMonthlyMetrics,
   getRiskBySafehouse,
+  getOutcomeCoefficients,
+  getOutcomeDrivers,
   type SafehouseOverviewRow,
   type SafehouseMonthlyPoint,
   type RiskBySafehouse,
+  type SafehouseOutcomeCoefficient,
+  type SafehouseOutcomeDriver,
 } from '../../../lib/adminApi'
 
-// ── Palette for per-safehouse lines / bars ────────────────────────────────────
+// ── Readable labels for pipeline feature names ───────────────────────────────
+
+const FEATURE_LABELS: Record<string, string> = {
+  sessions_per_resident:         'Program Sessions per Resident',
+  visits_per_resident:           'Home Visits per Resident',
+  pct_high_risk:                 'High-Risk Residents (%)',
+  pct_trafficked:                'Trafficking Survivors (%)',
+  pct_special_needs:             'Residents with Special Needs (%)',
+  months_since_start:            'Months Since Safehouse Opened',
+  sessions_per_resident_lag1:    'Program Sessions per Resident (Prior Month)',
+  visits_per_resident_lag1:      'Home Visits per Resident (Prior Month)',
+  pct_high_risk_lag1:            'High-Risk Residents — Prior Month (%)',
+  pct_trafficked_lag1:           'Trafficking Survivors — Prior Month (%)',
+  pct_special_needs_lag1:        'Residents with Special Needs — Prior Month (%)',
+}
+
+function EffectBadge({ beta, sig }: { beta: number | null; sig: string | null }) {
+  const significant = sig === '*' || sig === '**' || sig === '***'
+  if (!significant || beta == null) {
+    return <span className="text-xs text-[var(--text)]">No clear effect</span>
+  }
+  const positive = beta > 0
+  return (
+    <span className={`badge ${positive ? 'badge-success' : 'badge-error'}`}>
+      {positive ? '↑ Improves' : '↓ Worsens'}
+    </span>
+  )
+}
+
+// ── Palette for per-safehouse lines / bars ───────────────────────────────────
 
 const SAFEHOUSE_COLORS = [
   '#0d9488', '#3b82f6', '#a855f7', '#f97316',
@@ -53,6 +86,8 @@ export function SafehousePage() {
   const [safehouses, setSafehouses]   = useState<SafehouseOverviewRow[]>([])
   const [monthly, setMonthly]         = useState<SafehouseMonthlyPoint[]>([])
   const [riskByHouse, setRiskByHouse] = useState<RiskBySafehouse[]>([])
+  const [coefficients, setCoefficients] = useState<SafehouseOutcomeCoefficient[]>([])
+  const [drivers, setDrivers]           = useState<SafehouseOutcomeDriver[]>([])
   const [loading, setLoading]         = useState(true)
   const [error, setError]             = useState<string | null>(null)
 
@@ -61,10 +96,14 @@ export function SafehousePage() {
       getSafehousesOverview(),
       getSafehouseMonthlyMetrics(),
       getRiskBySafehouse(),
-    ]).then(([sh, mo, rb]) => {
+      getOutcomeCoefficients(),
+      getOutcomeDrivers(),
+    ]).then(([sh, mo, rb, coef, driv]) => {
       setSafehouses(sh)
       setMonthly(mo)
       setRiskByHouse(rb)
+      setCoefficients(coef)
+      setDrivers(driv)
     }).catch(() => setError('Failed to load safehouse data.'))
       .finally(() => setLoading(false))
   }, [])
@@ -197,7 +236,7 @@ export function SafehousePage() {
                     {(() => {
                       const entry = latestHealthByName.get(row.name)
                       return entry
-                        ? <span title={`Recorded: ${entry.month}`} className="cursor-help border-b border-dashed border-[var(--text)] pb-px">{entry.value.toFixed(1)} / 10</span>
+                        ? <span title={`Recorded: ${entry.month}`} className="cursor-help border-b border-dashed border-[var(--text)] pb-px">{entry.value.toFixed(1)} / 5</span>
                         : '—'
                     })()}
                   </td>
@@ -309,6 +348,79 @@ export function SafehousePage() {
           </div>
         </SectionCard>
       </div>
+
+      {/* ── Section 6: Outcome Drivers ───────────────────────────────────── */}
+      <SectionCard
+        title="What Drives Outcomes"
+        subtitle="Shows whether each program factor improves or worsens resident health and education, based on weekly statistical analysis. Only factors with a statistically reliable effect are shown as Improves or Worsens — others are listed as 'No clear effect'."
+      >
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Program Factor</th>
+                <th>Effect on Health Score</th>
+                <th>Effect on Education Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              {coefficients.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center text-sm py-4">No data available.</td>
+                </tr>
+              ) : coefficients.map(row => (
+                <tr key={row.id}>
+                  <td className="font-medium">{row.feature ? (FEATURE_LABELS[row.feature] ?? row.feature) : '—'}</td>
+                  <td><EffectBadge beta={row.betaHealth} sig={row.sigHealth} /></td>
+                  <td><EffectBadge beta={row.betaEdu}    sig={row.sigEdu}    /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      {/* ── Section 7: Flagged Safehouses ────────────────────────────────── */}
+      <SectionCard
+        title="Safehouses Needing Attention"
+        subtitle="Safehouses where resident health or education outcomes are significantly below what the model predicts, based on the most recent weekly analysis. These may benefit from a staff check-in or resource review."
+        accentBorder
+        titleIcon="⚠️"
+      >
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Safehouse</th>
+                <th>Region</th>
+                <th>Concern Area</th>
+                <th>Reason</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {drivers.filter(r => r.flaggedHealth || r.flaggedEdu).length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center text-sm py-4">No safehouses flagged — all outcomes are within expected range.</td>
+                </tr>
+              ) : drivers.filter(r => r.flaggedHealth || r.flaggedEdu).map(row => (
+                <tr key={row.id}>
+                  <td className="font-medium">{row.safehouseName ?? '—'}</td>
+                  <td className="text-xs">{row.region ?? '—'}</td>
+                  <td>
+                    <div className="flex flex-wrap gap-1">
+                      {row.flaggedHealth && <span className="badge badge-error">Health Score</span>}
+                      {row.flaggedEdu    && <span className="badge badge-error">Education Progress</span>}
+                    </div>
+                  </td>
+                  <td className="text-xs">{row.flaggedFor ?? '—'}</td>
+                  <td className="text-xs">{row.note ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
     </div>
   )
 }

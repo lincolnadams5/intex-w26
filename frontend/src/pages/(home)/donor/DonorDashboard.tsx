@@ -58,7 +58,7 @@ export default function DonorDashboard() {
     <div className="min-h-screen bg-[var(--color-surface)]">
       {/* Header */}
       <header className="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-container)] text-white py-10 px-6">
-          <div className="max-w-[80vh] mx-auto gap-4 flex flex-col items-center text-center">
+          <div className="max-w-xl mx-auto gap-4 flex flex-col items-center text-center">
             <h1 className="text-white mb-1">Welcome back, {user?.fullName?.split(' ')[0] || 'Donor'}</h1>
             <p className="text-white/80 text-lg">Thank you for your continued support of Pag-asa Sanctuary</p>
           </div>
@@ -169,10 +169,6 @@ export default function DonorDashboard() {
           </>
         )}
       </main>
-
-      <footer className="text-center py-6 text-[var(--color-on-surface-variant)] text-sm">
-        <p>Questions about your donations? Contact us at donations@pagasasanctuary.org</p>
-      </footer>
     </div>
   )
 }
