@@ -7,7 +7,6 @@ namespace IntexBackendApi.Models;
 public class Donation
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int DonationId { get; set; }
     public int SupporterId { get; set; }
     public string? DonationType { get; set; }
