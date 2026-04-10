@@ -1347,6 +1347,245 @@ public class AdminController : ControllerBase
         return Ok(rows);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  REPORTS & ANALYTICS — AAR SUMMARY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // GET /api/admin/reports/aar-summary?year=2025&safehouseId=1
+    [HttpGet("reports/aar-summary")]
+    public async Task<IActionResult> GetAarSummary(
+        [FromQuery] int? year,
+        [FromQuery] int? safehouseId)
+    {
+        int reportYear = year ?? DateTime.UtcNow.Year;
+
+        // ── Resident base query ──────────────────────────────────────────────
+        var residentsQ = _db.Residents.AsQueryable();
+        if (safehouseId.HasValue)
+            residentsQ = residentsQ.Where(r => r.SafehouseId == safehouseId.Value);
+
+        var residents = await residentsQ.ToListAsync();
+
+        // Residents active during the report year (admitted on or before 31 Dec
+        // of the year and not closed before 1 Jan of the year)
+        var activeInYear = residents.Where(r =>
+            r.DateOfAdmission.HasValue &&
+            r.DateOfAdmission.Value.Year <= reportYear &&
+            (!r.DateClosed.HasValue || r.DateClosed.Value.Year >= reportYear)
+        ).ToList();
+
+        var residentIds = activeInYear.Select(r => r.ResidentId).ToList();
+
+        // New admissions strictly in the report year
+        var newAdmissions = activeInYear
+            .Count(r => r.DateOfAdmission!.Value.Year == reportYear);
+
+        // ── Caring section ───────────────────────────────────────────────────
+        var visitsInYear = await _db.HomeVisitations
+            .Where(v => residentIds.Contains(v.ResidentId) &&
+                        v.VisitDate.HasValue &&
+                        v.VisitDate.Value.Year == reportYear)
+            .ToListAsync();
+
+        var incidentsQ = _db.IncidentReports
+            .Where(i => i.IncidentDate.HasValue &&
+                        i.IncidentDate.Value.Year == reportYear);
+        if (safehouseId.HasValue)
+            incidentsQ = incidentsQ.Where(i => i.SafehouseId == safehouseId.Value);
+        var incidents = await incidentsQ.ToListAsync();
+
+        // Safehouse occupancy rows
+        var safehouses = await _db.Safehouses.ToListAsync();
+        var safehouseFilter = safehouseId.HasValue
+            ? safehouses.Where(s => s.SafehouseId == safehouseId.Value).ToList()
+            : safehouses;
+
+        var occupancyRows = safehouseFilter.Select(s =>
+        {
+            var active = activeInYear.Count(r =>
+                r.SafehouseId == s.SafehouseId &&
+                r.CaseStatus != "Closed");
+            var cap = (s.CapacityGirls ?? 0);
+            return new SafehouseOccupancyRow
+            {
+                SafehouseName  = s.Name ?? s.SafehouseCode ?? $"Safehouse {s.SafehouseId}",
+                Capacity       = cap,
+                ActiveResidents = active,
+                OccupancyPct   = cap > 0 ? Math.Round((double)active / cap * 100, 1) : 0,
+            };
+        }).ToList();
+
+        var caring = new CaringSection
+        {
+            TotalBeneficiaries        = activeInYear.Count,
+            NewAdmissions             = newAdmissions,
+            HomeVisitationsConducted  = visitsInYear.Count,
+            IncidentReportsFiled      = incidents.Count,
+            IncidentReportsResolved   = incidents.Count(i => i.Resolved == true),
+            Trafficked    = activeInYear.Count(r => r.SubCatTrafficked == true),
+            PhysicalAbuse = activeInYear.Count(r => r.SubCatPhysicalAbuse == true),
+            SexualAbuse   = activeInYear.Count(r => r.SubCatSexualAbuse == true),
+            Osaec         = activeInYear.Count(r => r.SubCatOsaec == true),
+            Cicl          = activeInYear.Count(r => r.SubCatCicl == true),
+            ChildLabor    = activeInYear.Count(r => r.SubCatChildLabor == true),
+            AtRisk        = activeInYear.Count(r => r.SubCatAtRisk == true),
+            StreetChild   = activeInYear.Count(r => r.SubCatStreetChild == true),
+            Orphaned      = activeInYear.Count(r => r.SubCatOrphaned == true),
+            OccupancyByHouse = occupancyRows,
+        };
+
+        // ── Healing section ──────────────────────────────────────────────────
+        var recordings = await _db.ProcessRecordings
+            .Where(p => residentIds.Contains(p.ResidentId) &&
+                        p.SessionDate.HasValue &&
+                        p.SessionDate.Value.Year == reportYear)
+            .ToListAsync();
+
+        var healthRecords = await _db.HealthWellbeingRecords
+            .Where(h => residentIds.Contains(h.ResidentId))
+            .ToListAsync();
+
+        // Latest health record per resident for checkup flags
+        var latestHealth = healthRecords
+            .GroupBy(h => h.ResidentId)
+            .Select(g => g.OrderByDescending(h => h.RecordDate).First())
+            .ToList();
+
+        var monthlySessionCounts = Enumerable.Range(1, 12).Select(m => new MonthlyCount
+        {
+            Month = new DateOnly(reportYear, m, 1).ToString("MMM"),
+            Count = recordings.Count(r => r.SessionDate!.Value.Month == m),
+        }).ToList();
+
+        var sessionsByType = recordings
+            .Where(r => !string.IsNullOrWhiteSpace(r.SessionType))
+            .GroupBy(r => r.SessionType!)
+            .Select(g => new LabelCount { Label = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var healing = new HealingSection
+        {
+            TotalSessions             = recordings.Count,
+            AvgGeneralHealthScore     = healthRecords.Any()
+                ? Math.Round(healthRecords.Where(h => h.GeneralHealthScore.HasValue)
+                    .Average(h => h.GeneralHealthScore!.Value), 1)
+                : null,
+            AvgNutritionScore         = healthRecords.Any()
+                ? Math.Round(healthRecords.Where(h => h.NutritionScore.HasValue)
+                    .Average(h => h.NutritionScore!.Value), 1)
+                : null,
+            MedicalCheckupsDone       = latestHealth.Count(h => h.MedicalCheckupDone == true),
+            DentalCheckupsDone        = latestHealth.Count(h => h.DentalCheckupDone == true),
+            PsychologicalCheckupsDone = latestHealth.Count(h => h.PsychologicalCheckupDone == true),
+            TotalHealthRecords        = latestHealth.Count,
+            SessionsByMonth           = monthlySessionCounts,
+            SessionsByType            = sessionsByType,
+        };
+
+        // ── Teaching section ─────────────────────────────────────────────────
+        var eduRecords = await _db.EducationRecords
+            .Where(e => residentIds.Contains(e.ResidentId))
+            .ToListAsync();
+
+        // Latest education record per resident
+        var latestEdu = eduRecords
+            .GroupBy(e => e.ResidentId)
+            .Select(g => g.OrderByDescending(e => e.RecordDate).First())
+            .ToList();
+
+        var enrolled = latestEdu.Count(e =>
+            e.EnrollmentStatus != null &&
+            e.EnrollmentStatus.Equals("Enrolled", StringComparison.OrdinalIgnoreCase));
+
+        var plans = await _db.InterventionPlans
+            .Where(p => residentIds.Contains(p.ResidentId))
+            .ToListAsync();
+
+        var plansByCategory = plans
+            .Where(p => !string.IsNullOrWhiteSpace(p.PlanCategory))
+            .GroupBy(p => p.PlanCategory!)
+            .Select(g => new LabelCount { Label = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var reintegrationByType = activeInYear
+            .Where(r => !string.IsNullOrWhiteSpace(r.ReintegrationType))
+            .GroupBy(r => r.ReintegrationType!)
+            .Select(g => new LabelCount { Label = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var teaching = new TeachingSection
+        {
+            ResidentsEnrolled        = enrolled,
+            AvgAttendanceRate        = latestEdu.Any(e => e.AttendanceRate.HasValue)
+                ? Math.Round(latestEdu.Where(e => e.AttendanceRate.HasValue)
+                    .Average(e => e.AttendanceRate!.Value), 1)
+                : null,
+            AvgProgressPercent       = latestEdu.Any(e => e.ProgressPercent.HasValue)
+                ? Math.Round(latestEdu.Where(e => e.ProgressPercent.HasValue)
+                    .Average(e => e.ProgressPercent!.Value), 1)
+                : null,
+            PlansActive              = plans.Count(p =>
+                p.Status != null && p.Status.Equals("Active", StringComparison.OrdinalIgnoreCase)),
+            PlansCompleted           = plans.Count(p =>
+                p.Status != null && p.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase)),
+            PlansByCategory          = plansByCategory,
+            SuccessfullyReintegrated = activeInYear.Count(r =>
+                r.ReintegrationStatus != null &&
+                r.ReintegrationStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase)),
+            ReintegrationInProgress  = activeInYear.Count(r =>
+                r.ReintegrationStatus != null &&
+                r.ReintegrationStatus.Equals("In Progress", StringComparison.OrdinalIgnoreCase)),
+            ReintegrationByType      = reintegrationByType,
+        };
+
+        // ── Safehouse performance comparison ─────────────────────────────────
+        var allRecordings = await _db.ProcessRecordings
+            .Where(p => p.SessionDate.HasValue && p.SessionDate.Value.Year == reportYear)
+            .ToListAsync();
+        var allVisits = await _db.HomeVisitations
+            .Where(v => v.VisitDate.HasValue && v.VisitDate.Value.Year == reportYear)
+            .ToListAsync();
+        var allIncidents = await _db.IncidentReports
+            .Where(i => i.IncidentDate.HasValue && i.IncidentDate.Value.Year == reportYear)
+            .ToListAsync();
+
+        var perfRows = safehouseFilter.Select(s =>
+        {
+            var shResidents = residents.Where(r => r.SafehouseId == s.SafehouseId).ToList();
+            var shActive    = shResidents.Count(r => r.CaseStatus != "Closed");
+            var shIds       = shResidents.Select(r => r.ResidentId).ToList();
+            var cap         = s.CapacityGirls ?? 0;
+
+            return new SafehousePerformanceRow
+            {
+                SafehouseId      = s.SafehouseId,
+                SafehouseName    = s.Name ?? s.SafehouseCode ?? $"Safehouse {s.SafehouseId}",
+                Region           = s.Region ?? "—",
+                ActiveResidents  = shActive,
+                Capacity         = cap,
+                OccupancyPct     = cap > 0 ? Math.Round((double)shActive / cap * 100, 1) : 0,
+                SessionsThisYear = allRecordings.Count(p => shIds.Contains(p.ResidentId)),
+                VisitsThisYear   = allVisits.Count(v => shIds.Contains(v.ResidentId)),
+                IncidentsThisYear = allIncidents.Count(i => i.SafehouseId == s.SafehouseId),
+            };
+        }).ToList();
+
+        var summary = new AarSummaryDto
+        {
+            ReportYear         = reportYear,
+            FilterSafehouseId  = safehouseId,
+            Caring             = caring,
+            Healing            = healing,
+            Teaching           = teaching,
+            SafehousePerformance = perfRows,
+        };
+
+        return Ok(summary);
+    }
+
     // GET /api/admin/safehouses/outcome-drivers
     [HttpGet("safehouses/outcome-drivers")]
     public async Task<IActionResult> GetOutcomeDrivers()
