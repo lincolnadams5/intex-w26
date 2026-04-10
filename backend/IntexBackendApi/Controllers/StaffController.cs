@@ -295,7 +295,7 @@ public class StaffController : ControllerBase
 
         var total = await query.CountAsync();
 
-        var items = await query
+        var rows = await query
             .OrderByDescending(r => r.DateOfAdmission)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -308,8 +308,39 @@ public class StaffController : ControllerBase
                 dateOfAdmission      = r.DateOfAdmission,
                 assignedSocialWorker = r.AssignedSocialWorker ?? "—",
                 caseStatus           = r.CaseStatus ?? "—",
+                reintegrationStatus  = r.ReintegrationStatus,
             })
             .ToListAsync();
+
+        // Fetch readiness scores for these residents (degrade gracefully if table absent)
+        var ids = rows.Select(r => r.residentId).ToList();
+        Dictionary<int, ResidentReintegrationScore> scoreMap = new();
+        try
+        {
+            var scores = await _db.ResidentReintegrationScores
+                .Where(sc => ids.Contains(sc.ResidentId))
+                .ToListAsync();
+            scoreMap = scores.ToDictionary(sc => sc.ResidentId);
+        }
+        catch { /* resident_reintegration_scores table not yet available */ }
+
+        var items = rows.Select(r =>
+        {
+            scoreMap.TryGetValue(r.residentId, out var sc);
+            return new
+            {
+                residentId           = r.residentId,
+                internalCode         = r.internalCode,
+                caseCategory         = r.caseCategory,
+                currentRiskLevel     = r.currentRiskLevel,
+                dateOfAdmission      = r.dateOfAdmission,
+                assignedSocialWorker = r.assignedSocialWorker,
+                caseStatus           = r.caseStatus,
+                readinessBand        = sc?.ReadinessBand,
+                readinessFlag        = sc?.ReadinessBand == "Ready for Review"
+                                       && r.reintegrationStatus == "In Progress",
+            };
+        }).ToList();
 
         return Ok(new { total, items });
     }
