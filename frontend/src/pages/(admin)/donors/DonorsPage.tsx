@@ -109,7 +109,7 @@ export function DonorsPage() {
   const totalPages   = Math.ceil(totalDonations / PAGE_SIZE)
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Donor Activity"
         subtitle="Donation trends, type breakdowns, campaign performance, and recent contributions."

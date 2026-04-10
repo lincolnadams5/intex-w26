@@ -31,6 +31,7 @@ import HomeVisits from './pages/(admin)/dashboard/home-visitation/HomeVisits'
 import StaffProcessRecording from './pages/(staff)/process-recording/StaffProcessRecording'
 import StaffHomeVisits from './pages/(staff)/home-visits/StaffHomeVisits'
 import About from './pages/(home)/About'
+import { ToastProvider } from './components/admin/Toast'
 
 function AnalyticsTracker() {
   const location = useLocation()
@@ -48,6 +49,7 @@ function AnalyticsTracker() {
 
 function App() {
   return (
+    <ToastProvider>
     <BrowserRouter>
       <AnalyticsTracker />
       <CookieBanner />
@@ -121,6 +123,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+    </ToastProvider>
   )
 }
 

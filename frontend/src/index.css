@@ -39,6 +39,9 @@
   --color-error-container: #ffdad6;
   --color-on-error: #ffffff;
 
+  /* -- Success (Green for Positive Actions) -- */
+  --color-success: #2e7d32;
+
   /* ── Typography ── */
   --font-display: 'Noto Serif', Georgia, serif;
   --font-body: 'Manrope', system-ui, sans-serif;
@@ -399,6 +402,10 @@
     @apply overflow-x-auto rounded-xl;
     background: var(--color-surface-container-lowest);
     box-shadow: var(--shadow-ambient);
+  }
+
+  .table-container table {
+    min-width: 720px;
   }
 
   /* Badges */

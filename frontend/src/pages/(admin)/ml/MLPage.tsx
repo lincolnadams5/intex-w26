@@ -175,7 +175,7 @@ export function MLPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="ML Insights"
         subtitle="Predictive models for donor retention, reintegration readiness, and social media ROI. Results shown with placeholder data — live endpoints will be connected once ML pipelines are finalized."

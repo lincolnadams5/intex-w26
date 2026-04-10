@@ -177,7 +177,7 @@ export function SafehousePage() {
   if (error)   return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Safehouses"
         subtitle="Occupancy, health, education, and incident trends across all locations."

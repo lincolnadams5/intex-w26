@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useAuth }      from '../../../hooks/useAuth'
-import { PageHeader }   from '../../../components/admin/PageHeader'
-import { SectionCard }  from '../../../components/admin/SectionCard'
-import { LoadingState } from '../../../components/admin/LoadingState'
-import { Pagination }   from '../../../components/admin/Pagination'
+import { useAuth }       from '../../../hooks/useAuth'
+import { PageHeader }    from '../../../components/admin/PageHeader'
+import { SectionCard }   from '../../../components/admin/SectionCard'
+import { LoadingState }  from '../../../components/admin/LoadingState'
+import { Pagination }    from '../../../components/admin/Pagination'
+import { FormWizard, type WizardStep } from '../../../components/admin/FormWizard'
+import { useToast }      from '../../../components/admin/Toast'
 import {
   getStaffResidents,
   getMyHomeVisits,
@@ -35,39 +37,326 @@ function today() {
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  // Parse only the date part to avoid UTC→local shift rolling the day back
   const [year, month, day] = iso.split('T')[0].split('-').map(Number)
   return new Date(year, month - 1, day).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 interface VisitForm {
-  residentId:            string
-  visitDate:             string
-  socialWorker:          string
-  visitType:             string
-  locationVisited:       string
-  familyMembersPresent:  string
-  purpose:               string
-  observations:          string
+  residentId:             string
+  visitDate:              string
+  socialWorker:           string
+  visitType:              string
+  locationVisited:        string
+  familyMembersPresent:   string
+  purpose:                string
+  observations:           string
   familyCooperationLevel: string
-  safetyConcernsNoted:   boolean
-  followUpNeeded:        boolean
-  followUpNotes:         string
-  visitOutcome:          string
+  safetyConcernsNoted:    boolean
+  followUpNeeded:         boolean
+  followUpNotes:          string
+  visitOutcome:           string
+}
+
+// ── Step sub-components ───────────────────────────────────────────────────────
+
+function StepResidentAndVisit({
+  form, setForm, residents,
+}: {
+  form: VisitForm
+  setForm: React.Dispatch<React.SetStateAction<VisitForm>>
+  residents: CaseloadItem[]
+}) {
+  function set<K extends keyof VisitForm>(k: K, v: VisitForm[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="shv-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Resident <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <select
+          id="shv-resident"
+          className="form-input w-full"
+          value={form.residentId}
+          onChange={e => set('residentId', e.target.value)}
+        >
+          <option value="">Select resident…</option>
+          {residents.map(r => (
+            <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="shv-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Visit Date <span className="text-[var(--color-error)]">*</span>
+          </label>
+          <input
+            id="shv-date"
+            type="date"
+            className="form-input w-full"
+            value={form.visitDate}
+            onChange={e => set('visitDate', e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="shv-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Social Worker
+          </label>
+          <input
+            id="shv-sw"
+            className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed"
+            value={form.socialWorker || '—'}
+            readOnly
+            title="Assigned from your account"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="shv-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Visit Type <span className="text-[var(--color-error)]">*</span>
+          </label>
+          <select
+            id="shv-type"
+            className="form-input w-full"
+            value={form.visitType}
+            onChange={e => set('visitType', e.target.value)}
+          >
+            <option value="">Select…</option>
+            {VISIT_TYPES.map(t => <option key={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="shv-location" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Location Visited <span className="text-[var(--color-error)]">*</span>
+          </label>
+          <input
+            id="shv-location"
+            className="form-input w-full"
+            value={form.locationVisited}
+            onChange={e => set('locationVisited', e.target.value)}
+            placeholder="Address or description"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="shv-family" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Family Members Present
+        </label>
+        <input
+          id="shv-family"
+          className="form-input w-full"
+          value={form.familyMembersPresent}
+          onChange={e => set('familyMembersPresent', e.target.value)}
+          placeholder="Names or relationship roles"
+        />
+      </div>
+    </div>
+  )
+}
+
+function StepFamilyAndSafety({
+  form, setForm,
+}: {
+  form: VisitForm
+  setForm: React.Dispatch<React.SetStateAction<VisitForm>>
+}) {
+  function set<K extends keyof VisitForm>(k: K, v: VisitForm[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="shv-purpose" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Purpose of Visit <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <textarea
+          id="shv-purpose"
+          className="form-input w-full"
+          rows={3}
+          value={form.purpose}
+          onChange={e => set('purpose', e.target.value)}
+          placeholder="Why the visit was conducted…"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="shv-observations" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Observations <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <textarea
+          id="shv-observations"
+          className="form-input w-full"
+          rows={4}
+          value={form.observations}
+          onChange={e => set('observations', e.target.value)}
+          placeholder="What was observed during the visit…"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="shv-cooperation" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Family Cooperation Level <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <select
+          id="shv-cooperation"
+          className="form-input w-full"
+          value={form.familyCooperationLevel}
+          onChange={e => set('familyCooperationLevel', e.target.value)}
+        >
+          <option value="">Select…</option>
+          {COOPERATION_LEVELS.map(l => <option key={l}>{l}</option>)}
+        </select>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
+        <input
+          id="shv-safety"
+          type="checkbox"
+          checked={form.safetyConcernsNoted}
+          onChange={e => set('safetyConcernsNoted', e.target.checked)}
+        />
+        <span>Safety Concern Flagged</span>
+        {form.safetyConcernsNoted && <span className="badge badge-error text-xs">⚑ Safety Concern</span>}
+      </label>
+    </div>
+  )
+}
+
+function StepFollowUp({
+  form, setForm,
+}: {
+  form: VisitForm
+  setForm: React.Dispatch<React.SetStateAction<VisitForm>>
+}) {
+  function set<K extends keyof VisitForm>(k: K, v: VisitForm[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="shv-outcome" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Visit Outcome <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <textarea
+          id="shv-outcome"
+          className="form-input w-full"
+          rows={3}
+          value={form.visitOutcome}
+          onChange={e => set('visitOutcome', e.target.value)}
+          placeholder="Summary of what was accomplished…"
+        />
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
+        <input
+          id="shv-followup-needed"
+          type="checkbox"
+          checked={form.followUpNeeded}
+          onChange={e => set('followUpNeeded', e.target.checked)}
+        />
+        Follow-up Needed
+      </label>
+
+      {form.followUpNeeded && (
+        <div>
+          <label htmlFor="shv-followup-notes" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Follow-up Notes <span className="text-[var(--color-error)]">*</span>
+          </label>
+          <textarea
+            id="shv-followup-notes"
+            className="form-input w-full"
+            rows={3}
+            value={form.followUpNotes}
+            onChange={e => set('followUpNotes', e.target.value)}
+            placeholder="Describe the required follow-up…"
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function StepReview({
+  form, residents,
+}: {
+  form: VisitForm
+  residents: CaseloadItem[]
+}) {
+  const residentLabel = residents.find(r => String(r.residentId) === form.residentId)?.internalCode ?? '—'
+  const rows: [string, string][] = [
+    ['Resident',              residentLabel],
+    ['Visit Date',            fmtDate(form.visitDate)],
+    ['Visit Type',            form.visitType || '—'],
+    ['Location Visited',      form.locationVisited || '—'],
+    ['Social Worker',         form.socialWorker || '—'],
+    ['Family Members Present',form.familyMembersPresent || '—'],
+    ['Family Cooperation',    form.familyCooperationLevel || '—'],
+    ['Safety Concerns',       form.safetyConcernsNoted ? 'Yes ⚑' : 'No'],
+    ['Follow-up Needed',      form.followUpNeeded ? 'Yes' : 'No'],
+  ]
+  return (
+    <div className="flex flex-col gap-5">
+      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">{label}</dt>
+            <dd className="text-sm font-medium text-[var(--color-on-surface)]">{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {form.purpose && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Purpose of Visit</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">{form.purpose}</p>
+        </div>
+      )}
+      {form.observations && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Observations</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">{form.observations}</p>
+        </div>
+      )}
+      {form.visitOutcome && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Visit Outcome</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">{form.visitOutcome}</p>
+        </div>
+      )}
+      {form.followUpNeeded && form.followUpNotes && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Follow-up Notes</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">{form.followUpNotes}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Tab icons ─────────────────────────────────────────────────────────────────
+
+const sw = { strokeWidth: 1.5, stroke: 'currentColor', fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+function TabIcon({ children }: { children: React.ReactNode }) {
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" {...sw}>{children}</svg>
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
 
 export default function StaffHomeVisits() {
   const { user }       = useAuth()
+  const toast          = useToast()
   const [searchParams] = useSearchParams()
   const preselectedId  = searchParams.get('residentId')
 
-  // ── Residents for dropdown ────────────────────────────────────────────────
   const [residents, setResidents] = useState<CaseloadItem[]>([])
 
-  // ── Form state ────────────────────────────────────────────────────────────
-  const defaultForm = (): VisitForm => ({
+  const makeInitialForm = (): VisitForm => ({
     residentId:             preselectedId ?? '',
     visitDate:              today(),
     socialWorker:           user?.socialWorkerCode ?? '',
@@ -83,34 +372,22 @@ export default function StaffHomeVisits() {
     visitOutcome:           '',
   })
 
-  const [form, setForm]                         = useState<VisitForm>(defaultForm)
-  const [submitting, setSubmitting]             = useState(false)
-  const [submitError, setSubmitError]           = useState<string | null>(null)
-  const [submitSuccess, setSubmitSuccess]       = useState(false)
+  const [form, setForm]               = useState<VisitForm>(makeInitialForm)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // ── History state ─────────────────────────────────────────────────────────
-  const [visits, setVisits]                     = useState<MyVisitItem[]>([])
-  const [historyTotal, setHistoryTotal]         = useState(0)
-  const [historyPage, setHistoryPage]           = useState(1)
-  const [historyLoading, setHistoryLoading]     = useState(false)
+  const [visits, setVisits]                 = useState<MyVisitItem[]>([])
+  const [historyTotal, setHistoryTotal]     = useState(0)
+  const [historyPage, setHistoryPage]       = useState(1)
+  const [historyLoading, setHistoryLoading] = useState(false)
 
-  // ── Case conferences state ────────────────────────────────────────────────
-  const [upcoming, setUpcoming]                 = useState<CaseConference[]>([])
-  const [history, setHistory]                   = useState<CaseConference[]>([])
+  const [upcoming, setUpcoming] = useState<CaseConference[]>([])
+  const [history, setHistory]   = useState<CaseConference[]>([])
 
-  // ── Active section ────────────────────────────────────────────────────────
   type Section = 'form' | 'history' | 'conferences'
-  const [activeSection, setActiveSection]       = useState<Section>('form')
+  const [activeSection, setActiveSection] = useState<Section>('form')
 
-  // ── Tab icons ─────────────────────────────────────────────────────────────
-  const sw = { strokeWidth: 1.5, stroke: 'currentColor', fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  const TabIcon = ({ children }: { children: React.ReactNode }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" {...sw}>{children}</svg>
-  )
-
-  // ── Page loading ──────────────────────────────────────────────────────────
-  const [pageLoading, setPageLoading]           = useState(true)
-
+  const [pageLoading, setPageLoading] = useState(true)
 
   // ── Effects ───────────────────────────────────────────────────────────────
 
@@ -138,33 +415,16 @@ export default function StaffHomeVisits() {
       .finally(() => setHistoryLoading(false))
   }, [historyPage])
 
-
   // ── Handlers ─────────────────────────────────────────────────────────────
 
-  function setField<K extends keyof VisitForm>(key: K, val: VisitForm[K]) {
-    setForm(f => ({ ...f, [key]: val }))
+  function refetchHistory() {
+    setHistoryPage(1)
+    getMyHomeVisits({ page: 1, pageSize: PAGE_SIZE })
+      .then(({ total, items }) => { setHistoryTotal(total); setVisits(items) })
   }
 
-  function isFormValid() {
-    return (
-      form.residentId &&
-      form.visitDate &&
-      form.visitType &&
-      form.locationVisited &&
-      form.purpose &&
-      form.observations &&
-      form.familyCooperationLevel &&
-      form.visitOutcome &&
-      (!form.followUpNeeded || form.followUpNotes)
-    )
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!isFormValid()) return
-    setSubmitError(null)
-    setSubmitting(true)
-
+  async function handleSubmit() {
+    setIsSubmitting(true)
     try {
       await createHomeVisit({
         residentId:             Number(form.residentId),
@@ -181,40 +441,45 @@ export default function StaffHomeVisits() {
         followUpNotes:          form.followUpNeeded ? form.followUpNotes : undefined,
         visitOutcome:           form.visitOutcome,
       })
-
-      setSubmitSuccess(true)
-      setForm({
-        residentId:             '',
-        visitDate:              today(),
-        socialWorker:           user?.socialWorkerCode ?? '',
-        visitType:              '',
-        locationVisited:        '',
-        familyMembersPresent:   '',
-        purpose:                '',
-        observations:           '',
-        familyCooperationLevel: '',
-        safetyConcernsNoted:    false,
-        followUpNeeded:         false,
-        followUpNotes:          '',
-        visitOutcome:           '',
-      })
-      setHistoryPage(1)
-      getMyHomeVisits({ page: 1, pageSize: PAGE_SIZE })
-        .then(({ total, items }) => { setHistoryTotal(total); setVisits(items) })
-      setTimeout(() => setSubmitSuccess(false), 4000)
+      toast.success('Home visit logged.')
+      setForm({ ...makeInitialForm(), socialWorker: user?.socialWorkerCode ?? '' })
+      setCurrentStep(1)
+      refetchHistory()
     } catch {
-      setSubmitError('Failed to save visit record. Please try again.')
+      toast.error('Failed to save home visit. Please try again.')
     } finally {
-      setSubmitting(false)
+      setIsSubmitting(false)
     }
   }
-
 
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (pageLoading) return <LoadingState />
 
   const totalPages = Math.max(1, Math.ceil(historyTotal / PAGE_SIZE))
+
+  const steps: WizardStep[] = [
+    {
+      label:   'Resident & Visit',
+      isValid: () => !!form.residentId && !!form.visitDate && !!form.visitType && !!form.locationVisited,
+      content: <StepResidentAndVisit form={form} setForm={setForm} residents={residents} />,
+    },
+    {
+      label:   'Family & Safety',
+      isValid: () => !!form.purpose && !!form.observations && !!form.familyCooperationLevel,
+      content: <StepFamilyAndSafety form={form} setForm={setForm} />,
+    },
+    {
+      label:   'Follow-up',
+      isValid: () => !!form.visitOutcome && (!form.followUpNeeded || !!form.followUpNotes),
+      content: <StepFollowUp form={form} setForm={setForm} />,
+    },
+    {
+      label:   'Review & Submit',
+      isValid: () => true,
+      content: <StepReview form={form} residents={residents} />,
+    },
+  ]
 
   const TAB_LABELS: { id: Section; label: string; icon: React.ReactNode }[] = [
     { id: 'form',        label: 'Log a Visit',      icon: <TabIcon><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><path d="M9 12h6M9 16h4" /></TabIcon> },
@@ -223,14 +488,14 @@ export default function StaffHomeVisits() {
   ]
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Home Visitation"
         subtitle="Log visits, review your submission history, and view case conferences."
       />
 
       {/* ── Section tabs ─────────────────────────────────────────────────────── */}
-      <div className="flex border-b border-[var(--color-outline-variant)]">
+      <div className="flex flex-wrap border-b border-[var(--color-outline-variant)]">
         {TAB_LABELS.map(({ id, label, icon }) => (
           <button
             key={id}
@@ -249,226 +514,18 @@ export default function StaffHomeVisits() {
 
 
       {/* ════════════════════════════════════════════════════════════════════
-          SECTION 1 — Log a Visit
+          SECTION 1 — Log a Visit (wizard)
       ════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'form' && (
         <SectionCard title="Log a Visit">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
-            {/* Visit Details */}
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Visit Details</p>
-
-              <div>
-                <label htmlFor="shv-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Resident <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <select
-                  id="shv-resident"
-                  className="form-input w-full"
-                  value={form.residentId}
-                  onChange={e => setField('residentId', e.target.value)}
-                  required
-                >
-                  <option value="">Select resident…</option>
-                  {residents.map(r => (
-                    <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="shv-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Visit Date <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <input
-                    id="shv-date"
-                    type="date"
-                    className="form-input w-full"
-                    value={form.visitDate}
-                    onChange={e => setField('visitDate', e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="shv-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Social Worker
-                  </label>
-                  <input
-                    id="shv-sw"
-                    className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed"
-                    value={form.socialWorker || '—'}
-                    readOnly
-                    title="Assigned from your account"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="shv-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Visit Type <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <select
-                    id="shv-type"
-                    className="form-input w-full"
-                    value={form.visitType}
-                    onChange={e => setField('visitType', e.target.value)}
-                    required
-                  >
-                    <option value="">Select…</option>
-                    {VISIT_TYPES.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="shv-location" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Location Visited <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <input
-                    id="shv-location"
-                    className="form-input w-full"
-                    value={form.locationVisited}
-                    onChange={e => setField('locationVisited', e.target.value)}
-                    placeholder="Address or description"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="shv-family" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Family Members Present</label>
-                <input
-                  id="shv-family"
-                  className="form-input w-full"
-                  value={form.familyMembersPresent}
-                  onChange={e => setField('familyMembersPresent', e.target.value)}
-                  placeholder="Names or relationship roles"
-                />
-              </div>
-            </div>
-
-            {/* Observations */}
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Observations</p>
-
-              <div>
-                <label htmlFor="shv-purpose" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Purpose of Visit <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <textarea
-                  id="shv-purpose"
-                  className="form-input w-full"
-                  rows={3}
-                  value={form.purpose}
-                  onChange={e => setField('purpose', e.target.value)}
-                  placeholder="Why the visit was conducted…"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="shv-observations" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Observations <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <textarea
-                  id="shv-observations"
-                  className="form-input w-full"
-                  rows={4}
-                  value={form.observations}
-                  onChange={e => setField('observations', e.target.value)}
-                  placeholder="What was observed during the visit…"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="shv-cooperation" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Family Cooperation Level <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <select
-                  id="shv-cooperation"
-                  className="form-input w-full"
-                  value={form.familyCooperationLevel}
-                  onChange={e => setField('familyCooperationLevel', e.target.value)}
-                  required
-                >
-                  <option value="">Select…</option>
-                  {COOPERATION_LEVELS.map(l => <option key={l}>{l}</option>)}
-                </select>
-              </div>
-
-              <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
-                <input
-                  id="shv-safety"
-                  type="checkbox"
-                  checked={form.safetyConcernsNoted}
-                  onChange={e => setField('safetyConcernsNoted', e.target.checked)}
-                />
-                <span>Safety Concern Flagged</span>
-                {form.safetyConcernsNoted && <span className="badge badge-error text-xs">⚑ Safety Concern</span>}
-              </label>
-            </div>
-
-            {/* Outcomes */}
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Outcomes</p>
-
-              <div>
-                <label htmlFor="shv-outcome" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Visit Outcome <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <textarea
-                  id="shv-outcome"
-                  className="form-input w-full"
-                  rows={3}
-                  value={form.visitOutcome}
-                  onChange={e => setField('visitOutcome', e.target.value)}
-                  placeholder="Summary of what was accomplished…"
-                  required
-                />
-              </div>
-
-              <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
-                <input
-                  id="shv-followup-needed"
-                  type="checkbox"
-                  checked={form.followUpNeeded}
-                  onChange={e => setField('followUpNeeded', e.target.checked)}
-                />
-                Follow-up Needed
-              </label>
-
-              {form.followUpNeeded && (
-                <div>
-                  <label htmlFor="shv-followup-notes" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Follow-up Notes <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <textarea
-                    id="shv-followup-notes"
-                    className="form-input w-full"
-                    rows={3}
-                    value={form.followUpNotes}
-                    onChange={e => setField('followUpNotes', e.target.value)}
-                    placeholder="Describe the required follow-up…"
-                    required={form.followUpNeeded}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Feedback */}
-            {submitError && <p className="text-sm text-[var(--color-error)]">{submitError}</p>}
-            {submitSuccess && <p className="text-sm text-[var(--color-primary)]">Visit record saved successfully.</p>}
-
-            <button
-              type="submit"
-              disabled={submitting || !isFormValid()}
-              className="btn btn-primary"
-            >
-              {submitting ? 'Saving…' : 'Save Visit Record'}
-            </button>
-          </form>
+          <FormWizard
+            steps={steps}
+            currentStep={currentStep}
+            onStepChange={setCurrentStep}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            submitLabel="Save Visit Record"
+          />
         </SectionCard>
       )}
 
@@ -499,7 +556,6 @@ export default function StaffHomeVisits() {
                       <span className="badge text-xs">{v.visitType}</span>
                     </div>
                   </summary>
-
                   <div className="px-3 pb-3 pt-2 border-t border-[var(--color-outline-variant)] flex flex-col gap-2.5">
                     {v.observations && (
                       <div>
@@ -549,7 +605,6 @@ export default function StaffHomeVisits() {
       ════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'conferences' && (
         <div className="flex flex-col gap-4">
-          {/* Upcoming */}
           <SectionCard title="Upcoming Conferences">
             {upcoming.length === 0 ? (
               <p className="text-sm text-[var(--color-on-surface-variant)]">No upcoming conferences scheduled.</p>
@@ -568,14 +623,10 @@ export default function StaffHomeVisits() {
                   <tbody>
                     {upcoming.map((c, i) => (
                       <tr key={i}>
-                        <td className="text-sm font-medium text-[var(--color-on-surface)] whitespace-nowrap">
-                          {fmtDate(c.conferenceDate)}
-                        </td>
+                        <td className="text-sm font-medium text-[var(--color-on-surface)] whitespace-nowrap">{fmtDate(c.conferenceDate)}</td>
                         <td className="text-xs text-[var(--color-on-surface-variant)]">{c.residentCode}</td>
                         <td><span className="badge text-xs">{c.planCategory}</span></td>
-                        <td className="text-xs text-[var(--color-on-surface-variant)] max-w-[280px]">
-                          {c.planDescription}
-                        </td>
+                        <td className="text-xs text-[var(--color-on-surface-variant)] max-w-[280px]">{c.planDescription}</td>
                         <td><span className="badge badge-success text-xs">Upcoming</span></td>
                       </tr>
                     ))}
@@ -585,7 +636,6 @@ export default function StaffHomeVisits() {
             )}
           </SectionCard>
 
-          {/* History */}
           <SectionCard title="Conference History">
             {history.length === 0 ? (
               <p className="text-sm text-[var(--color-on-surface-variant)]">No past conferences on record.</p>
@@ -604,14 +654,10 @@ export default function StaffHomeVisits() {
                   <tbody>
                     {history.map((c, i) => (
                       <tr key={i}>
-                        <td className="text-sm font-medium text-[var(--color-on-surface)] whitespace-nowrap">
-                          {fmtDate(c.conferenceDate)}
-                        </td>
+                        <td className="text-sm font-medium text-[var(--color-on-surface)] whitespace-nowrap">{fmtDate(c.conferenceDate)}</td>
                         <td className="text-xs text-[var(--color-on-surface-variant)]">{c.residentCode}</td>
                         <td><span className="badge text-xs">{c.planCategory}</span></td>
-                        <td className="text-xs text-[var(--color-on-surface-variant)] max-w-[280px]">
-                          {c.planDescription}
-                        </td>
+                        <td className="text-xs text-[var(--color-on-surface-variant)] max-w-[280px]">{c.planDescription}</td>
                         <td><span className="badge text-xs">Completed</span></td>
                       </tr>
                     ))}

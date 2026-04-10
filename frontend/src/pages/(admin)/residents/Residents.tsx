@@ -389,7 +389,7 @@ export function Residents() {
     })
 
     return (
-      <div className="flex flex-col gap-6 max-w-[1200px]">
+      <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
         <PageHeader
           title="Residents"
           subtitle="Full resident roster with risk levels, reintegration readiness, and alert flags."
@@ -783,7 +783,7 @@ export function Residents() {
   const totalPages = Math.max(1, Math.ceil(caseloadTotal / PAGE_SIZE))
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Residents"
         subtitle="Caseload and resident records for your safehouse."
@@ -1201,7 +1201,7 @@ export function Residents() {
           />
 
           {/* Panel */}
-          <div className="w-[520px] max-w-full bg-[var(--color-surface-container-lowest)] border-l border-[var(--color-outline-variant)] h-full overflow-y-auto flex flex-col shadow-xl">
+          <div className="w-full lg:w-[520px] max-w-full bg-[var(--color-surface-container-lowest)] border-l border-[var(--color-outline-variant)] h-full overflow-y-auto flex flex-col shadow-xl">
             {/* Header */}
             <div className="px-6 py-4 border-b border-[var(--color-outline-variant)] flex items-center justify-between flex-shrink-0">
               <div>
@@ -1244,7 +1244,7 @@ export function Residents() {
               {/* Demographics */}
               <div className="flex flex-col gap-3">
                 <p className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Demographics</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">Sex <span className="text-[var(--color-error)]">*</span></label>
                     <select className="form-input w-full" value={intakeForm.sex} onChange={e => setField('sex', e.target.value)}>
@@ -1279,7 +1279,7 @@ export function Residents() {
                 </div>
                 <div>
                   <label className="text-xs text-[var(--color-on-surface-variant)] mb-2 block">Sub-categories</label>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {SUB_CAT_LABELS.map(({ key, label }) => (
                       <label key={key} className="flex items-center gap-2 text-xs text-[var(--color-on-surface)] cursor-pointer">
                         <input

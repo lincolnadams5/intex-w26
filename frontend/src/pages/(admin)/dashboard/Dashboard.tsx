@@ -70,7 +70,7 @@ export function Dashboard() {
   if (error) return <p className="text-sm text-[var(--color-error)] p-4">{error}</p>
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Overview"
         subtitle="Here's a summary of what's happening across the organization."
