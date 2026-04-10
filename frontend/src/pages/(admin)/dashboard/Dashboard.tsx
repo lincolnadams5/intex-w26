@@ -78,7 +78,7 @@ export function Dashboard() {
 
       {/* ── Metrics ─────────────────────────────────────────────────────────── */}
       <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Metrics</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <StatCard
           label="Active Residents"
           value={(isAdmin ? adminSummary?.activeResidents : staffSummary?.activeResidents) ?? '—'}
@@ -94,10 +94,16 @@ export function Dashboard() {
         {isAdmin ? (
           <>
             <StatCard
+              label="Successfully Reintegrated"
+              value={adminSummary?.successfullyReintegrated ?? '—'}
+              color="#22c55e"
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>}
+            />
+            <StatCard
               label="Active Donors"
               value={adminSummary?.activeDonors ?? '—'}
               color="#3b82f6"
-          icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 21C12 21 3 14.5 3 8.5a4.5 4.5 0 0 1 9-0.5 4.5 4.5 0 0 1 9 .5C21 14.5 12 21 12 21z"/></svg>}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 21C12 21 3 14.5 3 8.5a4.5 4.5 0 0 1 9-0.5 4.5 4.5 0 0 1 9 .5C21 14.5 12 21 12 21z"/></svg>}
             />
             <StatCard
               label="Donations This Month"
