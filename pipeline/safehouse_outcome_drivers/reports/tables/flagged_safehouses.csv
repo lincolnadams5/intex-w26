@@ -1,10 +1,10 @@
 safehouse_id,region,var_A,var_B,var_A_flag,var_B_flag,flagged_for,note
-1,Luzon,0.036887301613726275,171.1426454049051,True,False,health,Residual variance > mean + 2 SD: outcomes harder to explain with observed programme inputs. Recommend case review.
-2,Visayas,0.024226982753516913,188.79026047347173,False,False,—,
-3,Mindanao,0.02237349442225154,285.5822600738726,False,False,—,
-4,Visayas,0.022320756827567872,178.65775581148898,False,False,—,
-5,Luzon,0.014308359366175947,95.95757552446705,False,False,—,
-6,Mindanao,0.018027973455591612,325.07884302445643,False,False,—,
-7,Visayas,0.008897388828986445,444.09014833234465,False,False,—,
+1,Luzon,0.03688730161372629,171.1426454049051,True,False,health,Residual variance > mean + 2 SD: outcomes harder to explain with observed programme inputs. Recommend case review.
+2,Visayas,0.024226982753516913,188.7902604734718,False,False,—,
+3,Mindanao,0.02237349442225153,285.5822600738727,False,False,—,
+4,Visayas,0.022320756827567883,178.65775581148898,False,False,—,
+5,Luzon,0.014308359366175949,95.95757552446705,False,False,—,
+6,Mindanao,0.018027973455591602,325.0788430244565,False,False,—,
+7,Visayas,0.008897388828986445,444.0901483323447,False,False,—,
 8,Visayas,0.01584553730050525,270.43639736887167,False,False,—,
-9,Mindanao,0.010683767887619948,195.3977588027438,False,False,—,
+9,Mindanao,0.010683767887619941,195.3977588027438,False,False,—,
