@@ -14,18 +14,6 @@ import {
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR - i)
 
-// ── Small reusable helpers ────────────────────────────────────────────────────
-
-function Num({ n, decimals = 0 }: { n: number | null | undefined; decimals?: number }) {
-  if (n == null) return <span className="text-[var(--color-on-surface-variant)]">—</span>
-  return <>{decimals > 0 ? n.toFixed(decimals) : n.toLocaleString()}</>
-}
-
-function Pct({ n }: { n: number | null | undefined }) {
-  if (n == null) return <span className="text-[var(--color-on-surface-variant)]">—</span>
-  return <>{n.toFixed(1)}%</>
-}
-
 // ── AAR pillar icon SVGs ──────────────────────────────────────────────────────
 
 const HeartIcon = (
