@@ -12,6 +12,12 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center p-6">
+      <Link
+        to="/"
+        className="absolute top-6 left-6 inline-flex items-center gap-1 text-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]"
+      >
+        ← Back to Home
+      </Link>
       <div className="w-full max-w-md bg-[var(--surface-container-lowest)] rounded-xl p-10 shadow-[var(--shadow-elevated)]">
         <h2 className="text-center mb-8">Create Account</h2>
         <RegisterForm onSuccess={() => navigate('/my-donations')} />
