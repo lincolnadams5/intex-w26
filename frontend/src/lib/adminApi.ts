@@ -21,6 +21,7 @@ export interface DashboardSummary {
   highCriticalRisk: number
   activeDonors: number
   monthlyDonationsTotal: number
+  successfullyReintegrated: number
 }
 
 export interface ActivityItem {
@@ -159,6 +160,9 @@ export interface ResidentRow {
   lengthOfStay: string | null
   readinessBand: string | null
   readinessFlag: boolean
+  caseCategory: string | null
+  dateOfAdmission: string | null
+  assignedSocialWorker: string | null
 }
 
 export interface ResidentDetailRecord {
@@ -416,6 +420,7 @@ export interface ResidentListParams {
   reintegrationType?: string
   hasUnresolvedIncident?: string
   search?: string
+  socialWorker?: string
 }
 
 export const getResidentsList = (params: ResidentListParams = {}) => {
@@ -426,6 +431,7 @@ export const getResidentsList = (params: ResidentListParams = {}) => {
   if (params.reintegrationType)      qs.set('reintegrationType', params.reintegrationType)
   if (params.hasUnresolvedIncident)  qs.set('hasUnresolvedIncident', params.hasUnresolvedIncident)
   if (params.search)                 qs.set('search', params.search)
+  if (params.socialWorker)           qs.set('socialWorker', params.socialWorker)
   return get<ResidentRow[]>(`/api/admin/residents/list?${qs.toString()}`)
 }
 
