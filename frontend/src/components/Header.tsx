@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { ProfileCard } from "./ProfileCard";
+import houseLogo from "../assets/house-logo.png";
 
 export function Header() {
   const { isAuthenticated } = useAuth()
@@ -9,9 +10,11 @@ export function Header() {
     <header className="sticky top-0 z-[100] bg-[#faf9f6]/95 backdrop-blur-md shadow-md">
       <nav className="flex items-center justify-between py-4 px-6 md:px-10 max-w-[1400px] mx-auto">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold font-[family-name:var(--font-display)] text-[#004c5a] tracking-tight">
-          Pag-asa
+        <Link to="/" className="flex items-center gap-2">
+          <img src={houseLogo} alt="Pag-asa Sanctuary logo" className="h-8 w-auto" />
+          <span className="text-md font-semibold text-[#004c5a]">Pag-asa Sanctuary</span>
         </Link>
+
 
         {/* Center Nav */}
         <div className="hidden md:flex items-center gap-10">
