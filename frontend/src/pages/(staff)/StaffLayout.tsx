@@ -16,7 +16,6 @@ const NAV_ICONS: Record<string, ReactNode> = {
   '/staff/residents':         <Icon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Icon>,
   '/staff/process-recording': <Icon><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><path d="M9 12h6M9 16h4" /></Icon>,
   '/staff/home-visits':       <Icon><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" /><path d="M9 21V12h6v9" /><circle cx="12" cy="10" r="1.5" /></Icon>,
-  '/staff/ml':                <Icon><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h2a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1H1a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h2V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" /><circle cx="8.5" cy="14.5" r="1.5" /><circle cx="15.5" cy="14.5" r="1.5" /></Icon>,
 }
 
 const baseNavItems = [
@@ -24,7 +23,6 @@ const baseNavItems = [
   { to: '/staff/residents',         label: 'Residents' },
   { to: '/staff/process-recording', label: 'Process Recording' },
   { to: '/staff/home-visits',       label: 'Home Visitation' },
-  { to: '/staff/ml',                label: 'ML Insights' },
 ]
 
 export function StaffLayout() {
