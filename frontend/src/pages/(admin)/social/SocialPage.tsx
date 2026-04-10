@@ -477,9 +477,20 @@ export function SocialPage() {
                   {mlPaged.map(p => (
                     <tr key={p.postId}>
                       <td>
-                        <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-on-surface)]">
-                          {p.platform}
-                        </span>
+                        {p.postUrl ? (
+                          <a
+                            href={p.postUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] hover:underline"
+                          >
+                            {p.platform}
+                          </a>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-on-surface)]">
+                            {p.platform}
+                          </span>
+                        )}
                       </td>
                       <td><span className="badge text-xs">{p.postType}</span></td>
                       <td className="text-[var(--color-on-surface-variant)] text-xs">{p.contentTopic}</td>
@@ -774,9 +785,20 @@ export function SocialPage() {
               {paged.map(p => (
                 <tr key={p.postId}>
                   <td>
-                    <span className="text-sm font-medium text-[var(--color-on-surface)]">
-                      {p.platform}
-                    </span>
+                    {p.postUrl ? (
+                      <a
+                        href={p.postUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-[var(--color-primary)] hover:underline"
+                      >
+                        {p.platform}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-medium text-[var(--color-on-surface)]">
+                        {p.platform}
+                      </span>
+                    )}
                   </td>
                   <td><span className="badge text-xs">{p.postType}</span></td>
                   <td className="text-[var(--color-on-surface-variant)] text-xs">{p.contentTopic}</td>
