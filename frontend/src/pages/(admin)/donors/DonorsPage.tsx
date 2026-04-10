@@ -120,24 +120,19 @@ export function DonorsPage() {
         <StatCard
           label="Total Donations (All Time)"
           value={summary ? `₱${summary.totalAllTime.toLocaleString()}` : '—'}
-          icon="💰"
           accent
         />
         <StatCard
           label="Total Supporters"
           value={summary?.totalSupporters ?? '—'}
-          icon="👥"
         />
         <StatCard
           label="Active / Inactive"
           value={summary ? `${summary.activeSupporters} / ${summary.inactiveSupporters}` : '—'}
-          icon="📊"
-          subtitle="supporters"
         />
         <StatCard
           label="Recurring Donors"
           value={summary?.recurringDonors ?? '—'}
-          icon="🔁"
         />
       </div>
 
@@ -299,9 +294,9 @@ export function DonorsPage() {
             {impactSummary.map(item => (
               <div
                 key={item.safehouseName}
-                className="rounded-lg border border-[var(--color-outline-variant)] p-4 flex flex-col gap-2"
+                className="rounded-lg border border-[var(--color-outline-variant)] p-4 flex flex-col gap-1"
               >
-                <p className="font-semibold text-sm text-[var(--color-on-surface)]">{item.safehouseName}</p>
+                <p className="font-semibold text-sm text-[var(--color-on-surface)]">{item.safehouseName.replace(/\s*lighthouse\s*/i, '').trim()}</p>
                 <p className="text-xs text-[var(--color-on-surface-variant)]">
                   <span className="font-medium text-[var(--color-on-surface)]">
                     ₱{item.totalFunded.toLocaleString()}

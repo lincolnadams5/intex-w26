@@ -107,21 +107,32 @@ export function SafehousePage() {
   // The overview returns the most recent metric row, which may have null values.
   // Monthly data is sorted ascending, so iterating forward gives us the latest non-null.
 
-  const healthBarData = useMemo(() => {
-    const map = new Map<string, number>()
+  // Latest non-null health/education per safehouse, with the month it was recorded
+  const latestHealthByName = useMemo(() => {
+    const map = new Map<string, { value: number; month: string }>()
     for (const pt of monthly) {
-      if (pt.avgHealthScore != null) map.set(pt.safehouseName, pt.avgHealthScore)
+      if (pt.avgHealthScore != null) map.set(pt.safehouseName, { value: pt.avgHealthScore, month: pt.month })
     }
-    return Array.from(map.entries()).map(([name, value]) => ({ name, value }))
+    return map
   }, [monthly])
 
-  const educationBarData = useMemo(() => {
-    const map = new Map<string, number>()
+  const latestEdByName = useMemo(() => {
+    const map = new Map<string, { value: number; month: string }>()
     for (const pt of monthly) {
-      if (pt.avgEducationProgress != null) map.set(pt.safehouseName, pt.avgEducationProgress)
+      if (pt.avgEducationProgress != null) map.set(pt.safehouseName, { value: pt.avgEducationProgress, month: pt.month })
     }
-    return Array.from(map.entries()).map(([name, value]) => ({ name, value }))
+    return map
   }, [monthly])
+
+  const healthBarData = useMemo(
+    () => Array.from(latestHealthByName.entries()).map(([name, { value }]) => ({ name, value })),
+    [latestHealthByName]
+  )
+
+  const educationBarData = useMemo(
+    () => Array.from(latestEdByName.entries()).map(([name, { value }]) => ({ name, value })),
+    [latestEdByName]
+  )
 
   if (loading) return <LoadingState />
   if (error)   return <p className="text-sm text-[var(--alert)] p-4">{error}</p>
@@ -138,25 +149,21 @@ export function SafehousePage() {
         <StatCard
           label="Active Safehouses"
           value={summary ? `${summary.active} / ${summary.total}` : '—'}
-          icon="🏡"
           subtitle="active / total"
         />
         <StatCard
           label="Total Capacity"
           value={summary?.totalCap ?? '—'}
-          icon="📋"
           subtitle={`${summary?.totalOcc ?? 0} currently occupied`}
         />
         <StatCard
           label="Overall Occupancy"
           value={summary ? `${Math.round((summary.totalOcc / summary.totalCap) * 100)}%` : '—'}
-          icon="📊"
           subtitle={`${summary?.totalOcc} / ${summary?.totalCap} residents`}
         />
         <StatCard
           label="Nearest to Capacity"
           value={summary ? `${summary.nearCapPct}%` : '—'}
-          icon="⚠️"
           subtitle={summary?.nearCap.name ?? '—'}
         />
       </div>
@@ -187,14 +194,20 @@ export function SafehousePage() {
                     <OccupancyBar occupancy={row.occupancy} capacity={row.capacity} />
                   </td>
                   <td className="font-medium">
-                    {row.avgHealthScore != null
-                      ? `${Number(row.avgHealthScore).toFixed(1)} / 10`
-                      : '—'}
+                    {(() => {
+                      const entry = latestHealthByName.get(row.name)
+                      return entry
+                        ? <span title={`Recorded: ${entry.month}`} className="cursor-help border-b border-dashed border-[var(--text)] pb-px">{entry.value.toFixed(1)} / 10</span>
+                        : '—'
+                    })()}
                   </td>
                   <td className="font-medium">
-                    {row.avgEducationProgress != null
-                      ? `${Number(row.avgEducationProgress).toFixed(1)}%`
-                      : '—'}
+                    {(() => {
+                      const entry = latestEdByName.get(row.name)
+                      return entry
+                        ? <span title={`Recorded: ${entry.month}`} className="cursor-help border-b border-dashed border-[var(--text)] pb-px">{entry.value.toFixed(1)}%</span>
+                        : '—'
+                    })()}
                   </td>
                   <td>
                     {row.incidentCount != null && row.incidentCount > 0
@@ -242,7 +255,7 @@ export function SafehousePage() {
           title="Risk Level Breakdown by Safehouse"
           subtitle="Active resident count at each risk level"
         >
-          <div className="h-[32 0px]">
+          <div className="h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={riskByHouse} margin={{ left: 0, right: 8, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

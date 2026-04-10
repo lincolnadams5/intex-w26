@@ -689,6 +689,63 @@ public class AdminController : ControllerBase
         return Ok(new { resident, healthRecords, educationRecord, incidents, interventions, lastVisitation });
     }
 
+    // POST /api/admin/residents/{id}/home-visitation
+    // Log a new home visitation for a resident.
+    [HttpPost("residents/{id}/home-visitation")]
+    public async Task<IActionResult> AddHomeVisitation(int id, [FromBody] HomeVisitationDto dto)
+    {
+        if (!await _db.Residents.AnyAsync(r => r.ResidentId == id)) return NotFound();
+
+        var record = new HomeVisitation
+        {
+            ResidentId           = id,
+            VisitDate            = dto.VisitDate ?? DateTime.UtcNow,
+            SocialWorker         = dto.SocialWorker,
+            VisitType            = dto.VisitType,
+            LocationVisited      = dto.LocationVisited,
+            FamilyMembersPresent = dto.FamilyMembersPresent,
+            Purpose              = dto.Purpose,
+            Observations         = dto.Observations,
+            FamilyCooperationLevel = dto.FamilyCooperationLevel,
+            SafetyConcernsNoted  = dto.SafetyConcernsNoted,
+            FollowUpNeeded       = dto.FollowUpNeeded,
+            FollowUpNotes        = dto.FollowUpNotes,
+            VisitOutcome         = dto.VisitOutcome,
+        };
+        _db.HomeVisitations.Add(record);
+        await _db.SaveChangesAsync();
+        return Ok(new { record.VisitationId });
+    }
+
+    // POST /api/admin/residents/{id}/process-recording
+    // Log a new process recording session for a resident.
+    [HttpPost("residents/{id}/process-recording")]
+    public async Task<IActionResult> AddProcessRecording(int id, [FromBody] ProcessRecordingDto dto)
+    {
+        if (!await _db.Residents.AnyAsync(r => r.ResidentId == id)) return NotFound();
+
+        var record = new ProcessRecording
+        {
+            ResidentId              = id,
+            SessionDate             = dto.SessionDate ?? DateTime.UtcNow,
+            SocialWorker            = dto.SocialWorker,
+            SessionType             = dto.SessionType,
+            SessionDurationMinutes  = dto.SessionDurationMinutes,
+            EmotionalStateObserved  = dto.EmotionalStateObserved,
+            EmotionalStateEnd       = dto.EmotionalStateEnd,
+            SessionNarrative        = dto.SessionNarrative,
+            InterventionsApplied    = dto.InterventionsApplied,
+            FollowUpActions         = dto.FollowUpActions,
+            ProgressNoted           = dto.ProgressNoted,
+            ConcernsFlagged         = dto.ConcernsFlagged,
+            ReferralMade            = dto.ReferralMade,
+            NotesRestricted         = dto.NotesRestricted,
+        };
+        _db.ProcessRecordings.Add(record);
+        await _db.SaveChangesAsync();
+        return Ok(new { record.RecordingId });
+    }
+
     // GET /api/admin/residents/alerts
     // Three alert types: risk escalations, unresolved High incidents, no recent recording.
     [HttpGet("residents/alerts")]
@@ -1139,6 +1196,7 @@ public class AdminController : ControllerBase
             {
                 p.PostId,
                 platform              = p.Platform ?? "—",
+                postUrl               = p.PostUrl,
                 postType              = p.PostType ?? "—",
                 contentTopic          = p.ContentTopic ?? "—",
                 createdAt             = p.CreatedAt,
@@ -1208,6 +1266,7 @@ public class AdminController : ControllerBase
                 {
                     postId           = score.PostId,
                     platform         = post != null ? post.Platform ?? "—" : "—",
+                    postUrl          = post != null ? post.PostUrl : null,
                     postType         = post != null ? post.PostType ?? "—" : "—",
                     contentTopic     = post != null ? post.ContentTopic ?? "—" : "—",
                     createdAt        = post != null ? post.CreatedAt : null,

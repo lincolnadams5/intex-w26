@@ -50,6 +50,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .Property(d => d.DonationId)
             .UseIdentityByDefaultColumn();
 
+        builder.Entity<ProcessRecording>()
+            .Property(p => p.RecordingId)
+            .UseIdentityByDefaultColumn();
+
         builder.Entity<Donation>()
             .Ignore(d => d.CreatedByPartnerId)
             .Ignore(d => d.ReferralPostId);

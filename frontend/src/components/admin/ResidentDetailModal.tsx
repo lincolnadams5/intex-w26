@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { RiskBadge } from './RiskBadge'
-import { getResidentDetail, type ResidentDetail } from '../../lib/adminApi'
+import {
+  getResidentDetail, type ResidentDetail,
+  postHomeVisitation, type HomeVisitationForm,
+  postProcessRecording, type ProcessRecordingForm,
+} from '../../lib/adminApi'
 
 interface Props {
   residentId: number
@@ -77,11 +81,72 @@ function DetailRow({ label, children }: { label: string; children: ReactNode }) 
   )
 }
 
+type ActiveForm = 'visitation' | 'recording' | null
+
+const TODAY = new Date().toISOString().slice(0, 10)
+
+const EMPTY_VISITATION: HomeVisitationForm = {
+  visitDate: TODAY, socialWorker: '', visitType: 'Routine Follow-Up',
+  locationVisited: '', familyMembersPresent: '', purpose: '', observations: '',
+  familyCooperationLevel: 'Cooperative', safetyConcernsNoted: false,
+  followUpNeeded: false, followUpNotes: '', visitOutcome: 'Favorable',
+}
+
+const EMPTY_RECORDING: ProcessRecordingForm = {
+  sessionDate: TODAY, socialWorker: '', sessionType: 'Individual',
+  sessionDurationMinutes: '', emotionalStateObserved: 'Calm', emotionalStateEnd: 'Calm',
+  sessionNarrative: '', interventionsApplied: '', followUpActions: '',
+  progressNoted: false, concernsFlagged: false, referralMade: false, notesRestricted: '',
+}
+
 export function ResidentDetailModal({ residentId, onClose }: Props) {
   const [detail, setDetail] = useState<ResidentDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState<string | null>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const bodyRef    = useRef<HTMLDivElement>(null)
+
+  const [activeForm, setActiveForm] = useState<ActiveForm>(null)
+  const [visitForm, setVisitForm]   = useState<HomeVisitationForm>(EMPTY_VISITATION)
+  const [recForm, setRecForm]       = useState<ProcessRecordingForm>(EMPTY_RECORDING)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitMsg, setSubmitMsg]   = useState<string | null>(null)
+
+  function openForm(form: ActiveForm) {
+    setActiveForm(f => f === form ? null : form)
+    setSubmitMsg(null)
+    setTimeout(() => bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' }), 50)
+  }
+
+  async function submitVisitation(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      await postHomeVisitation(residentId, visitForm)
+      setSubmitMsg('Home visitation saved.')
+      setVisitForm(EMPTY_VISITATION)
+      setActiveForm(null)
+    } catch {
+      setSubmitMsg('Error saving — please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function submitRecording(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      await postProcessRecording(residentId, recForm)
+      setSubmitMsg('Process recording saved.')
+      setRecForm(EMPTY_RECORDING)
+      setActiveForm(null)
+    } catch {
+      setSubmitMsg('Error saving — please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -121,12 +186,12 @@ export function ResidentDetailModal({ residentId, onClose }: Props) {
             className="text-[var(--text)] hover:text-[var(--text-h)] text-xl leading-none"
             aria-label="Close"
           >
-            ✕
+            ×
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-6">
+        <div ref={bodyRef} className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-6">
           {loading && <p className="text-sm text-[var(--text)]">Loading…</p>}
           {error   && <p className="text-sm text-[var(--alert)]">{error}</p>}
 
@@ -327,6 +392,200 @@ export function ResidentDetailModal({ residentId, onClose }: Props) {
                 )}
               </section>
             </>
+          )}
+
+          {/* ── Inline form: Home Visitation ────────────────────────────── */}
+          {activeForm === 'visitation' && (
+            <form onSubmit={submitVisitation} className="border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3 text-xs">
+              <h4 className="text-sm font-semibold text-[var(--text-h)]">New Home Visitation</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Visit Date *</span>
+                  <input type="date" required className="input input-sm" value={visitForm.visitDate}
+                    onChange={e => setVisitForm(f => ({ ...f, visitDate: e.target.value }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Social Worker *</span>
+                  <input type="text" required className="input input-sm" placeholder="Name" value={visitForm.socialWorker}
+                    onChange={e => setVisitForm(f => ({ ...f, socialWorker: e.target.value }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Visit Type</span>
+                  <select className="select select-sm" value={visitForm.visitType}
+                    onChange={e => setVisitForm(f => ({ ...f, visitType: e.target.value }))}>
+                    {['Routine Follow-Up','Initial Visit','Follow-Up','Emergency Visit','Closure Visit'].map(v => <option key={v}>{v}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Location Visited</span>
+                  <input type="text" className="input input-sm" value={visitForm.locationVisited}
+                    onChange={e => setVisitForm(f => ({ ...f, locationVisited: e.target.value }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Family Members Present</span>
+                  <input type="text" className="input input-sm" value={visitForm.familyMembersPresent}
+                    onChange={e => setVisitForm(f => ({ ...f, familyMembersPresent: e.target.value }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Family Cooperation</span>
+                  <select className="select select-sm" value={visitForm.familyCooperationLevel}
+                    onChange={e => setVisitForm(f => ({ ...f, familyCooperationLevel: e.target.value }))}>
+                    {['Cooperative','Partially Cooperative','Uncooperative'].map(v => <option key={v}>{v}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Visit Outcome</span>
+                  <select className="select select-sm" value={visitForm.visitOutcome}
+                    onChange={e => setVisitForm(f => ({ ...f, visitOutcome: e.target.value }))}>
+                    {['Favorable','Neutral','Unfavorable'].map(v => <option key={v}>{v}</option>)}
+                  </select>
+                </label>
+                <div className="flex items-center gap-4 pt-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" className="checkbox checkbox-xs" checked={visitForm.safetyConcernsNoted}
+                      onChange={e => setVisitForm(f => ({ ...f, safetyConcernsNoted: e.target.checked }))} />
+                    <span className="text-[var(--text)]">Safety Concerns</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" className="checkbox checkbox-xs" checked={visitForm.followUpNeeded}
+                      onChange={e => setVisitForm(f => ({ ...f, followUpNeeded: e.target.checked }))} />
+                    <span className="text-[var(--text)]">Follow-up Needed</span>
+                  </label>
+                </div>
+              </div>
+              <label className="flex flex-col gap-1">
+                <span className="text-[var(--text)] font-medium">Purpose</span>
+                <textarea rows={2} className="textarea textarea-sm resize-none" value={visitForm.purpose}
+                  onChange={e => setVisitForm(f => ({ ...f, purpose: e.target.value }))} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[var(--text)] font-medium">Observations</span>
+                <textarea rows={2} className="textarea textarea-sm resize-none" value={visitForm.observations}
+                  onChange={e => setVisitForm(f => ({ ...f, observations: e.target.value }))} />
+              </label>
+              {visitForm.followUpNeeded && (
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Follow-up Notes</span>
+                  <textarea rows={2} className="textarea textarea-sm resize-none" value={visitForm.followUpNotes}
+                    onChange={e => setVisitForm(f => ({ ...f, followUpNotes: e.target.value }))} />
+                </label>
+              )}
+              <div className="flex gap-2 justify-end pt-1">
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => setActiveForm(null)}>Cancel</button>
+                <button type="submit" className="btn btn-sm btn-primary" disabled={submitting}>
+                  {submitting ? 'Saving…' : 'Save Visitation'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── Inline form: Process Recording ──────────────────────────── */}
+          {activeForm === 'recording' && (
+            <form onSubmit={submitRecording} className="border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3 text-xs">
+              <h4 className="text-sm font-semibold text-[var(--text-h)]">New Process Recording</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Session Date *</span>
+                  <input type="date" required className="input input-sm" value={recForm.sessionDate}
+                    onChange={e => setRecForm(f => ({ ...f, sessionDate: e.target.value }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Social Worker *</span>
+                  <input type="text" required className="input input-sm" placeholder="Name" value={recForm.socialWorker}
+                    onChange={e => setRecForm(f => ({ ...f, socialWorker: e.target.value }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Session Type</span>
+                  <select className="select select-sm" value={recForm.sessionType}
+                    onChange={e => setRecForm(f => ({ ...f, sessionType: e.target.value }))}>
+                    {['Individual','Group','Family'].map(v => <option key={v}>{v}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Duration (min)</span>
+                  <input type="number" min={1} className="input input-sm" value={recForm.sessionDurationMinutes}
+                    onChange={e => setRecForm(f => ({ ...f, sessionDurationMinutes: e.target.value === '' ? '' : Number(e.target.value) }))} />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Emotional State (Start)</span>
+                  <select className="select select-sm" value={recForm.emotionalStateObserved}
+                    onChange={e => setRecForm(f => ({ ...f, emotionalStateObserved: e.target.value }))}>
+                    {['Calm','Anxious','Depressed','Agitated','Happy'].map(v => <option key={v}>{v}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[var(--text)] font-medium">Emotional State (End)</span>
+                  <select className="select select-sm" value={recForm.emotionalStateEnd}
+                    onChange={e => setRecForm(f => ({ ...f, emotionalStateEnd: e.target.value }))}>
+                    {['Calm','Anxious','Depressed','Agitated','Happy'].map(v => <option key={v}>{v}</option>)}
+                  </select>
+                </label>
+                <div className="flex items-center gap-4 pt-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" className="checkbox checkbox-xs" checked={recForm.progressNoted}
+                      onChange={e => setRecForm(f => ({ ...f, progressNoted: e.target.checked }))} />
+                    <span className="text-[var(--text)]">Progress Noted</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" className="checkbox checkbox-xs" checked={recForm.concernsFlagged}
+                      onChange={e => setRecForm(f => ({ ...f, concernsFlagged: e.target.checked }))} />
+                    <span className="text-[var(--text)]">Concerns Flagged</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" className="checkbox checkbox-xs" checked={recForm.referralMade}
+                      onChange={e => setRecForm(f => ({ ...f, referralMade: e.target.checked }))} />
+                    <span className="text-[var(--text)]">Referral Made</span>
+                  </label>
+                </div>
+              </div>
+              <label className="flex flex-col gap-1">
+                <span className="text-[var(--text)] font-medium">Session Narrative</span>
+                <textarea rows={3} className="textarea textarea-sm resize-none" value={recForm.sessionNarrative}
+                  onChange={e => setRecForm(f => ({ ...f, sessionNarrative: e.target.value }))} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[var(--text)] font-medium">Interventions Applied</span>
+                <textarea rows={2} className="textarea textarea-sm resize-none" value={recForm.interventionsApplied}
+                  onChange={e => setRecForm(f => ({ ...f, interventionsApplied: e.target.value }))} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[var(--text)] font-medium">Follow-up Actions</span>
+                <textarea rows={2} className="textarea textarea-sm resize-none" value={recForm.followUpActions}
+                  onChange={e => setRecForm(f => ({ ...f, followUpActions: e.target.value }))} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[var(--text)] font-medium">Restricted Notes</span>
+                <textarea rows={2} className="textarea textarea-sm resize-none" value={recForm.notesRestricted}
+                  onChange={e => setRecForm(f => ({ ...f, notesRestricted: e.target.value }))} />
+              </label>
+              <div className="flex gap-2 justify-end pt-1">
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => setActiveForm(null)}>Cancel</button>
+                <button type="submit" className="btn btn-sm btn-primary" disabled={submitting}>
+                  {submitting ? 'Saving…' : 'Save Recording'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {/* Sticky footer — always visible, outside scrollable body */}
+        <div className="flex items-center gap-3 px-6 py-3 border-t border-[var(--border)] bg-[var(--card)] flex-shrink-0">
+          <button
+            className={`btn btn-sm ${activeForm === 'visitation' ? 'btn-secondary' : 'btn-outline'}`}
+            onClick={() => openForm('visitation')}
+          >
+            {activeForm === 'visitation' ? '✕ Home Visitation' : '+ Home Visitation'}
+          </button>
+          <button
+            className={`btn btn-sm ${activeForm === 'recording' ? 'btn-secondary' : 'btn-outline'}`}
+            onClick={() => openForm('recording')}
+          >
+            {activeForm === 'recording' ? '✕ Record Process' : '+ Record Process'}
+          </button>
+          {submitMsg && (
+            <span className={`text-xs ml-auto ${submitMsg.startsWith('Error') ? 'text-[var(--alert)]' : 'text-success'}`}>
+              {submitMsg}
+            </span>
           )}
         </div>
       </div>
