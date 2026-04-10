@@ -404,6 +404,10 @@
     box-shadow: var(--shadow-ambient);
   }
 
+  .table-container table {
+    min-width: 720px;
+  }
+
   /* Badges */
   .badge {
     @apply inline-flex items-center py-1 px-3 text-xs font-semibold;

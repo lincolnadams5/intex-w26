@@ -105,7 +105,7 @@ export function UsersPage() {
   const staffCount  = users.filter(u => u.role === 'Staff').length
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Manage Users"
         subtitle="View all registered accounts, reassign roles, and deactivate/delete users."

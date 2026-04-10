@@ -251,7 +251,7 @@ export function SocialPage() {
   const hasMlData = mlSummary && mlSummary.scoredPostCount > 0
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Social Media Engagement"
         subtitle="Platform performance, content analysis, and ML-predicted donation impact."

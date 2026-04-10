@@ -50,9 +50,17 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-svh bg-[var(--color-surface-container-low)]">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`${sidebarOpen ? 'w-45' : 'w-0 overflow-hidden'} flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col h-screen sticky top-0 transition-all duration-[300ms] ease-in-out`}
+        className={`${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:translate-x-0'} fixed md:sticky top-0 left-0 z-40 h-screen flex-shrink-0 bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex flex-col overflow-hidden transition-all duration-[300ms] ease-in-out`}
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-[var(--color-outline-variant)]">
@@ -120,12 +128,14 @@ export function AdminLayout() {
         </header>
 
         {/* Breadcrumb bar */}
-        <div className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] px-6 py-2">
-          <Breadcrumbs />
+        <div className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] px-4 sm:px-6 py-2">
+          <div className="flex flex-wrap gap-x-2">
+            <Breadcrumbs />
+          </div>
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>
