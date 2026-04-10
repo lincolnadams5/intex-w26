@@ -202,18 +202,20 @@ export function UsersPage() {
                       <button
                         disabled={saving === user.id}
                         onClick={() => handleReactivate(user)}
-                        className="text-xs hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                        className="text-xs text-[var(--color-success)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
                       >
                         {saving === user.id ? 'Saving…' : 'Reactivate'}
                       </button>
                     )}
-                    <button
-                      disabled={saving === user.id}
-                      onClick={() => handleDelete(user)}
-                      className="ml-4 text-xs text-[var(--error)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
-                    >
-                      {saving === user.id ? 'Saving…' : 'Delete'}
-                    </button>
+                    {!user.isActive && (
+                      <button
+                        disabled={saving === user.id}
+                        onClick={() => handleDelete(user)}
+                        className="ml-4 text-xs text-[var(--color-error)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                      >
+                        {saving === user.id ? 'Saving…' : 'Delete'}
+                      </button>
+                    )}                    
                   </td>
                 </tr>
               ))}
