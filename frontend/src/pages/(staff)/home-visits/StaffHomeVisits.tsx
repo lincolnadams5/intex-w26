@@ -260,10 +260,11 @@ export default function StaffHomeVisits() {
               <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Visit Details</p>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="shv-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Resident <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
+                  id="shv-resident"
                   className="form-input w-full"
                   value={form.residentId}
                   onChange={e => setField('residentId', e.target.value)}
@@ -278,10 +279,11 @@ export default function StaffHomeVisits() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="shv-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Visit Date <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <input
+                    id="shv-date"
                     type="date"
                     className="form-input w-full"
                     value={form.visitDate}
@@ -290,10 +292,11 @@ export default function StaffHomeVisits() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="shv-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Social Worker
                   </label>
                   <input
+                    id="shv-sw"
                     className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed"
                     value={form.socialWorker || '—'}
                     readOnly
@@ -304,10 +307,11 @@ export default function StaffHomeVisits() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="shv-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Visit Type <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <select
+                    id="shv-type"
                     className="form-input w-full"
                     value={form.visitType}
                     onChange={e => setField('visitType', e.target.value)}
@@ -318,10 +322,11 @@ export default function StaffHomeVisits() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="shv-location" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Location Visited <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <input
+                    id="shv-location"
                     className="form-input w-full"
                     value={form.locationVisited}
                     onChange={e => setField('locationVisited', e.target.value)}
@@ -332,8 +337,9 @@ export default function StaffHomeVisits() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Family Members Present</label>
+                <label htmlFor="shv-family" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Family Members Present</label>
                 <input
+                  id="shv-family"
                   className="form-input w-full"
                   value={form.familyMembersPresent}
                   onChange={e => setField('familyMembersPresent', e.target.value)}
@@ -347,10 +353,11 @@ export default function StaffHomeVisits() {
               <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Observations</p>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="shv-purpose" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Purpose of Visit <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <textarea
+                  id="shv-purpose"
                   className="form-input w-full"
                   rows={3}
                   value={form.purpose}
@@ -361,10 +368,11 @@ export default function StaffHomeVisits() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="shv-observations" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Observations <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <textarea
+                  id="shv-observations"
                   className="form-input w-full"
                   rows={4}
                   value={form.observations}
@@ -375,10 +383,11 @@ export default function StaffHomeVisits() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="shv-cooperation" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Family Cooperation Level <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
+                  id="shv-cooperation"
                   className="form-input w-full"
                   value={form.familyCooperationLevel}
                   onChange={e => setField('familyCooperationLevel', e.target.value)}
@@ -391,6 +400,7 @@ export default function StaffHomeVisits() {
 
               <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
                 <input
+                  id="shv-safety"
                   type="checkbox"
                   checked={form.safetyConcernsNoted}
                   onChange={e => setField('safetyConcernsNoted', e.target.checked)}
@@ -405,10 +415,11 @@ export default function StaffHomeVisits() {
               <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Outcomes</p>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="shv-outcome" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Visit Outcome <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <textarea
+                  id="shv-outcome"
                   className="form-input w-full"
                   rows={3}
                   value={form.visitOutcome}
@@ -420,6 +431,7 @@ export default function StaffHomeVisits() {
 
               <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
                 <input
+                  id="shv-followup-needed"
                   type="checkbox"
                   checked={form.followUpNeeded}
                   onChange={e => setField('followUpNeeded', e.target.checked)}
@@ -429,10 +441,11 @@ export default function StaffHomeVisits() {
 
               {form.followUpNeeded && (
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="shv-followup-notes" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Follow-up Notes <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <textarea
+                    id="shv-followup-notes"
                     className="form-input w-full"
                     rows={3}
                     value={form.followUpNotes}

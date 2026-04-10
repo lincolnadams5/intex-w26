@@ -206,10 +206,11 @@ export default function StaffProcessRecording() {
               <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Session Details</p>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="spr-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Resident <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
+                  id="spr-resident"
                   className="form-input w-full"
                   value={form.residentId}
                   onChange={e => setField('residentId', e.target.value)}
@@ -224,10 +225,11 @@ export default function StaffProcessRecording() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="spr-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Session Date <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <input
+                    id="spr-date"
                     type="date"
                     className="form-input w-full"
                     value={form.sessionDate}
@@ -236,10 +238,11 @@ export default function StaffProcessRecording() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label htmlFor="spr-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Session Type <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <select
+                    id="spr-type"
                     className="form-input w-full"
                     value={form.sessionType}
                     onChange={e => setField('sessionType', e.target.value)}
@@ -251,10 +254,11 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="spr-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Social Worker
                 </label>
                 <input
+                  id="spr-sw"
                   className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed"
                   value={form.socialWorker || '—'}
                   readOnly
@@ -268,10 +272,11 @@ export default function StaffProcessRecording() {
               <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Session Content</p>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="spr-emotion" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Emotional State Observed <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
+                  id="spr-emotion"
                   className="form-input w-full"
                   value={form.emotionalStateObserved}
                   onChange={e => setField('emotionalStateObserved', e.target.value)}
@@ -283,13 +288,14 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                <label htmlFor="spr-narrative" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Narrative Summary <span className="text-[var(--color-error)]">*</span>
                   <span className={`ml-2 font-normal ${narrativeLen < 50 ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>
                     ({narrativeLen}/50 min)
                   </span>
                 </label>
                 <textarea
+                  id="spr-narrative"
                   className="form-input w-full"
                   rows={5}
                   value={form.narrativeSummary}
@@ -300,8 +306,9 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Interventions Applied</label>
+                <label htmlFor="spr-interventions" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Interventions Applied</label>
                 <textarea
+                  id="spr-interventions"
                   className="form-input w-full"
                   rows={3}
                   value={form.interventionsApplied}
@@ -311,8 +318,9 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Follow-up Actions</label>
+                <label htmlFor="spr-followup" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Follow-up Actions</label>
                 <textarea
+                  id="spr-followup"
                   className="form-input w-full"
                   rows={3}
                   value={form.followUpActions}
@@ -323,6 +331,7 @@ export default function StaffProcessRecording() {
 
               <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
                 <input
+                  id="spr-concerns"
                   type="checkbox"
                   checked={form.concernsFlagged}
                   onChange={e => setField('concernsFlagged', e.target.checked)}
@@ -354,11 +363,12 @@ export default function StaffProcessRecording() {
         <SectionCard title="My Recordings">
           {/* Resident filter */}
           <div className="mb-4">
+            <label htmlFor="spr-filter-resident" className="sr-only">Filter history by resident</label>
             <select
+              id="spr-filter-resident"
               className="form-input w-full"
               value={historyResident ?? ''}
               onChange={e => handleHistoryResidentChange(e.target.value)}
-              aria-label="Filter history by resident"
             >
               <option value="">All residents</option>
               {residents.map(r => (

@@ -278,8 +278,10 @@ public class StaffController : ControllerBase
         var user = await _userManager.GetUserAsync(User);
         var safehouseId = user?.SafehouseId;
 
-        var query = _db.Residents
-            .Where(r => r.SafehouseId == safehouseId);
+        // Admins with no safehouse assignment see all residents; staff see their safehouse only
+        var query = safehouseId.HasValue
+            ? _db.Residents.Where(r => r.SafehouseId == safehouseId)
+            : _db.Residents.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(r => r.InternalCode != null &&
@@ -540,8 +542,10 @@ public class StaffController : ControllerBase
             .Join(_db.Residents,
                 p => p.ResidentId,
                 r => r.ResidentId,
-                (p, r) => new { p, r })
-            .Where(x => x.r.SafehouseId == safehouseId);
+                (p, r) => new { p, r });
+
+        if (safehouseId.HasValue)
+            query = query.Where(x => x.r.SafehouseId == safehouseId);
 
         if (residentId.HasValue)
             query = query.Where(x => x.p.ResidentId == residentId.Value);
@@ -580,7 +584,7 @@ public class StaffController : ControllerBase
         var resident = await _db.Residents.FirstOrDefaultAsync(r => r.ResidentId == dto.ResidentId);
         if (resident is null)
             return NotFound(new { message = "Resident not found." });
-        if (resident.SafehouseId != safehouseId)
+        if (safehouseId.HasValue && resident.SafehouseId != safehouseId)
             return Forbid();
 
         var recording = new ProcessRecording
@@ -627,8 +631,10 @@ public class StaffController : ControllerBase
             .Join(_db.Residents,
                 v => v.ResidentId,
                 r => r.ResidentId,
-                (v, r) => new { v, r })
-            .Where(x => x.r.SafehouseId == safehouseId);
+                (v, r) => new { v, r });
+
+        if (safehouseId.HasValue)
+            query = query.Where(x => x.r.SafehouseId == safehouseId);
 
         var total = await query.CountAsync();
 
@@ -665,7 +671,7 @@ public class StaffController : ControllerBase
         var resident = await _db.Residents.FirstOrDefaultAsync(r => r.ResidentId == dto.ResidentId);
         if (resident is null)
             return NotFound(new { message = "Resident not found." });
-        if (resident.SafehouseId != safehouseId)
+        if (safehouseId.HasValue && resident.SafehouseId != safehouseId)
             return Forbid();
 
         var visit = new HomeVisitation

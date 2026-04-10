@@ -1,277 +1,420 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useAuth }      from '../../../../hooks/useAuth'
+import { PageHeader }   from '../../../../components/admin/PageHeader'
+import { SectionCard }  from '../../../../components/admin/SectionCard'
+import { LoadingState } from '../../../../components/admin/LoadingState'
+import { Pagination }   from '../../../../components/admin/Pagination'
+import {
+  getStaffResidents,
+  getMyHomeVisits,
+  getCaseConferences,
+  createHomeVisit,
+  type CaseloadItem,
+  type MyVisitItem,
+  type CaseConference,
+} from '../../../../lib/staffApi'
 
-type HomeVisit = {
-  id: number;
-  resident: string;
-  visit_date: string;
-  social_worker: string;
-  visit_type:
-    | "Initial Assessment"
-    | "Routine Follow-up"
-    | "Reintegration Assessment"
-    | "Post-Placement Monitoring"
-    | "Emergency";
-  location_visited: string;
-  family_members_present: string;
-  purpose: string;
-  observations: string;
-  family_cooperation_level: string;
-  safety_concerns_noted: string;
-  follow_up_needed: boolean;
-  follow_up_notes: string;
-  visit_outcome: string;
-};
+const PAGE_SIZE = 10
 
-type CaseConference = {
-  id: number;
-  resident: string;
-  case_conference_date: string;
-  plan_description: string;
-  status: "Completed" | "Upcoming";
-};
+const VISIT_TYPES = [
+  'Initial Assessment', 'Routine Follow-up', 'Reintegration Assessment',
+  'Post-Placement Monitoring', 'Emergency',
+]
+const COOPERATION_LEVELS = ['Cooperative', 'Partially Cooperative', 'Uncooperative']
+
+function today() {
+  return new Date().toISOString().split('T')[0]
+}
+
+function fmtDate(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const [year, month, day] = iso.split('T')[0].split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+interface VisitForm {
+  residentId:             string
+  visitDate:              string
+  socialWorker:           string
+  visitType:              string
+  locationVisited:        string
+  familyMembersPresent:   string
+  purpose:                string
+  observations:           string
+  familyCooperationLevel: string
+  safetyConcernsNoted:    boolean
+  followUpNeeded:         boolean
+  followUpNotes:          string
+  visitOutcome:           string
+}
+
+type Section = 'form' | 'history' | 'conferences'
 
 export default function HomeVisits() {
-  const [resident, setResident] = useState("Maria Santos");
+  const { user }       = useAuth()
+  const [searchParams] = useSearchParams()
+  const preselectedId  = searchParams.get('residentId')
 
-  const [visits, setVisits] = useState<HomeVisit[]>([]);
-  const [conferences, setConferences] = useState<CaseConference[]>([]);
+  const [residents, setResidents]             = useState<CaseloadItem[]>([])
+  const [pageLoading, setPageLoading]         = useState(true)
+  const [activeSection, setActiveSection]     = useState<Section>('form')
 
-  const [form, setForm] = useState<Omit<HomeVisit, "id" | "resident">>({
-    visit_date: "",
-    social_worker: "",
-    visit_type: "Initial Assessment",
-    location_visited: "",
-    family_members_present: "",
-    purpose: "",
-    observations: "",
-    family_cooperation_level: "",
-    safety_concerns_noted: "",
-    follow_up_needed: false,
-    follow_up_notes: "",
-    visit_outcome: ""
-  });
+  const defaultForm = (): VisitForm => ({
+    residentId:             preselectedId ?? '',
+    visitDate:              today(),
+    socialWorker:           user?.socialWorkerCode ?? '',
+    visitType:              '',
+    locationVisited:        '',
+    familyMembersPresent:   '',
+    purpose:                '',
+    observations:           '',
+    familyCooperationLevel: '',
+    safetyConcernsNoted:    false,
+    followUpNeeded:         false,
+    followUpNotes:          '',
+    visitOutcome:           '',
+  })
 
-  // Mock Case Conferences
+  const [form, setForm]                       = useState<VisitForm>(defaultForm)
+  const [submitting, setSubmitting]           = useState(false)
+  const [submitError, setSubmitError]         = useState<string | null>(null)
+  const [submitSuccess, setSubmitSuccess]     = useState(false)
+
+  const [visits, setVisits]                   = useState<MyVisitItem[]>([])
+  const [historyTotal, setHistoryTotal]       = useState(0)
+  const [historyPage, setHistoryPage]         = useState(1)
+  const [historyLoading, setHistoryLoading]   = useState(false)
+
+  const [upcoming, setUpcoming]               = useState<CaseConference[]>([])
+  const [history, setHistory]                 = useState<CaseConference[]>([])
+
   useEffect(() => {
-    setConferences([
-      {
-        id: 1,
-        resident: "Maria Santos",
-        case_conference_date: "2026-04-10",
-        plan_description: "Reintegration planning session",
-        status: "Upcoming"
-      },
-      {
-        id: 2,
-        resident: "Maria Santos",
-        case_conference_date: "2026-03-01",
-        plan_description: "Initial intervention planning",
-        status: "Completed"
-      }
-    ]);
-  }, []);
+    Promise.all([
+      getStaffResidents({ pageSize: 200 }),
+      getCaseConferences(),
+    ]).then(([resResult, confResult]) => {
+      setResidents(resResult.items)
+      setUpcoming(confResult.upcoming)
+      setHistory(confResult.history)
+    }).finally(() => setPageLoading(false))
+  }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (user?.socialWorkerCode && !form.socialWorker) {
+      setForm(f => ({ ...f, socialWorker: user.socialWorkerCode! }))
+    }
+  }, [user?.socialWorkerCode])
 
-    const newVisit: HomeVisit = {
-      id: Date.now(),
-      resident,
-      ...form
-    };
+  useEffect(() => {
+    setHistoryLoading(true)
+    getMyHomeVisits({ page: historyPage, pageSize: PAGE_SIZE })
+      .then(({ total, items }) => { setHistoryTotal(total); setVisits(items) })
+      .finally(() => setHistoryLoading(false))
+  }, [historyPage])
 
-    setVisits([newVisit, ...visits]);
+  function setField<K extends keyof VisitForm>(key: K, val: VisitForm[K]) {
+    setForm(f => ({ ...f, [key]: val }))
+  }
 
-    setForm({
-      visit_date: "",
-      social_worker: "",
-      visit_type: "Initial Assessment",
-      location_visited: "",
-      family_members_present: "",
-      purpose: "",
-      observations: "",
-      family_cooperation_level: "",
-      safety_concerns_noted: "",
-      follow_up_needed: false,
-      follow_up_notes: "",
-      visit_outcome: ""
-    });
-  };
+  function isFormValid() {
+    return form.residentId && form.visitDate && form.visitType && form.locationVisited &&
+      form.purpose && form.observations && form.familyCooperationLevel && form.visitOutcome &&
+      (!form.followUpNeeded || form.followUpNotes)
+  }
 
-  const filteredVisits = visits.filter(v => v.resident === resident);
-  const upcoming = conferences.filter(c => c.status === "Upcoming" && c.resident === resident);
-  const history = conferences.filter(c => c.status === "Completed" && c.resident === resident);
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!isFormValid()) return
+    setSubmitError(null)
+    setSubmitting(true)
+    try {
+      await createHomeVisit({
+        residentId:             Number(form.residentId),
+        visitDate:              new Date(form.visitDate).toISOString(),
+        socialWorker:           form.socialWorker,
+        visitType:              form.visitType,
+        locationVisited:        form.locationVisited,
+        familyMembersPresent:   form.familyMembersPresent || undefined,
+        purpose:                form.purpose,
+        observations:           form.observations,
+        familyCooperationLevel: form.familyCooperationLevel,
+        safetyConcernsNoted:    form.safetyConcernsNoted,
+        followUpNeeded:         form.followUpNeeded,
+        followUpNotes:          form.followUpNeeded ? form.followUpNotes : undefined,
+        visitOutcome:           form.visitOutcome,
+      })
+      setSubmitSuccess(true)
+      setForm({ residentId: '', visitDate: today(), socialWorker: user?.socialWorkerCode ?? '',
+        visitType: '', locationVisited: '', familyMembersPresent: '', purpose: '',
+        observations: '', familyCooperationLevel: '', safetyConcernsNoted: false,
+        followUpNeeded: false, followUpNotes: '', visitOutcome: '' })
+      setHistoryPage(1)
+      getMyHomeVisits({ page: 1, pageSize: PAGE_SIZE })
+        .then(({ total, items }) => { setHistoryTotal(total); setVisits(items) })
+      setTimeout(() => setSubmitSuccess(false), 4000)
+    } catch {
+      setSubmitError('Failed to save visit record. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (pageLoading) return <LoadingState />
+
+  const totalPages = Math.max(1, Math.ceil(historyTotal / PAGE_SIZE))
+
+  const sw = { strokeWidth: 1.5, stroke: 'currentColor', fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const TabIcon = ({ children }: { children: React.ReactNode }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" {...sw}>{children}</svg>
+  )
+
+  const TABS: { id: Section; label: string; icon: React.ReactNode }[] = [
+    { id: 'form',        label: 'Log a Visit',      icon: <TabIcon><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><path d="M9 12h6M9 16h4" /></TabIcon> },
+    { id: 'history',     label: 'My Visit History', icon: <TabIcon><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" /><path d="M9 21V12h6v9" /></TabIcon> },
+    { id: 'conferences', label: 'Case Conferences', icon: <TabIcon><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></TabIcon> },
+  ]
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">
-        Home Visitations & Case Conferences
-      </h1>
+    <div className="flex flex-col gap-6 max-w-[1200px]">
+      <PageHeader
+        title="Home Visitation"
+        subtitle="Log visits, review your submission history, and view case conferences."
+      />
 
-      {/* Resident Selector */}
-      <select
-        value={resident}
-        onChange={(e) => setResident(e.target.value)}
-        className="border p-2 mb-6"
-      >
-        <option>Maria Santos</option>
-        <option>Juan Dela Cruz</option>
-      </select>
+      <div className="flex border-b border-[var(--color-outline-variant)]">
+        {TABS.map(({ id, label, icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveSection(id)}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              activeSection === id
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
+            }`}
+          >
+            {icon}
+            {label}
+          </button>
+        ))}
+      </div>
 
-      {/* FORM */}
-      <form onSubmit={handleSubmit} className="bg-gray-100 p-4 rounded space-y-3 mb-6">
+      {/* ── Log a Visit ──────────────────────────────────────────────────────── */}
+      {activeSection === 'form' && (
+        <SectionCard title="Log a Visit">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
-        <input
-          type="date"
-          required
-          value={form.visit_date}
-          onChange={(e) => setForm({ ...form, visit_date: e.target.value })}
-          className="border p-2 w-full"
-        />
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Visit Details</p>
 
-        <input
-          placeholder="Social Worker"
-          value={form.social_worker}
-          onChange={(e) => setForm({ ...form, social_worker: e.target.value })}
-          className="border p-2 w-full"
-        />
+              <div>
+                <label htmlFor="ahv-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  Resident <span className="text-[var(--color-error)]">*</span>
+                </label>
+                <select id="ahv-resident" className="form-input w-full" value={form.residentId} onChange={e => setField('residentId', e.target.value)} required>
+                  <option value="">Select resident…</option>
+                  {residents.map(r => <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>)}
+                </select>
+              </div>
 
-        <select
-          value={form.visit_type}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              visit_type: e.target.value as HomeVisit["visit_type"]
-            })
-          }
-          className="border p-2 w-full"
-        >
-          <option>Initial Assessment</option>
-          <option>Routine Follow-up</option>
-          <option>Reintegration Assessment</option>
-          <option>Post-Placement Monitoring</option>
-          <option>Emergency</option>
-        </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="ahv-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                    Visit Date <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <input id="ahv-date" type="date" className="form-input w-full" value={form.visitDate} onChange={e => setField('visitDate', e.target.value)} required />
+                </div>
+                <div>
+                  <label htmlFor="ahv-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Social Worker</label>
+                  <input id="ahv-sw" className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed" value={form.socialWorker || '—'} readOnly title="Assigned from your account" />
+                </div>
+              </div>
 
-        <input
-          placeholder="Location Visited"
-          value={form.location_visited}
-          onChange={(e) => setForm({ ...form, location_visited: e.target.value })}
-          className="border p-2 w-full"
-        />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="ahv-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                    Visit Type <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <select id="ahv-type" className="form-input w-full" value={form.visitType} onChange={e => setField('visitType', e.target.value)} required>
+                    <option value="">Select…</option>
+                    {VISIT_TYPES.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="ahv-location" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                    Location Visited <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <input id="ahv-location" className="form-input w-full" placeholder="Address or description" value={form.locationVisited} onChange={e => setField('locationVisited', e.target.value)} required />
+                </div>
+              </div>
 
-        <input
-          placeholder="Family Members Present"
-          value={form.family_members_present}
-          onChange={(e) => setForm({ ...form, family_members_present: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <textarea
-          placeholder="Purpose of Visit"
-          value={form.purpose}
-          onChange={(e) => setForm({ ...form, purpose: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <textarea
-          placeholder="Observations"
-          value={form.observations}
-          onChange={(e) => setForm({ ...form, observations: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <input
-          placeholder="Family Cooperation Level"
-          value={form.family_cooperation_level}
-          onChange={(e) => setForm({ ...form, family_cooperation_level: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <textarea
-          placeholder="Safety Concerns Noted"
-          value={form.safety_concerns_noted}
-          onChange={(e) => setForm({ ...form, safety_concerns_noted: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={form.follow_up_needed}
-            onChange={(e) =>
-              setForm({ ...form, follow_up_needed: e.target.checked })
-            }
-          />
-          Follow-up Needed
-        </label>
-
-        <textarea
-          placeholder="Follow-Up Notes"
-          value={form.follow_up_notes}
-          onChange={(e) => setForm({ ...form, follow_up_notes: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <textarea
-          placeholder="Visit Outcome"
-          value={form.visit_outcome}
-          onChange={(e) => setForm({ ...form, visit_outcome: e.target.value })}
-          className="border p-2 w-full"
-        />
-
-        <button className="bg-blue-500 text-white px-4 py-2 rounded">
-          Add Visit
-        </button>
-      </form>
-
-      {/* VISIT HISTORY */}
-      <div className="mb-8">
-        <h2 className="font-semibold mb-3">Visit History</h2>
-
-        {filteredVisits.map(v => (
-          <div key={v.id} className="border p-4 mb-3 rounded shadow-sm">
-            <div className="flex justify-between">
-              <strong>{v.visit_date}</strong>
-              <span>{v.visit_type}</span>
+              <div>
+                <label htmlFor="ahv-family" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Family Members Present</label>
+                <input id="ahv-family" className="form-input w-full" placeholder="Names or relationship roles" value={form.familyMembersPresent} onChange={e => setField('familyMembersPresent', e.target.value)} />
+              </div>
             </div>
 
-            <p><strong>Worker:</strong> {v.social_worker}</p>
-            <p><strong>Location:</strong> {v.location_visited}</p>
-            <p><strong>Family Present:</strong> {v.family_members_present}</p>
-            <p><strong>Purpose:</strong> {v.purpose}</p>
-            <p><strong>Observations:</strong> {v.observations}</p>
-            <p><strong>Cooperation:</strong> {v.family_cooperation_level}</p>
-            <p><strong>Safety:</strong> {v.safety_concerns_noted}</p>
-            <p><strong>Outcome:</strong> {v.visit_outcome}</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Observations</p>
 
-            {v.follow_up_needed && (
-              <p className="text-sm text-orange-600 mt-2">
-                Follow-up: {v.follow_up_notes}
-              </p>
+              <div>
+                <label htmlFor="ahv-purpose" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  Purpose of Visit <span className="text-[var(--color-error)]">*</span>
+                </label>
+                <textarea id="ahv-purpose" className="form-input w-full" rows={3} placeholder="Why the visit was conducted…" value={form.purpose} onChange={e => setField('purpose', e.target.value)} required />
+              </div>
+
+              <div>
+                <label htmlFor="ahv-observations" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  Observations <span className="text-[var(--color-error)]">*</span>
+                </label>
+                <textarea id="ahv-observations" className="form-input w-full" rows={4} placeholder="What was observed during the visit…" value={form.observations} onChange={e => setField('observations', e.target.value)} required />
+              </div>
+
+              <div>
+                <label htmlFor="ahv-cooperation" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  Family Cooperation Level <span className="text-[var(--color-error)]">*</span>
+                </label>
+                <select id="ahv-cooperation" className="form-input w-full" value={form.familyCooperationLevel} onChange={e => setField('familyCooperationLevel', e.target.value)} required>
+                  <option value="">Select…</option>
+                  {COOPERATION_LEVELS.map(l => <option key={l}>{l}</option>)}
+                </select>
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
+                <input id="ahv-safety" type="checkbox" checked={form.safetyConcernsNoted} onChange={e => setField('safetyConcernsNoted', e.target.checked)} />
+                <span>Safety Concern Flagged</span>
+                {form.safetyConcernsNoted && <span className="badge badge-error text-xs">⚑ Safety Concern</span>}
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Outcomes</p>
+
+              <div>
+                <label htmlFor="ahv-outcome" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                  Visit Outcome <span className="text-[var(--color-error)]">*</span>
+                </label>
+                <textarea id="ahv-outcome" className="form-input w-full" rows={3} placeholder="Summary of what was accomplished…" value={form.visitOutcome} onChange={e => setField('visitOutcome', e.target.value)} required />
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
+                <input id="ahv-followup-needed" type="checkbox" checked={form.followUpNeeded} onChange={e => setField('followUpNeeded', e.target.checked)} />
+                Follow-up Needed
+              </label>
+
+              {form.followUpNeeded && (
+                <div>
+                  <label htmlFor="ahv-followup-notes" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+                    Follow-up Notes <span className="text-[var(--color-error)]">*</span>
+                  </label>
+                  <textarea id="ahv-followup-notes" className="form-input w-full" rows={3} placeholder="Describe the required follow-up…" value={form.followUpNotes} onChange={e => setField('followUpNotes', e.target.value)} required={form.followUpNeeded} />
+                </div>
+              )}
+            </div>
+
+            {submitError   && <p className="text-sm text-[var(--color-error)]">{submitError}</p>}
+            {submitSuccess && <p className="text-sm text-[var(--color-primary)]">Visit record saved successfully.</p>}
+
+            <button type="submit" disabled={submitting || !isFormValid()} className="btn btn-primary">
+              {submitting ? 'Saving…' : 'Save Visit Record'}
+            </button>
+          </form>
+        </SectionCard>
+      )}
+
+      {/* ── Visit History ─────────────────────────────────────────────────────── */}
+      {activeSection === 'history' && (
+        <SectionCard title="My Visit History">
+          {historyLoading ? (
+            <p className="text-sm text-[var(--color-on-surface-variant)] text-center py-4">Loading…</p>
+          ) : visits.length === 0 ? (
+            <p className="text-sm text-[var(--color-on-surface-variant)]">No visits submitted yet.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {visits.map(v => (
+                <details key={v.visitationId} className="border border-[var(--color-outline-variant)] rounded-lg">
+                  <summary className="flex flex-col gap-1 px-3 py-2.5 cursor-pointer list-none hover:bg-[var(--color-surface-container-low)] transition-colors rounded-lg">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-xs font-semibold text-[var(--color-on-surface)]">{fmtDate(v.visitDate)}</span>
+                      <div className="flex gap-1.5">
+                        {v.safetyConcernsNoted && <span className="badge badge-error text-xs">⚑ Safety</span>}
+                        {v.followUpNeeded && <span className="badge badge-warning text-xs">Follow-up</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-[var(--color-on-surface-variant)]">{v.residentCode}</span>
+                      <span className="badge text-xs">{v.visitType}</span>
+                    </div>
+                  </summary>
+                  <div className="px-3 pb-3 pt-2 border-t border-[var(--color-outline-variant)] flex flex-col gap-2.5">
+                    {v.observations && <div><p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Observations</p><p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap">{v.observations}</p></div>}
+                    <div><p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Family Cooperation</p><p className="text-sm text-[var(--color-on-surface)]">{v.familyCooperationLevel}</p></div>
+                    {v.visitOutcome && <div><p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Outcome</p><p className="text-sm text-[var(--color-on-surface)]">{v.visitOutcome}</p></div>}
+                    {v.followUpNeeded && v.followUpNotes && <div><p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Follow-up Notes</p><p className="text-sm text-[var(--color-on-surface)]">{v.followUpNotes}</p></div>}
+                  </div>
+                </details>
+              ))}
+            </div>
+          )}
+          {historyTotal > PAGE_SIZE && (
+            <div className="mt-4">
+              <Pagination page={historyPage} totalPages={totalPages} totalItems={historyTotal} pageSize={PAGE_SIZE} onPageChange={p => setHistoryPage(p)} />
+            </div>
+          )}
+        </SectionCard>
+      )}
+
+      {/* ── Case Conferences ─────────────────────────────────────────────────── */}
+      {activeSection === 'conferences' && (
+        <div className="flex flex-col gap-4">
+          <SectionCard title="Upcoming Conferences">
+            {upcoming.length === 0 ? (
+              <p className="text-sm text-[var(--color-on-surface-variant)]">No upcoming conferences scheduled.</p>
+            ) : (
+              <div className="table-container">
+                <table>
+                  <thead><tr><th>Date</th><th>Resident</th><th>Category</th><th>Description</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {upcoming.map((c, i) => (
+                      <tr key={i}>
+                        <td className="text-sm font-medium text-[var(--color-on-surface)] whitespace-nowrap">{fmtDate(c.conferenceDate)}</td>
+                        <td className="text-xs text-[var(--color-on-surface-variant)]">{c.residentCode}</td>
+                        <td><span className="badge text-xs">{c.planCategory}</span></td>
+                        <td className="text-xs text-[var(--color-on-surface-variant)] max-w-[280px]">{c.planDescription}</td>
+                        <td><span className="badge badge-success text-xs">Upcoming</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </div>
-        ))}
-      </div>
+          </SectionCard>
 
-      {/* CASE CONFERENCES */}
-      <div>
-        <h2 className="font-semibold mb-3">Upcoming Conferences</h2>
-        {upcoming.map(c => (
-          <div key={c.id} className="border p-3 mb-2 rounded bg-yellow-50">
-            <p><strong>{c.case_conference_date}</strong></p>
-            <p>{c.plan_description}</p>
-          </div>
-        ))}
-
-        <h2 className="font-semibold mt-6 mb-3">Conference History</h2>
-        {history.map(c => (
-          <div key={c.id} className="border p-3 mb-2 rounded bg-gray-50">
-            <p><strong>{c.case_conference_date}</strong></p>
-            <p>{c.plan_description}</p>
-          </div>
-        ))}
-      </div>
+          <SectionCard title="Conference History">
+            {history.length === 0 ? (
+              <p className="text-sm text-[var(--color-on-surface-variant)]">No past conferences on record.</p>
+            ) : (
+              <div className="table-container">
+                <table>
+                  <thead><tr><th>Date</th><th>Resident</th><th>Category</th><th>Description</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {history.map((c, i) => (
+                      <tr key={i}>
+                        <td className="text-sm font-medium text-[var(--color-on-surface)] whitespace-nowrap">{fmtDate(c.conferenceDate)}</td>
+                        <td className="text-xs text-[var(--color-on-surface-variant)]">{c.residentCode}</td>
+                        <td><span className="badge text-xs">{c.planCategory}</span></td>
+                        <td className="text-xs text-[var(--color-on-surface-variant)] max-w-[280px]">{c.planDescription}</td>
+                        <td><span className="badge text-xs">Completed</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+      )}
     </div>
-  );
+  )
 }
