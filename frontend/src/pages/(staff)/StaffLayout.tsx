@@ -117,7 +117,7 @@ export function StaffLayout() {
         </header>
 
         {/* Breadcrumb bar */}
-        <div className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] px-4 sm:px-6 py-2">
+        <div className="px-4 sm:px-6 py-2">
           <div className="flex flex-wrap gap-x-2">
             <Breadcrumbs />
           </div>

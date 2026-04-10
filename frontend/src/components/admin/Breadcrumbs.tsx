@@ -33,47 +33,18 @@ export function Breadcrumbs() {
   const { pathname } = useLocation()
   const crumbs = parseCrumbs(pathname)
 
-  if (crumbs.length === 0) return null
+  // Only render on sub-routes (2+ segments with known labels)
+  if (crumbs.length < 2) return null
 
-  const parentCrumb = crumbs.length > 1 ? crumbs[crumbs.length - 2] : null
+  const parentCrumb = crumbs[crumbs.length - 2]
 
   return (
-    <div className="flex items-center gap-3">
-      {/* Back button — only shown on sub-routes */}
-      {parentCrumb && (
-        <Link
-          to={parentCrumb.to}
-          className="flex items-center gap-1 text-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] transition-colors no-underline flex-shrink-0"
-          aria-label={`Back to ${parentCrumb.label}`}
-        >
-          ← Back
-        </Link>
-      )}
-
-      {parentCrumb && (
-        <span className="text-[var(--color-outline-variant)] select-none">|</span>
-      )}
-
-      {/* Breadcrumb trail */}
-      <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
-        {crumbs.map((crumb, i) => (
-          <span key={crumb.to} className="flex items-center gap-1">
-            {i > 0 && (
-              <span className="text-[var(--color-on-surface-variant)] opacity-40 mx-0.5">/</span>
-            )}
-            {i < crumbs.length - 1 ? (
-              <Link
-                to={crumb.to}
-                className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors no-underline"
-              >
-                {crumb.label}
-              </Link>
-            ) : (
-              <span className="text-[var(--color-on-surface)] font-medium">{crumb.label}</span>
-            )}
-          </span>
-        ))}
-      </nav>
-    </div>
+    <Link
+      to={parentCrumb.to}
+      className="flex items-center gap-1 text-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] transition-colors no-underline flex-shrink-0"
+      aria-label={`Back to ${parentCrumb.label}`}
+    >
+      ← Back to {parentCrumb.label}
+    </Link>
   )
 }
