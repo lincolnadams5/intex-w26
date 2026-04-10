@@ -10,6 +10,7 @@ import { SafehousePage } from './pages/(admin)/safehouses/SafehousePage'
 import { SocialPage } from './pages/(admin)/social/SocialPage'
 import { MLPage } from './pages/(admin)/ml/MLPage'
 import { UsersPage } from './pages/(admin)/users/UsersPage'
+import { ReportsPage } from './pages/(admin)/reports/ReportsPage'
 import { ImpactDashboard } from './pages/(home)/ImpactDashboard'
 import Donors from './pages/(home)/Donors'
 import PrivacyPolicy from './pages/(home)/PrivacyPolicy'
@@ -100,6 +101,7 @@ function App() {
           <Route path="social" element={<SocialPage />} />
           <Route path="ml" element={<MLPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="reports" element={<ReportsPage />} />
         </Route>
 
         {/* ── Staff portal — requires Staff role ── */}

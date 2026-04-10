@@ -711,3 +711,86 @@ export const deleteUser = (id: string) =>
 
 export const reactivateUser = (id: string) =>
   authFetch(`/api/admin/users/${id}/reactivate`, { method: 'PUT' })
+
+// ── Reports & Analytics — AAR Summary ────────────────────────────────────────
+
+export interface MonthlyCount { month: string; count: number }
+export interface LabelCount   { label: string; count: number }
+
+export interface SafehouseOccupancyRow {
+  safehouseName: string
+  capacity: number
+  activeResidents: number
+  occupancyPct: number
+}
+
+export interface CaringSection {
+  totalBeneficiaries: number
+  newAdmissions: number
+  homeVisitationsConducted: number
+  incidentReportsFiled: number
+  incidentReportsResolved: number
+  trafficked: number
+  physicalAbuse: number
+  sexualAbuse: number
+  osaec: number
+  cicl: number
+  childLabor: number
+  atRisk: number
+  streetChild: number
+  orphaned: number
+  occupancyByHouse: SafehouseOccupancyRow[]
+}
+
+export interface HealingSection {
+  totalSessions: number
+  avgGeneralHealthScore: number | null
+  avgNutritionScore: number | null
+  medicalCheckupsDone: number
+  dentalCheckupsDone: number
+  psychologicalCheckupsDone: number
+  totalHealthRecords: number
+  sessionsByMonth: MonthlyCount[]
+  sessionsByType: LabelCount[]
+}
+
+export interface TeachingSection {
+  residentsEnrolled: number
+  avgAttendanceRate: number | null
+  avgProgressPercent: number | null
+  plansActive: number
+  plansCompleted: number
+  plansByCategory: LabelCount[]
+  successfullyReintegrated: number
+  reintegrationInProgress: number
+  reintegrationByType: LabelCount[]
+}
+
+export interface SafehousePerformanceRow {
+  safehouseId: number
+  safehouseName: string
+  region: string
+  activeResidents: number
+  capacity: number
+  occupancyPct: number
+  sessionsThisYear: number
+  visitsThisYear: number
+  incidentsThisYear: number
+}
+
+export interface AarSummaryDto {
+  reportYear: number
+  filterSafehouseId: number | null
+  caring: CaringSection
+  healing: HealingSection
+  teaching: TeachingSection
+  safehousePerformance: SafehousePerformanceRow[]
+}
+
+export const getAarSummary = (year?: number, safehouseId?: number) => {
+  const params = new URLSearchParams()
+  if (year)         params.set('year', String(year))
+  if (safehouseId)  params.set('safehouseId', String(safehouseId))
+  const qs = params.toString()
+  return get<AarSummaryDto>(`/api/admin/reports/aar-summary${qs ? `?${qs}` : ''}`)
+}
