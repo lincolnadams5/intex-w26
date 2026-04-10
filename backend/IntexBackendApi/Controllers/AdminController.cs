@@ -1309,7 +1309,7 @@ public class AdminController : ControllerBase
         {
             var baseUrl = Environment.GetEnvironmentVariable("SCORE_POST_URL") ?? "http://localhost:8001";
             var client = _httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(10);
+            client.Timeout = TimeSpan.FromSeconds(90);
 
             var json    = body.GetRawText();
             var content = new StringContent(json, Encoding.UTF8, "application/json");
