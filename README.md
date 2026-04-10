@@ -1,5 +1,9 @@
 # Intex W26 — Safehouse Management System
 
+### NOTE FOR GRADERS:
+
+When using the site, if you notice that any processes are slow to load, please allow for ~2 min for the backend services to cold start. On the free tiers they pause when inactive, so it takes a couple minutes for them to start up again. This applies to any login/data processes, and the post prediction estimator on the admin social media page, which runs on a separate web service (FastApi).
+
 A full-stack web application for managing and visualizing data across a network of safehouses that support survivors of human trafficking. The system provides an admin dashboard for internal staff and a public-facing donor impact dashboard.
 
 ## Tech Stack
