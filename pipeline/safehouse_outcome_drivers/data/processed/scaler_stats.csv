@@ -1,0 +1,12 @@
+feature,log1p_applied,fill_zero,mean_before_std,std_before_std
+sessions_per_resident,True,False,0.781948,0.320278
+visits_per_resident,True,False,0.464146,0.241577
+pct_high_risk,False,True,8.780738,16.674242
+pct_trafficked,False,True,19.713115,22.922655
+pct_special_needs,False,True,9.139344,15.185214
+months_since_start,False,False,24.536885,9.897555
+sessions_per_resident_lag1,True,False,0.760343,0.338139
+visits_per_resident_lag1,True,False,0.446491,0.246966
+pct_high_risk_lag1,False,True,8.011807,15.422284
+pct_trafficked_lag1,False,True,19.568696,23.54175
+pct_special_needs_lag1,False,True,8.668033,14.97151

@@ -1318,6 +1318,50 @@ public class AdminController : ControllerBase
             return StatusCode(503, new { error = "Optimizer service timed out." });
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  SAFEHOUSE OUTCOME ANALYSIS  (raw SQL — Supabase-managed tables)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // GET /api/admin/safehouses/outcome-coefficients
+    [HttpGet("safehouses/outcome-coefficients")]
+    public async Task<IActionResult> GetOutcomeCoefficients()
+    {
+        var rows = await _db.Database
+            .SqlQuery<SafehouseOutcomeCoefficientDto>(
+                $"SELECT id, run_date, feature, beta_health, se_health, p_health, sig_health, beta_edu, se_edu, p_edu, sig_edu FROM safehouse_outcome_coefficients ORDER BY feature")
+            .ToListAsync();
+
+        return Ok(rows);
+    }
+
+    // GET /api/admin/safehouses/outcome-drivers
+    [HttpGet("safehouses/outcome-drivers")]
+    public async Task<IActionResult> GetOutcomeDrivers()
+    {
+        var rows = await _db.Database
+            .SqlQuery<SafehouseOutcomeDriverDto>(
+                $"""
+                SELECT
+                    d.id,
+                    d.run_date,
+                    d.safehouse_id,
+                    COALESCE(s.city, s.name, 'Unknown') AS safehouse_name,
+                    d.region,
+                    d.var_health,
+                    d.var_edu,
+                    d.flagged_health,
+                    d.flagged_edu,
+                    d.flagged_for,
+                    d.note
+                FROM safehouse_outcome_drivers d
+                LEFT JOIN safehouses s ON d.safehouse_id = s.safehouse_id
+                ORDER BY d.flagged_health DESC, d.flagged_edu DESC, safehouse_name
+                """)
+            .ToListAsync();
+
+        return Ok(rows);
+    }
 }
 
 
