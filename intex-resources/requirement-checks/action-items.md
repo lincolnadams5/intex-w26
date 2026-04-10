@@ -19,6 +19,14 @@ The submission form requires three login credentials:
 
 ⚠️ Forgot Password ≠ 2FA. These are different features. 2FA is the email code sent *during login* when `TwoFactorEnabled = true` on an account. Make sure account #3 actually has 2FA toggled on. If there's no UI for this yet, it can be enabled manually via the `/api/auth/enable-2fa` endpoint or directly in the database. Make sure credentials for all three are ready to paste into the Qualtrics submission form.
 
+##### EDIT: Fixed
+2FA is implemented into the sign on now, with the option for a user to enable or disable in the profile card with a toggle.
+
+The three accounts to be used are:
+1. **Admin account**: does not have 2FA enabled (email doesn't exist)
+2. **Matt's account**: donor account (has donation history, no 2FA)
+3. **Lincoln's account**: has 2FA enabled
+
 ### IS 455 — Team Decision: Reintegration + Social Media mock data
 The MLPage shows **hardcoded mock predictions** for both Resident Reintegration and Social ROI. The trained models exist (`reintegration_model.joblib`, `recommendation_model.joblib`) but are not connected to the web app. Decide as a team:
 - **Option A:** Connect to real models before Friday (requires adding API endpoints and updating the MLPage)
@@ -41,6 +49,9 @@ The backend has full 2FA support (`enable-2fa`, `disable-2fa`, `verify-2fa` endp
 - Build a simple profile/settings toggle, OR
 - Manually enable 2FA on the test account before submission and explain in the video that a UI is planned
 
+##### EDIT: Fixed
+Dropdown error in the profile card allows user to toggle 2FA on or off. There is also a page to enter the verification code.
+
 ### IS 413 — Reports & Analytics: be explicit in the video
 There is no dedicated Reports & Analytics page. Reporting is fragmented across the DonorsPage, Residents page, Safehouses page, and MLPage. More importantly, the **Annual Accomplishment Report format** (caring/healing/teaching beneficiary counts) is not implemented. In the IS 413 video:
 - Acknowledge this explicitly rather than trying to pass off the existing pages as a full Reports page
@@ -52,6 +63,9 @@ Staff can create residents (`POST /api/staff/residents`) and view them, but ther
 
 ### IS 413 — Footer placeholder links
 Several footer links still use `href: '#'` as placeholders: Our Mission, Impact, About Us, Our Team, Donate, Volunteer, Partner, Careers, Annual Reports, News, FAQ. These are visible to judges during the live presentation demo and look unfinished. Quick fix — either wire to existing pages or remove the broken links.
+
+##### EDIT: Fixed
+These are still placeholders, they're just not important. Leave as placeholders.
 
 ---
 
@@ -65,6 +79,9 @@ The rubric says "only admin user can CUD." Your Staff role can Create records (r
 
 ### IS 414 — Privacy policy storage detail
 The "How do we store your data?" section is brief. Consider adding one sentence mentioning encrypted database storage or cloud hosting (Render/Supabase) to strengthen it before the video.
+
+##### EDIT: Fixed
+Add a little bit more info on this on the privacy policy page.
 
 ### IS 455 — Confirm all master notebooks have sections 5 and 6
 Each submitted notebook must include a **Causal and Relationship Analysis** section (section 5 — correlation vs. causation discussion, defensibility of causal claims) and a **Deployment Notes** section (section 6 — how the model is deployed, where the integration code lives in the repo). These sections are often forgotten or thin. Review each `master_crispdm_pipeline.ipynb` before submission to confirm both are present and substantive.
