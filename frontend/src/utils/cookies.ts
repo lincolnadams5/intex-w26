@@ -8,7 +8,7 @@ export function setCookie(name: string, value: string, days = 365) {
   export function getCookie(name: string): string | null {
     const cookies = document.cookie.split("; ");
     const match = cookies.find(row => row.startsWith(name + "="));
-    return match ? match.split("=")[1] : null;
+    return match ? match.split("=").slice(1).join("=") : null;
   }
   
   // Delete a cookie

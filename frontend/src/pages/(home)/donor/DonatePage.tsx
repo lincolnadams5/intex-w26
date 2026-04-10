@@ -73,7 +73,7 @@ export default function DonatePage() {
       <main className="flex flex-col max-w-lg mx-auto px-6 py-10">
         {!isAuthenticated ? (
           /* ── Step 1: Auth gate ── */
-          <div className="bg-[var(--surface-container-lowest)] rounded-xl p-8 shadow-[var(--shadow-elevated)]">
+          <div className="bg-[var(--color-surface-container-lowest)] rounded-xl p-8 shadow-[var(--shadow-elevated)]">
             <p className="text-center text-[var(--color-on-surface-variant)] mb-6">
               Create an account or log in to continue with your donation.
             </p>
@@ -113,7 +113,7 @@ export default function DonatePage() {
         ) : (
           /* ── Step 2: Donation form ── */
           <form
-            className="bg-[var(--surface-container-lowest)] rounded-xl p-8 shadow-[var(--shadow-elevated)]"
+            className="bg-[var(--color-surface-container-lowest)] rounded-xl p-8 shadow-[var(--shadow-elevated)]"
             onSubmit={handleSubmit}
           >
             {/* Amount Selection */}

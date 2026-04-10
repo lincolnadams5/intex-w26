@@ -20,12 +20,12 @@ export function Landing() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16 w-full">
         <div className="max-w-2xl">
           <h1 className="text-white font-[family-name:var(--font-display)] text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6">
-          Her<br />
-          Future,<br />
-          Restored.
+          Restoring Hope.<br />
+          Building Futures.<br />
           </h1>
           <p className="text-white/85 text-lg md:text-xl leading-[1.7] mb-8 max-w-xl">
-          Pag-asa provides high-security safe homes and holistic rehabilitation for girls who are survivors of trafficking and abuse in the Philippines.
+          Pag-asa (pahg-ah-SAH) is the Tagalog word for "hope."
+          Pag-asa Sanctuary's mission is to provide safe homes and holistic rehabilitation for survivors of trafficking and abuse in the Philippines and throughout the world.
           </p>
           <div className="flex gap-4 flex-wrap">
           <Link
@@ -34,12 +34,12 @@ export function Landing() {
           >
             Empower a Survivor
           </Link>
-          <a
-            href="#mission"
+          <Link
+            to="/about"
             className="px-8 py-3 bg-transparent border-2 border-white/40 text-white font-semibold text-sm uppercase tracking-wider rounded hover:bg-white/10 hover:border-white/60 transition-all"
           >
             Our Mission
-          </a>
+          </Link>
           </div>
         </div>
         </div>
@@ -49,45 +49,6 @@ export function Landing() {
       </section>
 
       <main>
-      {/* Safety First Section - Split layout like screenshot */}
-      <section id="mission" className="py-16 lg:py-24 bg-[var(--color-surface)]">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Left: Text Content */}
-          <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] mb-4">
-            Philippines Restoration Network
-          </p>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6">
-            Safety first.<br />
-            Healing always.
-          </h2>
-          <p className="text-[var(--color-on-surface-variant)] text-lg leading-relaxed">
-            In partnership with trusted in-country organizations, Pag-asa operates a network of confidential safe houses. We provide a protective environment where young survivors of sexual abuse can find the clinical, legal, and emotional support required for long-term reintegration.
-          </p>
-          </div>
-
-          {/* Right: Image with floating card */}
-          <div className="relative">
-          <div className="rounded-2xl overflow-hidden shadow-[var(--shadow-elevated)]">
-            <img
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=500&fit=crop"
-            alt="Safe home interior"
-            className="w-full h-[400px] lg:h-[500px] object-cover"
-            />
-          </div>
-          {/* Floating Gold Card */}
-          <div className="absolute -bottom-8 left-8 lg:-left-8 bg-[var(--color-secondary)] text-[var(--color-on-secondary)] p-6 rounded-lg shadow-[var(--shadow-floating)] max-w-[200px]">
-            <h3 className="text-xl font-bold mb-1 text-[var(--color-on-secondary)]">Safe Homes</h3>
-            <p className="text-xs uppercase tracking-wider opacity-80">
-            24/7 High-Security<br />
-            Protection for Girls
-            </p>
-          </div>
-          </div>
-        </div>
-        </div>
-      </section>
 
       {/* Pathway to Peace - Impact/Services Section */}
       <section className="py-20 lg:py-28 bg-[var(--color-surface-container-low)]">

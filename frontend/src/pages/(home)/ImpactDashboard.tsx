@@ -196,19 +196,19 @@ export function ImpactDashboard() {
                 <span className="block text-3xl font-bold font-[family-name:var(--font-display)]">{formatCurrency(summary.totalMonetaryDonations)}</span>
                 <span className="text-white/80 text-sm">Total Donations Raised</span>
               </div>
-              <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
+              <div className="bg-[var(--color-surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
                 <span className="block text-2xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{formatNumber(summary.totalSupporters)}</span>
                 <span className="text-[var(--color-on-surface-variant)] text-sm">Total Supporters</span>
               </div>
-              <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
+              <div className="bg-[var(--color-surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
                 <span className="block text-2xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{summary.activeSafehouses}</span>
                 <span className="text-[var(--color-on-surface-variant)] text-sm">Active Safe Homes</span>
               </div>
-              <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
+              <div className="bg-[var(--color-surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
                 <span className="block text-2xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{summary.currentOccupancy}</span>
                 <span className="text-[var(--color-on-surface-variant)] text-sm">Residents Served</span>
               </div>
-              <div className="bg-[var(--surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
+              <div className="bg-[var(--color-surface-container-lowest)] rounded-xl p-5 shadow-[var(--shadow-ambient)]">
                 <span className="block text-2xl font-bold text-[var(--color-primary)] font-[family-name:var(--font-display)]">{summary.regionsServed}</span>
                 <span className="text-[var(--color-on-surface-variant)] text-sm">Regions Served</span>
               </div>
@@ -219,7 +219,7 @@ export function ImpactDashboard() {
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Donations by Type */}
-          <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
+          <section className="bg-[var(--color-surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
             <div className="horizon-line"></div>
             <h3 className="mb-1">Donations by Type</h3>
             <p className="text-[var(--color-on-surface-variant)] text-sm mb-6">How supporters contribute to our mission</p>
@@ -241,7 +241,7 @@ export function ImpactDashboard() {
           </section>
 
           {/* Resource Allocation */}
-          <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
+          <section className="bg-[var(--color-surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
             <div className="horizon-line"></div>
             <h3 className="mb-1">Resource Allocation</h3>
             <p className="text-[var(--color-on-surface-variant)] text-sm mb-6">How donations are distributed across programs</p>
@@ -265,7 +265,7 @@ export function ImpactDashboard() {
           </section>
 
           {/* Supporter Community */}
-          <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
+          <section className="bg-[var(--color-surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
             <div className="horizon-line"></div>
             <h3 className="mb-1">Our Supporter Community</h3>
             <p className="text-[var(--color-on-surface-variant)] text-sm mb-6">The diverse ways people support our work</p>
@@ -281,7 +281,7 @@ export function ImpactDashboard() {
           </section>
 
           {/* In-Kind Donations */}
-          <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
+          <section className="bg-[var(--color-surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)]">
             <div className="horizon-line"></div>
             <h3 className="mb-1">In-Kind Donations</h3>
             <p className="text-[var(--color-on-surface-variant)] text-sm mb-6">Physical goods donated to support our residents</p>
@@ -309,7 +309,7 @@ export function ImpactDashboard() {
         </div>
 
         {/* Monthly Trends - Full Width */}
-        <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)] mb-8">
+        <section className="bg-[var(--color-surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)] mb-8">
           <div className="horizon-line"></div>
           <h3 className="mb-1">Monthly Donation Trends</h3>
           <p className="text-[var(--color-on-surface-variant)] text-sm mb-6">Tracking our fundraising progress over time</p>
@@ -334,7 +334,7 @@ export function ImpactDashboard() {
 
         {/* Campaigns */}
         {campaigns.length > 0 && (
-          <section className="bg-[var(--surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)] mb-12">
+          <section className="bg-[var(--color-surface-container-lowest)] rounded-xl p-6 shadow-[var(--shadow-ambient)] mb-12">
             <div className="horizon-line"></div>
             <h3 className="mb-1">Campaign Performance</h3>
             <p className="text-[var(--color-on-surface-variant)] text-sm mb-6">Results from our fundraising campaigns</p>
