@@ -12,13 +12,11 @@ import { LoadingState } from '../../../components/admin/LoadingState'
 import { Pagination }  from '../../../components/admin/Pagination'
 import {
   getResidentsSummary,
-  getSafehousesOverview,
   getRiskBySafehouse,
   getRiskEscalations,
   getRecentRecordings,
   getRecentIncidents,
   type ResidentsSummary,
-  type SafehouseOverviewRow,
   type RiskBySafehouse,
   type RiskEscalation,
   type RecentRecording,
@@ -139,7 +137,6 @@ export function Residents() {
 
   // ── Admin state ─────────────────────────────────────────────────────────────
   const [summary, setSummary]         = useState<ResidentsSummary | null>(null)
-  const [safehouses, setSafehouses]   = useState<SafehouseOverviewRow[]>([])
   const [riskByHouse, setRiskByHouse] = useState<RiskBySafehouse[]>([])
   const [escalations, setEscalations] = useState<RiskEscalation[]>([])
   const [recordings, setRecordings]   = useState<RecentRecording[]>([])
@@ -180,13 +177,12 @@ export function Residents() {
     if (isAdmin) {
       Promise.all([
         getResidentsSummary(),
-        getSafehousesOverview(),
         getRiskBySafehouse(),
         getRiskEscalations(),
         getRecentRecordings(),
         getRecentIncidents(),
-      ]).then(([s, sh, rb, esc, rec, inc]) => {
-        setSummary(s); setSafehouses(sh); setRiskByHouse(rb)
+      ]).then(([s, rb, esc, rec, inc]) => {
+        setSummary(s); setRiskByHouse(rb)
         setEscalations(esc); setRecordings(rec); setIncidents(inc)
       }).catch(() => setError('Failed to load residents data.'))
         .finally(() => setLoading(false))
@@ -463,6 +459,7 @@ export function Residents() {
         </SectionCard>
       </div>
     </div>
+  </div>
   )
 
 
