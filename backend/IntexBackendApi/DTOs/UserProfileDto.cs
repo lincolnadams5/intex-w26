@@ -11,4 +11,5 @@ public class UserProfileDto
     public string? SocialWorkerCode { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsActive { get; set; }
+    public bool TwoFactorEnabled { get; set; }
 }
