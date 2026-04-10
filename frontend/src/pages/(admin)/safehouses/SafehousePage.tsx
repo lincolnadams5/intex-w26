@@ -188,25 +188,21 @@ export function SafehousePage() {
         <StatCard
           label="Active Safehouses"
           value={summary ? `${summary.active} / ${summary.total}` : '—'}
-          icon="🏡"
           subtitle="active / total"
         />
         <StatCard
           label="Total Capacity"
           value={summary?.totalCap ?? '—'}
-          icon="📋"
           subtitle={`${summary?.totalOcc ?? 0} currently occupied`}
         />
         <StatCard
           label="Overall Occupancy"
           value={summary ? `${Math.round((summary.totalOcc / summary.totalCap) * 100)}%` : '—'}
-          icon="📊"
           subtitle={`${summary?.totalOcc} / ${summary?.totalCap} residents`}
         />
         <StatCard
           label="Nearest to Capacity"
           value={summary ? `${summary.nearCapPct}%` : '—'}
-          icon="⚠️"
           subtitle={summary?.nearCap.name ?? '—'}
         />
       </div>
@@ -298,7 +294,7 @@ export function SafehousePage() {
           title="Risk Level Breakdown by Safehouse"
           subtitle="Active resident count at each risk level"
         >
-          <div className="h-[32 0px]">
+          <div className="h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={riskByHouse} margin={{ left: 0, right: 8, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

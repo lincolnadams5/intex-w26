@@ -120,24 +120,19 @@ export function DonorsPage() {
         <StatCard
           label="Total Donations (All Time)"
           value={summary ? `₱${summary.totalAllTime.toLocaleString()}` : '—'}
-          icon="💰"
           accent
         />
         <StatCard
           label="Total Supporters"
           value={summary?.totalSupporters ?? '—'}
-          icon="👥"
         />
         <StatCard
           label="Active / Inactive"
           value={summary ? `${summary.activeSupporters} / ${summary.inactiveSupporters}` : '—'}
-          icon="📊"
-          subtitle="supporters"
         />
         <StatCard
           label="Recurring Donors"
           value={summary?.recurringDonors ?? '—'}
-          icon="🔁"
         />
       </div>
 
@@ -301,11 +296,36 @@ export function DonorsPage() {
                 key={item.safehouseName}
                 className="rounded-lg border border-[var(--color-outline-variant)] p-4 flex flex-col gap-1"
               >
-                <p className="text-xs text-[var(--color-on-surface-variant)] font-medium">{item.safehouseName}</p>
-                <p className="text-2xl font-bold text-[var(--color-on-surface)] leading-tight">
-                  ₱{item.totalFunded.toLocaleString()}
+                <p className="font-semibold text-sm text-[var(--color-on-surface)]">{item.safehouseName.replace(/\s*lighthouse\s*/i, '').trim()}</p>
+                <p className="text-xs text-[var(--color-on-surface-variant)]">
+                  <span className="font-medium text-[var(--color-on-surface)]">
+                    ₱{item.totalFunded.toLocaleString()}
+                  </span>{' '}
+                  allocated this quarter
                 </p>
-                <p className="text-xs text-[var(--color-on-surface-variant)]">allocated this quarter</p>
+                <div className="flex flex-col gap-1 mt-1">
+                  {item.residentsReady > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                      <span className="text-emerald-600 font-medium">{item.residentsReady} Ready for Review</span>
+                    </div>
+                  )}
+                  {item.residentsDeveloping > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                      <span className="text-[var(--color-on-surface-variant)]">{item.residentsDeveloping} Developing</span>
+                    </div>
+                  )}
+                  {item.residentsLow > 0 && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-[var(--color-outline)] flex-shrink-0" />
+                      <span className="text-[var(--color-on-surface-variant)]">{item.residentsLow} Low Readiness</span>
+                    </div>
+                  )}
+                  {item.residentsReady === 0 && item.residentsDeveloping === 0 && item.residentsLow === 0 && (
+                    <span className="text-xs text-[var(--color-on-surface-variant)]">No readiness scores yet</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

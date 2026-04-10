@@ -186,7 +186,7 @@ export function ResidentDetailModal({ residentId, onClose }: Props) {
             className="text-[var(--text)] hover:text-[var(--text-h)] text-xl leading-none"
             aria-label="Close"
           >
-            ✕
+            ×
           </button>
         </div>
 

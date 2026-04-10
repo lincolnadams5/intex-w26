@@ -26,7 +26,9 @@ function today() {
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+  // Parse only the date part to avoid UTC→local shift rolling the day back
+  const [year, month, day] = iso.split('T')[0].split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 interface FormState {
@@ -196,15 +198,15 @@ export default function StaffProcessRecording() {
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 items-start">
 
         {/* ── Submission form ───────────────────────────────────────────────── */}
-        <SectionCard title="New Recording" titleIcon="📋">
+        <SectionCard title="New Recording">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
             {/* Session Details */}
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Session Details</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Session Details</p>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Resident <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
@@ -222,7 +224,7 @@ export default function StaffProcessRecording() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Session Date <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <input
@@ -234,7 +236,7 @@ export default function StaffProcessRecording() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Session Type <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <select
@@ -249,7 +251,7 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Social Worker
                 </label>
                 <input
@@ -262,11 +264,11 @@ export default function StaffProcessRecording() {
             </div>
 
             {/* Session Content */}
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Session Content</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Session Content</p>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Emotional State Observed <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
@@ -281,7 +283,7 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Narrative Summary <span className="text-[var(--color-error)]">*</span>
                   <span className={`ml-2 font-normal ${narrativeLen < 50 ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>
                     ({narrativeLen}/50 min)
@@ -298,7 +300,7 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">Interventions Applied</label>
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Interventions Applied</label>
                 <textarea
                   className="form-input w-full"
                   rows={3}
@@ -309,7 +311,7 @@ export default function StaffProcessRecording() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">Follow-up Actions</label>
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Follow-up Actions</label>
                 <textarea
                   className="form-input w-full"
                   rows={3}
@@ -349,7 +351,7 @@ export default function StaffProcessRecording() {
         </SectionCard>
 
         {/* ── My Submissions history ────────────────────────────────────────── */}
-        <SectionCard title="My Recordings" titleIcon="📂">
+        <SectionCard title="My Recordings">
           {/* Resident filter */}
           <div className="mb-4">
             <select

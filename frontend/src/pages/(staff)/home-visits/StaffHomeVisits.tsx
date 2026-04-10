@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth }      from '../../../hooks/useAuth'
 import { PageHeader }   from '../../../components/admin/PageHeader'
@@ -35,7 +35,9 @@ function today() {
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+  // Parse only the date part to avoid UTC→local shift rolling the day back
+  const [year, month, day] = iso.split('T')[0].split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 interface VisitForm {
@@ -99,6 +101,12 @@ export default function StaffHomeVisits() {
   // ── Active section ────────────────────────────────────────────────────────
   type Section = 'form' | 'history' | 'conferences'
   const [activeSection, setActiveSection]       = useState<Section>('form')
+
+  // ── Tab icons ─────────────────────────────────────────────────────────────
+  const sw = { strokeWidth: 1.5, stroke: 'currentColor', fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const TabIcon = ({ children }: { children: React.ReactNode }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" {...sw}>{children}</svg>
+  )
 
   // ── Page loading ──────────────────────────────────────────────────────────
   const [pageLoading, setPageLoading]           = useState(true)
@@ -208,10 +216,10 @@ export default function StaffHomeVisits() {
 
   const totalPages = Math.max(1, Math.ceil(historyTotal / PAGE_SIZE))
 
-  const TAB_LABELS: { id: Section; label: string; icon: string }[] = [
-    { id: 'form',        label: 'Log a Visit',       icon: '📝' },
-    { id: 'history',     label: 'My Visit History',  icon: '📂' },
-    { id: 'conferences', label: 'Case Conferences',  icon: '📅' },
+  const TAB_LABELS: { id: Section; label: string; icon: React.ReactNode }[] = [
+    { id: 'form',        label: 'Log a Visit',      icon: <TabIcon><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><path d="M9 12h6M9 16h4" /></TabIcon> },
+    { id: 'history',     label: 'My Visit History', icon: <TabIcon><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" /><path d="M9 21V12h6v9" /></TabIcon> },
+    { id: 'conferences', label: 'Case Conferences', icon: <TabIcon><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></TabIcon> },
   ]
 
   return (
@@ -233,7 +241,7 @@ export default function StaffHomeVisits() {
                 : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
             }`}
           >
-            <span>{icon}</span>
+            {icon}
             {label}
           </button>
         ))}
@@ -244,15 +252,15 @@ export default function StaffHomeVisits() {
           SECTION 1 — Log a Visit
       ════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'form' && (
-        <SectionCard title="Log a Visit" titleIcon="📝">
+        <SectionCard title="Log a Visit">
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
             {/* Visit Details */}
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Visit Details</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Visit Details</p>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Resident <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
@@ -270,7 +278,7 @@ export default function StaffHomeVisits() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Visit Date <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <input
@@ -282,7 +290,7 @@ export default function StaffHomeVisits() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Social Worker
                   </label>
                   <input
@@ -296,7 +304,7 @@ export default function StaffHomeVisits() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Visit Type <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <select
@@ -310,7 +318,7 @@ export default function StaffHomeVisits() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Location Visited <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <input
@@ -324,7 +332,7 @@ export default function StaffHomeVisits() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">Family Members Present</label>
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Family Members Present</label>
                 <input
                   className="form-input w-full"
                   value={form.familyMembersPresent}
@@ -335,11 +343,11 @@ export default function StaffHomeVisits() {
             </div>
 
             {/* Observations */}
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Observations</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Observations</p>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Purpose of Visit <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <textarea
@@ -353,7 +361,7 @@ export default function StaffHomeVisits() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Observations <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <textarea
@@ -367,7 +375,7 @@ export default function StaffHomeVisits() {
               </div>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Family Cooperation Level <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <select
@@ -393,11 +401,11 @@ export default function StaffHomeVisits() {
             </div>
 
             {/* Outcomes */}
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Outcomes</p>
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Outcomes</p>
 
               <div>
-                <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                   Visit Outcome <span className="text-[var(--color-error)]">*</span>
                 </label>
                 <textarea
@@ -421,7 +429,7 @@ export default function StaffHomeVisits() {
 
               {form.followUpNeeded && (
                 <div>
-                  <label className="text-xs text-[var(--color-on-surface-variant)] mb-1 block">
+                  <label className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
                     Follow-up Notes <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <textarea
@@ -456,7 +464,7 @@ export default function StaffHomeVisits() {
           SECTION 2 — My Visit History
       ════════════════════════════════════════════════════════════════════ */}
       {activeSection === 'history' && (
-        <SectionCard title="My Visit History" titleIcon="📂">
+        <SectionCard title="My Visit History">
           {historyLoading ? (
             <p className="text-sm text-[var(--color-on-surface-variant)] text-center py-4">Loading…</p>
           ) : visits.length === 0 ? (
@@ -529,7 +537,7 @@ export default function StaffHomeVisits() {
       {activeSection === 'conferences' && (
         <div className="flex flex-col gap-4">
           {/* Upcoming */}
-          <SectionCard title="Upcoming Conferences" titleIcon="📅">
+          <SectionCard title="Upcoming Conferences">
             {upcoming.length === 0 ? (
               <p className="text-sm text-[var(--color-on-surface-variant)]">No upcoming conferences scheduled.</p>
             ) : (
@@ -565,7 +573,7 @@ export default function StaffHomeVisits() {
           </SectionCard>
 
           {/* History */}
-          <SectionCard title="Conference History" titleIcon="🗓️">
+          <SectionCard title="Conference History">
             {history.length === 0 ? (
               <p className="text-sm text-[var(--color-on-surface-variant)]">No past conferences on record.</p>
             ) : (

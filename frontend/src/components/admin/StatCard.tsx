@@ -1,27 +1,34 @@
 // Reusable stat card for the top row of every admin page.
 
+import type { ReactNode } from 'react'
+
 interface StatCardProps {
   label: string
   value: string | number
-  icon?: string
+  icon?: ReactNode
   trend?: { direction: 'up' | 'down'; text: string }
   /** Renders the value in accent color instead of heading color. */
   accent?: boolean
   /** Optional small line below the value, before the trend. */
   subtitle?: string
+  /** Colored top border + value text tint. */
+  color?: string
 }
 
-export function StatCard({ label, value, icon, trend, accent, subtitle }: StatCardProps) {
+export function StatCard({ label, value, icon, trend, accent, subtitle, color }: StatCardProps) {
   return (
     <div className="card">
       {/* Label + icon row */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2 mb-3">
+        {icon && <span style={color ? { color } : undefined}>{icon}</span>}
         <span className="text-sm font-medium text-[var(--color-on-surface-variant)]">{label}</span>
-        {icon && <span className="text-xl opacity-70">{icon}</span>}
       </div>
 
       {/* Primary value */}
-      <div className={`text-3xl font-bold mb-1 ${accent ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface)]'}`}>
+      <div
+        className={`text-3xl font-bold mb-1 ${accent ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface)]'}`}
+        style={color ? { color } : undefined}
+      >
         {value}
       </div>
 

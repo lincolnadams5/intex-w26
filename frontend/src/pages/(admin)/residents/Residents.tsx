@@ -334,10 +334,10 @@ export function Residents() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'}          icon="🏠" />
-        <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}         icon="⚠️" subtitle="active residents" />
-        <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'}  icon="🌱" />
-        <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'}  icon="🚨" />
+        <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'} />
+        <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}        subtitle="active residents" />
+        <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'} />
+        <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'} />
       </div>
 
       {/* ── Risk level legend ───────────────────────────────────────────────── */}
@@ -369,7 +369,7 @@ export function Residents() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Risk Escalations Since Intake" subtitle="Residents whose current risk level is higher than their initial assessment" accentBorder titleIcon="⚠️">
+      <SectionCard title="Risk Escalations Since Intake" subtitle="Residents whose current risk level is higher than their initial assessment" accentBorder>
         {escalations.length === 0 ? (
           <p className="text-sm text-[var(--color-on-surface-variant)]">No risk escalations found.</p>
         ) : (
@@ -479,19 +479,19 @@ export function Residents() {
 
       {/* ── Stat cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Active Residents"          value={staffSummary?.stats.activeResidents ?? '—'}         icon="🏠" />
-        <StatCard label="High / Critical Risk"      value={staffSummary?.stats.highCriticalRisk ?? '—'}        icon="⚠️" subtitle="active residents" />
-        <StatCard label="Reintegration In Progress" value={staffSummary?.stats.reintegrationInProgress ?? '—'} icon="🌱" />
-        <StatCard label="Upcoming Conferences"      value={staffSummary?.stats.upcomingConferences ?? '—'}     icon="📅" />
+        <StatCard label="Active Residents"          value={staffSummary?.stats.activeResidents ?? '—'}         color="#0d9488" icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>} />
+        <StatCard label="High / Critical Risk"      value={staffSummary?.stats.highCriticalRisk ?? '—'}        color="#f97316" subtitle="active residents" icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>} />
+        <StatCard label="Reintegration In Progress" value={staffSummary?.stats.reintegrationInProgress ?? '—'} color="#3b82f6" icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>} />
+        <StatCard label="Upcoming Conferences"      value={staffSummary?.stats.upcomingConferences ?? '—'}     color="#c9a227" icon={<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>} />
       </div>
 
       {/* ── My Safehouse card ────────────────────────────────────────────────── */}
       {sh && (
-        <SectionCard title="My Safehouse" titleIcon="🏠">
+        <SectionCard title="My Safehouse">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Name</p>
-              <p className="text-sm font-semibold text-[var(--color-on-surface)]">{sh.name}</p>
+              <p className="text-sm font-semibold text-[var(--color-on-surface)]">{sh.name.replace(/\s*lighthouse\s*/i, '').trim()}</p>
             </div>
             <div>
               <p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Region</p>

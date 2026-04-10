@@ -113,10 +113,10 @@ export function UsersPage() {
 
       {/* ── Stat cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Total Users"   value={users.length}        icon="👥" />
-        <StatCard label="Active"        value={activeCount}         icon="✅" />
-        <StatCard label="Admins"        value={adminCount}          icon="🔑" accent />
-        <StatCard label="Staff"         value={staffCount}          icon="🏠" />
+        <StatCard label="Total Users"   value={users.length} />
+        <StatCard label="Active"        value={activeCount} />
+        <StatCard label="Admins"        value={adminCount}  accent />
+        <StatCard label="Staff"         value={staffCount} />
       </div>
 
       {/* ── Users table ─────────────────────────────────────────────────────── */}
