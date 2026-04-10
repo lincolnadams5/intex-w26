@@ -333,6 +333,7 @@ public class AuthController : ControllerBase
             SupporterId      = user.SupporterId,
             SocialWorkerCode = user.SocialWorkerCode,
             CreatedAt        = user.CreatedAt,
+            TwoFactorEnabled = user.TwoFactorEnabled,
         };
     }
 }

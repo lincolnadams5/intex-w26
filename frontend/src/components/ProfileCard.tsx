@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 export function ProfileCard() {
-  const { user, role, logout } = useAuth()
+  const { user, role, logout, toggle2FA } = useAuth()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -93,6 +93,21 @@ export function ProfileCard() {
               View Portal
             </Link>
           )}
+
+          <button
+            onClick={async () => { await toggle2FA(); setOpen(false) }}
+            className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-[#3f484b] cursor-pointer hover:bg-[#f5f5f0] transition-colors"
+          >
+            <span>Two-Factor Auth</span>
+            {/* Toggle pill */}
+            <span
+              className={`relative inline-flex w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${user.twoFactorEnabled ? 'bg-[#2e7d32]' : 'bg-[#d1d5db]'}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${user.twoFactorEnabled ? 'translate-x-4' : 'translate-x-0'}`}
+              />
+            </span>
+          </button>
 
           <div className="my-1 border-t border-[#e5e7e9]" />
 

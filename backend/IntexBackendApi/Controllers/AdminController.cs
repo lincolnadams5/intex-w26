@@ -157,12 +157,16 @@ public class AdminController : ControllerBase
             .Where(d => d.DonationType == "Monetary" && d.DonationDate >= startOfMonth)
             .SumAsync(d => d.Amount ?? 0);
 
+        var successfullyReintegrated = await _db.Residents
+            .CountAsync(r => r.ReintegrationStatus == "Completed");
+
         return Ok(new
         {
             activeResidents,
             highCriticalRisk,
             activeDonors,
             monthlyDonationsTotal = monthlyDonations,
+            successfullyReintegrated,
         });
     }
 
@@ -540,7 +544,8 @@ public class AdminController : ControllerBase
         [FromQuery] string? riskLevel = null,
         [FromQuery] string? reintegrationType = null,
         [FromQuery] string? hasUnresolvedIncident = null,
-        [FromQuery] string? search = null)
+        [FromQuery] string? search = null,
+        [FromQuery] string? socialWorker = null)
     {
         // Step 1 — fetch matching residents joined with their safehouse name
         var rows = await _db.Residents
@@ -549,6 +554,7 @@ public class AdminController : ControllerBase
                      && (riskLevel == null || r.CurrentRiskLevel == riskLevel)
                      && (reintegrationType == null || r.ReintegrationType == reintegrationType)
                      && (search == null || (r.InternalCode != null && r.InternalCode.Contains(search)))
+                     && (socialWorker == null || (r.AssignedSocialWorker != null && r.AssignedSocialWorker.Contains(socialWorker)))
                      && r.SafehouseId.HasValue)
             .Join(_db.Safehouses,
                 r => r.SafehouseId!.Value,
@@ -563,6 +569,9 @@ public class AdminController : ControllerBase
                     r.ReintegrationType,
                     r.ReintegrationStatus,
                     r.LengthOfStay,
+                    caseCategory         = r.CaseCategory,
+                    dateOfAdmission      = r.DateOfAdmission,
+                    assignedSocialWorker = r.AssignedSocialWorker,
                 })
             .OrderBy(r => r.internalCode)
             .ToListAsync();
@@ -639,6 +648,9 @@ public class AdminController : ControllerBase
                 readinessBand           = sc?.ReadinessBand,
                 readinessFlag           = sc?.ReadinessBand == "Ready for Review"
                                           && r.ReintegrationStatus == "In Progress",
+                caseCategory            = r.caseCategory,
+                dateOfAdmission         = r.dateOfAdmission,
+                assignedSocialWorker    = r.assignedSocialWorker,
             };
         });
 

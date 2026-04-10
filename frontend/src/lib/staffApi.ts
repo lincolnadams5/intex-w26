@@ -94,6 +94,8 @@ export interface CaseloadItem {
   dateOfAdmission: string | null
   assignedSocialWorker: string
   caseStatus: string
+  readinessBand?: string | null
+  readinessFlag?: boolean
 }
 
 export interface ResidentSubCategories {

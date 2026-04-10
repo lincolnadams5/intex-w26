@@ -11,6 +11,7 @@ export interface UserProfile {
   supporterId: number | null
   socialWorkerCode: string | null
   createdAt: string
+  twoFactorEnabled: boolean
 }
 
 export interface LoginResult {
@@ -37,6 +38,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<LoginResult>
   register: (email: string, fullName: string, password: string, confirmPassword: string) => Promise<RegisterResult>
   logout: () => void
+  toggle2FA: () => Promise<{ ok: boolean; error?: string }>
 }
 
 // ── Context ──────────────────────────────────────────────────────────────────
@@ -48,6 +50,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => ({ ok: false }),
   register: async () => ({ ok: false }),
   logout: () => {},
+  toggle2FA: async () => ({ ok: false }),
 })
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -152,6 +155,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }
 
+  const toggle2FA = async (): Promise<{ ok: boolean; error?: string }> => {
+    if (!user || !token) return { ok: false, error: 'Not logged in' }
+    const endpoint = user.twoFactorEnabled ? '/api/auth/disable-2fa' : '/api/auth/enable-2fa'
+    try {
+      const res = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return { ok: false, error: 'Request failed' }
+      setUser(prev => prev ? { ...prev, twoFactorEnabled: !prev.twoFactorEnabled } : prev)
+      return { ok: true }
+    } catch {
+      return { ok: false, error: 'Network error' }
+    }
+  }
+
   const role = user?.role ?? null
 
   return (
@@ -162,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isStaff: role === 'Staff',
       isDonor: role === 'Donor',
       isLoading,
-      login, register, logout,
+      login, register, logout, toggle2FA,
     }}>
       {children}
     </AuthContext.Provider>

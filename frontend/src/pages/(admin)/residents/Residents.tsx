@@ -1,8 +1,5 @@
 import { useEffect, useState, Fragment } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts'
 import { useAuth }     from '../../../hooks/useAuth'
 import { StatCard }    from '../../../components/admin/StatCard'
 import { PageHeader }  from '../../../components/admin/PageHeader'
@@ -12,15 +9,13 @@ import { LoadingState } from '../../../components/admin/LoadingState'
 import { Pagination }  from '../../../components/admin/Pagination'
 import {
   getResidentsSummary,
-  getRiskBySafehouse,
-  getRiskEscalations,
-  getRecentRecordings,
-  getRecentIncidents,
+  getSafehousesOverview,
+  getResidentsList,
+  getResidentDetail,
   type ResidentsSummary,
-  type RiskBySafehouse,
-  type RiskEscalation,
-  type RecentRecording,
-  type RecentIncident,
+  type SafehouseOverviewRow,
+  type ResidentRow,
+  type ResidentDetail as AdminResidentDetail,
 } from '../../../lib/adminApi'
 import {
   getStaffResidentsSummary,
@@ -42,7 +37,8 @@ import {
 
 const PAGE_SIZE = 10
 
-type DetailTab = 'profile' | 'recordings' | 'visits' | 'intervention'
+type DetailTab      = 'profile' | 'recordings' | 'visits' | 'intervention'
+type AdminDetailTab = 'profile' | 'incidents' | 'interventions' | 'visit'
 
 interface IntakeForm {
   internalCode: string
@@ -85,17 +81,10 @@ const defaultIntakeForm: IntakeForm = {
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
-const RISK_COLORS = { Low: '#22c55e', Medium: '#d97706', High: '#f97316', Critical: '#DB7981' }
-
-function severityClass(s: string) {
-  if (s === 'High')     return 'badge-error'
-  if (s === 'Moderate') return 'badge-warning'
-  return 'badge'
-}
-
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+  const [year, month, day] = iso.split('T')[0].split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function OccupancyBar({ occupancy, capacity }: { occupancy: number; capacity: number }) {
@@ -111,6 +100,13 @@ function OccupancyBar({ occupancy, capacity }: { occupancy: number; capacity: nu
       <span className="text-xs text-[var(--color-on-surface-variant)]">{pct}%</span>
     </div>
   )
+}
+
+function ReadinessBadge({ band }: { band: string | null | undefined }) {
+  if (!band) return <span className="badge text-xs">—</span>
+  if (band === 'Ready for Review') return <span className="badge badge-success text-xs">{band}</span>
+  if (band === 'Developing')       return <span className="badge badge-warning text-xs">{band}</span>
+  return <span className="badge text-xs">{band}</span>
 }
 
 // ── Sub-categories label map ──────────────────────────────────────────────────
@@ -136,36 +132,50 @@ export function Residents() {
   const { isAdmin } = useAuth()
 
   // ── Admin state ─────────────────────────────────────────────────────────────
-  const [summary, setSummary]         = useState<ResidentsSummary | null>(null)
-  const [riskByHouse, setRiskByHouse] = useState<RiskBySafehouse[]>([])
-  const [escalations, setEscalations] = useState<RiskEscalation[]>([])
-  const [recordings, setRecordings]   = useState<RecentRecording[]>([])
-  const [incidents, setIncidents]     = useState<RecentIncident[]>([])
+  const [summary, setSummary]                   = useState<ResidentsSummary | null>(null)
+  const [adminSafehouses, setAdminSafehouses]   = useState<SafehouseOverviewRow[]>([])
+  const [adminResidents, setAdminResidents]     = useState<ResidentRow[]>([])
+  const [adminLoading, setAdminLoading]         = useState(false)
+  // Server-side filters
+  const [adminSafehouseFilter, setAdminSafehouseFilter] = useState<number | undefined>(undefined)
+  const [adminSearchInput, setAdminSearchInput] = useState('')
+  const [adminSearchQuery, setAdminSearchQuery] = useState('')
+  const [adminRiskFilter, setAdminRiskFilter]   = useState('')
+  const [adminStatusFilter, setAdminStatusFilter] = useState('Active')
+  // Client-side filters
+  const [adminSWInput, setAdminSWInput]         = useState('')
+  const [adminSWQuery, setAdminSWQuery]         = useState('')
+  const [adminReadinessFilter, setAdminReadinessFilter] = useState('')
+  // Admin detail
+  const [adminExpandedId, setAdminExpandedId]   = useState<number | null>(null)
+  const [adminActiveTab, setAdminActiveTab]     = useState<AdminDetailTab>('profile')
+  const [adminDetail, setAdminDetail]           = useState<AdminResidentDetail | null>(null)
+  const [adminDetailLoading, setAdminDetailLoading] = useState(false)
 
   // ── Staff state ─────────────────────────────────────────────────────────────
-  const [staffSummary, setStaffSummary]       = useState<StaffResidentsSummary | null>(null)
-  const [caseload, setCaseload]               = useState<CaseloadItem[]>([])
-  const [caseloadTotal, setCaseloadTotal]     = useState(0)
-  const [caseloadPage, setCaseloadPage]       = useState(1)
-  const [caseloadLoading, setCaseloadLoading] = useState(false)
-  const [searchInput, setSearchInput]         = useState('')
-  const [searchQuery, setSearchQuery]         = useState('')
-  const [riskFilter, setRiskFilter]           = useState('')
-  const [statusFilter, setStatusFilter]       = useState('')
-  // Detail panel
-  const [expandedId, setExpandedId]               = useState<number | null>(null)
-  const [activeTab, setActiveTab]                 = useState<DetailTab>('profile')
-  const [detail, setDetail]                       = useState<ResidentDetail | null>(null)
-  const [detailRecordings, setDetailRecordings]   = useState<ResidentRecordingItem[] | null>(null)
-  const [detailVisits, setDetailVisits]           = useState<ResidentVisitItem[] | null>(null)
-  const [detailPlan, setDetailPlan]               = useState<InterventionPlanItem[] | null>(null)
-  const [detailLoading, setDetailLoading]         = useState(false)
+  const [staffSummary, setStaffSummary]         = useState<StaffResidentsSummary | null>(null)
+  const [caseload, setCaseload]                 = useState<CaseloadItem[]>([])
+  const [caseloadTotal, setCaseloadTotal]       = useState(0)
+  const [caseloadPage, setCaseloadPage]         = useState(1)
+  const [caseloadLoading, setCaseloadLoading]   = useState(false)
+  const [searchInput, setSearchInput]           = useState('')
+  const [searchQuery, setSearchQuery]           = useState('')
+  const [riskFilter, setRiskFilter]             = useState('')
+  const [statusFilter, setStatusFilter]         = useState('')
+  // Staff detail panel
+  const [expandedId, setExpandedId]             = useState<number | null>(null)
+  const [activeTab, setActiveTab]               = useState<DetailTab>('profile')
+  const [detail, setDetail]                     = useState<ResidentDetail | null>(null)
+  const [detailRecordings, setDetailRecordings] = useState<ResidentRecordingItem[] | null>(null)
+  const [detailVisits, setDetailVisits]         = useState<ResidentVisitItem[] | null>(null)
+  const [detailPlan, setDetailPlan]             = useState<InterventionPlanItem[] | null>(null)
+  const [detailLoading, setDetailLoading]       = useState(false)
   // Intake form
-  const [showIntakeForm, setShowIntakeForm]   = useState(false)
-  const [intakeForm, setIntakeForm]           = useState<IntakeForm>(defaultIntakeForm)
+  const [showIntakeForm, setShowIntakeForm]     = useState(false)
+  const [intakeForm, setIntakeForm]             = useState<IntakeForm>(defaultIntakeForm)
   const [intakeSubmitting, setIntakeSubmitting] = useState(false)
-  const [intakeError, setIntakeError]         = useState<string | null>(null)
-  const [intakeSuccess, setIntakeSuccess]     = useState(false)
+  const [intakeError, setIntakeError]           = useState<string | null>(null)
+  const [intakeSuccess, setIntakeSuccess]       = useState(false)
 
   // ── Shared ──────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(true)
@@ -177,13 +187,10 @@ export function Residents() {
     if (isAdmin) {
       Promise.all([
         getResidentsSummary(),
-        getRiskBySafehouse(),
-        getRiskEscalations(),
-        getRecentRecordings(),
-        getRecentIncidents(),
-      ]).then(([s, rb, esc, rec, inc]) => {
-        setSummary(s); setRiskByHouse(rb)
-        setEscalations(esc); setRecordings(rec); setIncidents(inc)
+        getSafehousesOverview(),
+      ]).then(([s, sh]) => {
+        setSummary(s)
+        setAdminSafehouses(sh)
       }).catch(() => setError('Failed to load residents data.'))
         .finally(() => setLoading(false))
     } else {
@@ -194,7 +201,33 @@ export function Residents() {
     }
   }, [isAdmin])
 
-  // ── Effect: caseload (staff only, re-runs on filter/page change) ─────────────
+  // ── Effect: admin caseload ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isAdmin) return
+    setAdminLoading(true)
+    setAdminExpandedId(null)
+    getResidentsList({
+      status:      adminStatusFilter || undefined,
+      safehouseId: adminSafehouseFilter,
+      riskLevel:   adminRiskFilter || undefined,
+      search:      adminSearchQuery || undefined,
+    }).then(rows => setAdminResidents(rows))
+      .catch(() => {/* silently fail */})
+      .finally(() => setAdminLoading(false))
+  }, [isAdmin, adminSafehouseFilter, adminSearchQuery, adminRiskFilter, adminStatusFilter])
+
+  // ── Effect: admin detail ─────────────────────────────────────────────────────
+  useEffect(() => {
+    if (adminExpandedId === null) return
+    setAdminDetailLoading(true)
+    setAdminDetail(null)
+    getResidentDetail(adminExpandedId)
+      .then(d => setAdminDetail(d))
+      .catch(() => {/* detail error shown in panel */})
+      .finally(() => setAdminDetailLoading(false))
+  }, [adminExpandedId])
+
+  // ── Effect: staff caseload ───────────────────────────────────────────────────
   useEffect(() => {
     if (isAdmin) return
     setCaseloadLoading(true)
@@ -206,11 +239,11 @@ export function Residents() {
     }).then(({ total, items }) => {
       setCaseloadTotal(total)
       setCaseload(items)
-    }).catch(() => {/* silently fail — main error already set if needed */})
+    }).catch(() => {/* silently fail */})
       .finally(() => setCaseloadLoading(false))
   }, [isAdmin, caseloadPage, searchQuery, riskFilter, statusFilter])
 
-  // ── Effect: detail panel data (loads all tabs upfront when a row is expanded) ─
+  // ── Effect: staff detail panel ───────────────────────────────────────────────
   useEffect(() => {
     if (expandedId === null) return
     setDetailLoading(true)
@@ -227,7 +260,29 @@ export function Residents() {
   }, [expandedId])
 
 
-  // ── Handlers ─────────────────────────────────────────────────────────────────
+  // ── Admin handlers ───────────────────────────────────────────────────────────
+
+  function handleAdminRowClick(id: number) {
+    if (adminExpandedId === id) {
+      setAdminExpandedId(null)
+    } else {
+      setAdminExpandedId(id)
+      setAdminActiveTab('profile')
+    }
+  }
+
+  function handleAdminSearchSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setAdminSearchQuery(adminSearchInput)
+    setAdminExpandedId(null)
+  }
+
+  function handleAdminSWSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setAdminSWQuery(adminSWInput)
+  }
+
+  // ── Staff handlers ───────────────────────────────────────────────────────────
 
   function handleRowClick(id: number) {
     if (expandedId === id) {
@@ -303,7 +358,6 @@ export function Residents() {
       })
       setIntakeSuccess(true)
       setIntakeForm(defaultIntakeForm)
-      // Refresh caseload to show the new Pending resident
       getStaffResidents({ page: 1, pageSize: PAGE_SIZE }).then(({ total, items }) => {
         setCaseloadTotal(total); setCaseload(items); setCaseloadPage(1)
       })
@@ -323,134 +377,393 @@ export function Residents() {
 
 
   // ════════════════════════════════════════════════════════════════════════════
-  //  ADMIN VIEW (unchanged)
+  //  ADMIN VIEW
   // ════════════════════════════════════════════════════════════════════════════
 
-  if (isAdmin) return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
-      <PageHeader
-        title="Residents"
-        subtitle="Full resident roster with risk levels, reintegration readiness, and alert flags."
-      />
+  if (isAdmin) {
+    // Client-side derived list: filter adminResidents by social worker search + readiness band
+    const displayedAdminResidents = adminResidents.filter(r => {
+      const swMatch = !adminSWQuery || (r.assignedSocialWorker ?? '').toLowerCase().includes(adminSWQuery.toLowerCase())
+      const rbMatch = !adminReadinessFilter || r.readinessBand === adminReadinessFilter
+      return swMatch && rbMatch
+    })
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'} />
-        <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}        subtitle="active residents" />
-        <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'} />
-        <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'} />
-      </div>
+    return (
+      <div className="flex flex-col gap-6 max-w-[1200px]">
+        <PageHeader
+          title="Residents"
+          subtitle="Full resident roster with risk levels, reintegration readiness, and alert flags."
+        />
 
-      {/* ── Risk level legend ───────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 rounded-lg bg-[var(--color-surface-container-low)] text-xs text-[var(--color-on-surface-variant)]">
-        <span className="font-semibold text-[var(--color-on-surface)] mr-1">Risk Level:</span>
-        <span className="flex items-center gap-1.5"><RiskBadge level="Low" /> Child is stable, in a safe environment, case progressing well.</span>
-        <span className="flex items-center gap-1.5"><RiskBadge level="Medium" /> Some concerns present — family instability, unresolved trauma, or slow progress.</span>
-        <span className="flex items-center gap-1.5"><RiskBadge level="High" /> Active safety concerns, unresolved incidents, or significant barriers to reintegration.</span>
-        <span className="flex items-center gap-1.5"><RiskBadge level="Critical" /> Immediate danger or acute crisis requiring urgent intervention.</span>
-      </div>
-
-      {/* ── Main content: residents table + alerts side panel ───────────────── */}
-      <div className="flex gap-4 items-start">
-
-      <SectionCard title="Risk Level Breakdown by Safehouse" subtitle="Active resident count at each risk level per safehouse">
-        <div className="h-[240px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={riskByHouse} margin={{ left: 0, right: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" />
-              <XAxis dataKey="safehouseName" tick={{ fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip /><Legend />
-              <Bar dataKey="Low"      stackId="a" fill={RISK_COLORS.Low} />
-              <Bar dataKey="Medium"   stackId="a" fill={RISK_COLORS.Medium} />
-              <Bar dataKey="High"     stackId="a" fill={RISK_COLORS.High} />
-              <Bar dataKey="Critical" stackId="a" fill={RISK_COLORS.Critical} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <StatCard label="Active Residents"          value={summary?.activeResidents ?? '—'} />
+          <StatCard label="High / Critical Risk"      value={summary?.highCriticalRisk ?? '—'}        subtitle="active residents" />
+          <StatCard label="Reintegration In Progress" value={summary?.reintegrationInProgress ?? '—'} />
+          <StatCard label="Unresolved High Incidents"  value={summary?.unresolvedHighIncidents ?? '—'} />
         </div>
-      </SectionCard>
 
-      <SectionCard title="Risk Escalations Since Intake" subtitle="Residents whose current risk level is higher than their initial assessment" accentBorder>
-        {escalations.length === 0 ? (
-          <p className="text-sm text-[var(--color-on-surface-variant)]">No risk escalations found.</p>
-        ) : (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Resident Code</th><th>Safehouse</th>
-                  <th>Initial Risk</th><th>Current Risk</th><th>Length of Stay</th>
-                </tr>
-              </thead>
-              <tbody>
-                {escalations.map(r => (
-                  <tr key={r.internalCode}>
-                    <td className="font-medium text-[var(--color-on-surface)]">{r.internalCode}</td>
-                    <td className="text-[var(--color-on-surface-variant)] text-xs">{r.safehouseName}</td>
-                    <td><RiskBadge level={r.initialRiskLevel} /></td>
-                    <td><RiskBadge level={r.currentRiskLevel} /></td>
-                    <td className="text-[var(--color-on-surface-variant)] text-xs">{r.lengthOfStay}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* ── Risk level legend ───────────────────────────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 rounded-lg bg-[var(--color-surface-container-low)] text-xs text-[var(--color-on-surface-variant)]">
+          <span className="font-semibold text-[var(--color-on-surface)] mr-1">Risk Level:</span>
+          <span className="flex items-center gap-1.5"><RiskBadge level="Low" /> Child is stable, in a safe environment, case progressing well.</span>
+          <span className="flex items-center gap-1.5"><RiskBadge level="Medium" /> Some concerns present — family instability, unresolved trauma, or slow progress.</span>
+          <span className="flex items-center gap-1.5"><RiskBadge level="High" /> Active safety concerns, unresolved incidents, or significant barriers to reintegration.</span>
+          <span className="flex items-center gap-1.5"><RiskBadge level="Critical" /> Immediate danger or acute crisis requiring urgent intervention.</span>
+        </div>
+
+        {/* ── Caseload table ───────────────────────────────────────────────────── */}
+        <SectionCard title="Resident Caseload">
+          {/* Filters row 1: safehouse + search + risk + status */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-3">
+            <select
+              value={adminSafehouseFilter ?? ''}
+              onChange={e => { setAdminSafehouseFilter(e.target.value ? Number(e.target.value) : undefined) }}
+              className="form-input"
+              aria-label="Filter by safehouse"
+            >
+              <option value="">All Safehouses</option>
+              {adminSafehouses.map(sh => (
+                <option key={sh.safehouseId} value={sh.safehouseId}>{sh.name}</option>
+              ))}
+            </select>
+
+            <form onSubmit={handleAdminSearchSubmit} className="flex gap-2 flex-1">
+              <input
+                type="text"
+                placeholder="Search by resident code…"
+                value={adminSearchInput}
+                onChange={e => setAdminSearchInput(e.target.value)}
+                className="form-input flex-1"
+                aria-label="Search resident code"
+              />
+              <button type="submit" className="btn btn-secondary btn-small">Search</button>
+            </form>
+
+            <select
+              value={adminRiskFilter}
+              onChange={e => setAdminRiskFilter(e.target.value)}
+              className="form-input"
+              aria-label="Filter by risk level"
+            >
+              <option value="">All Risk Levels</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+
+            <select
+              value={adminStatusFilter}
+              onChange={e => setAdminStatusFilter(e.target.value)}
+              className="form-input"
+              aria-label="Filter by status"
+            >
+              <option value="">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Pending">Pending</option>
+              <option value="Reintegrating">Reintegrating</option>
+              <option value="Closed">Closed</option>
+            </select>
           </div>
-        )}
-      </SectionCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SectionCard title="Recent Process Recordings" subtitle="Last 7 days">
-          {recordings.length === 0 ? (
-            <p className="text-sm text-[var(--color-on-surface-variant)]">No recordings in the past 7 days.</p>
+          {/* Filters row 2: social worker + readiness (client-side) */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <form onSubmit={handleAdminSWSubmit} className="flex gap-2 flex-1">
+              <input
+                type="text"
+                placeholder="Filter by social worker…"
+                value={adminSWInput}
+                onChange={e => setAdminSWInput(e.target.value)}
+                className="form-input flex-1"
+                aria-label="Filter by social worker"
+              />
+              <button type="submit" className="btn btn-secondary btn-small">Filter</button>
+            </form>
+
+            <select
+              value={adminReadinessFilter}
+              onChange={e => setAdminReadinessFilter(e.target.value)}
+              className="form-input"
+              aria-label="Filter by readiness band"
+            >
+              <option value="">All Readiness Bands</option>
+              <option value="Ready for Review">Ready for Review</option>
+              <option value="Developing">Developing</option>
+              <option value="Early Stage">Early Stage</option>
+            </select>
+          </div>
+
+          {/* Table */}
+          {adminLoading ? (
+            <p className="text-sm text-[var(--color-on-surface-variant)] py-4 text-center">Loading…</p>
+          ) : displayedAdminResidents.length === 0 ? (
+            <p className="text-sm text-[var(--color-on-surface-variant)] py-4">No residents found.</p>
           ) : (
             <div className="table-container">
               <table>
-                <thead><tr><th>Resident</th><th>Social Worker</th><th>Date</th><th>Concerns</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Safehouse</th>
+                    <th>Case Category</th>
+                    <th>Risk Level</th>
+                    <th>Admission</th>
+                    <th>Social Worker</th>
+                    <th>Status</th>
+                    <th>Readiness Band</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {recordings.map(r => (
-                    <tr key={r.recordingId}>
-                      <td className="font-medium text-[var(--color-on-surface)]">{r.residentCode}</td>
-                      <td className="text-[var(--color-on-surface-variant)] text-xs">{r.socialWorker}</td>
-                      <td className="text-[var(--color-on-surface-variant)] text-xs">{r.sessionDate?.split('T')[0] ?? '—'}</td>
-                      <td className="text-xs">
-                        {r.concernsFlagged
-                          ? <span className="text-orange-600">⚑ Flagged</span>
-                          : <span className="text-[var(--color-on-surface-variant)]">None</span>
-                        }
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </SectionCard>
+                  {displayedAdminResidents.map(r => (
+                    <Fragment key={r.residentId}>
+                      <tr
+                        onClick={() => handleAdminRowClick(r.residentId)}
+                        className="cursor-pointer hover:bg-[var(--color-surface-container-low)] transition-colors select-none"
+                        aria-expanded={adminExpandedId === r.residentId}
+                      >
+                        <td className="font-medium text-[var(--color-on-surface)]">
+                          {adminExpandedId === r.residentId ? '▾ ' : '▸ '}{r.internalCode}
+                        </td>
+                        <td className="text-[var(--color-on-surface-variant)] text-xs">{r.safehouseName}</td>
+                        <td className="text-[var(--color-on-surface-variant)] text-xs">{r.caseCategory ?? '—'}</td>
+                        <td><RiskBadge level={r.currentRiskLevel ?? ''} /></td>
+                        <td className="text-[var(--color-on-surface-variant)] text-xs">{fmtDate(r.dateOfAdmission)}</td>
+                        <td className="text-[var(--color-on-surface-variant)] text-xs">{r.assignedSocialWorker ?? '—'}</td>
+                        <td>
+                          {r.caseStatus === 'Pending'
+                            ? <span className="badge badge-warning text-xs">Pending Review</span>
+                            : <span className="badge text-xs">{r.caseStatus}</span>
+                          }
+                        </td>
+                        <td><ReadinessBadge band={r.readinessBand} /></td>
+                      </tr>
 
-        <SectionCard title="Recent Incidents" subtitle="Last 14 days">
-          {incidents.length === 0 ? (
-            <p className="text-sm text-[var(--color-on-surface-variant)]">No incidents in the past 14 days.</p>
-          ) : (
-            <div className="table-container">
-              <table>
-                <thead><tr><th>Resident</th><th>Type</th><th>Severity</th><th>Resolved</th><th>Follow-up</th></tr></thead>
-                <tbody>
-                  {incidents.map(inc => (
-                    <tr key={inc.incidentId}>
-                      <td className="font-medium text-[var(--color-on-surface)]">{inc.residentCode}</td>
-                      <td className="text-[var(--color-on-surface-variant)] text-xs">{inc.incidentType}</td>
-                      <td><span className={`badge ${severityClass(inc.severity)} text-xs`}>{inc.severity}</span></td>
-                      <td>
-                        {inc.resolved
-                          ? <span className="badge badge-success text-xs">Yes</span>
-                          : <span className="badge badge-error text-xs">No</span>
-                        }
-                      </td>
-                      <td>
-                        {inc.followUpRequired
-                          ? <span className="badge badge-warning text-xs">Required</span>
-                          : <span className="badge text-xs">No</span>
-                        }
-                      </td>
-                    </tr>
+                      {/* Accordion detail row */}
+                      {adminExpandedId === r.residentId && (
+                        <tr>
+                          <td colSpan={8} className="p-0 border-b border-[var(--color-outline-variant)]">
+                            <div className="bg-[var(--color-surface-container-low)] border-t border-[var(--color-outline-variant)]">
+                              {/* Tab bar */}
+                              <div className="flex border-b border-[var(--color-outline-variant)] px-4">
+                                {(['profile', 'incidents', 'interventions', 'visit'] as AdminDetailTab[]).map(tab => (
+                                  <button
+                                    key={tab}
+                                    onClick={e => { e.stopPropagation(); setAdminActiveTab(tab) }}
+                                    className={`px-4 py-2.5 text-xs font-medium border-b-2 -mb-px transition-colors ${
+                                      adminActiveTab === tab
+                                        ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                                        : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
+                                    }`}
+                                  >
+                                    {tab === 'profile' ? 'Profile' : tab === 'incidents' ? 'Incidents' : tab === 'interventions' ? 'Interventions' : 'Last Visit'}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Tab content */}
+                              <div className="p-4" onClick={e => e.stopPropagation()}>
+                                {adminDetailLoading ? (
+                                  <p className="text-sm text-[var(--color-on-surface-variant)]">Loading…</p>
+                                ) : !adminDetail ? (
+                                  <p className="text-sm text-[var(--color-on-surface-variant)]">Unable to load detail.</p>
+                                ) : (
+                                  <>
+                                    {/* Profile tab */}
+                                    {adminActiveTab === 'profile' && (
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
+                                        {([
+                                          ['Case Category',    adminDetail.resident.caseCategory],
+                                          ['Status',           adminDetail.resident.caseStatus],
+                                          ['Risk Level',       adminDetail.resident.currentRiskLevel],
+                                          ['Admission Date',   fmtDate(adminDetail.resident.dateOfAdmission)],
+                                          ['Length of Stay',   adminDetail.resident.lengthOfStay],
+                                          ['Social Worker',    adminDetail.resident.assignedSocialWorker],
+                                          ['Reintegration',    adminDetail.resident.reintegrationStatus ?? '—'],
+                                          ['PWD',              adminDetail.resident.isPwd ? (adminDetail.resident.pwdType || 'Yes') : 'No'],
+                                        ] as [string, string | null | undefined][]).map(([label, value]) => (
+                                          <div key={label}>
+                                            <p className="text-xs text-[var(--color-on-surface-variant)]">{label}</p>
+                                            <p className="text-sm font-medium text-[var(--color-on-surface)]">{value ?? '—'}</p>
+                                          </div>
+                                        ))}
+                                        <div className="col-span-full">
+                                          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Sub-categories</p>
+                                          <div className="flex flex-wrap gap-1.5">
+                                            {[
+                                              adminDetail.resident.subCatOrphaned      && 'Orphaned',
+                                              adminDetail.resident.subCatTrafficked    && 'Trafficked',
+                                              adminDetail.resident.subCatChildLabor    && 'Child Labor',
+                                              adminDetail.resident.subCatPhysicalAbuse && 'Physical Abuse',
+                                              adminDetail.resident.subCatSexualAbuse   && 'Sexual Abuse',
+                                              adminDetail.resident.subCatOsaec         && 'OSAEC',
+                                              adminDetail.resident.subCatCicl          && 'CICL',
+                                              adminDetail.resident.subCatAtRisk        && 'At Risk',
+                                              adminDetail.resident.subCatStreetChild   && 'Street Child',
+                                              adminDetail.resident.subCatChildWithHiv  && 'Child with HIV',
+                                            ].filter(Boolean).map(label => (
+                                              <span key={label as string} className="badge text-xs">{label}</span>
+                                            ))}
+                                            {!adminDetail.resident.subCatOrphaned && !adminDetail.resident.subCatTrafficked &&
+                                              !adminDetail.resident.subCatChildLabor && !adminDetail.resident.subCatPhysicalAbuse &&
+                                              !adminDetail.resident.subCatSexualAbuse && !adminDetail.resident.subCatOsaec &&
+                                              !adminDetail.resident.subCatCicl && !adminDetail.resident.subCatAtRisk &&
+                                              !adminDetail.resident.subCatStreetChild && !adminDetail.resident.subCatChildWithHiv && (
+                                              <span className="text-xs text-[var(--color-on-surface-variant)]">None</span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Incidents tab */}
+                                    {adminActiveTab === 'incidents' && (
+                                      adminDetail.incidents.length === 0 ? (
+                                        <p className="text-sm text-[var(--color-on-surface-variant)]">No incidents on file.</p>
+                                      ) : (
+                                        <div className="flex flex-col gap-2">
+                                          {adminDetail.incidents.map(inc => (
+                                            <details key={inc.incidentId} className="border border-[var(--color-outline-variant)] rounded-lg">
+                                              <summary className="flex items-center justify-between px-3 py-2 cursor-pointer list-none">
+                                                <div className="flex items-center gap-3">
+                                                  <span className="text-xs font-medium text-[var(--color-on-surface)]">{fmtDate(inc.incidentDate)}</span>
+                                                  <span className="badge text-xs">{inc.incidentType}</span>
+                                                  {inc.severity && <span className={`badge text-xs ${inc.severity === 'High' ? 'badge-error' : inc.severity === 'Moderate' ? 'badge-warning' : ''}`}>{inc.severity}</span>}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                  {inc.resolved
+                                                    ? <span className="badge badge-success text-xs">Resolved</span>
+                                                    : <span className="badge badge-error text-xs">Unresolved</span>
+                                                  }
+                                                  {inc.followUpRequired && <span className="badge badge-warning text-xs">Follow-up</span>}
+                                                </div>
+                                              </summary>
+                                              <div className="px-3 pb-3 pt-1 border-t border-[var(--color-outline-variant)] flex flex-col gap-2">
+                                                {inc.description && (
+                                                  <div>
+                                                    <p className="text-xs text-[var(--color-on-surface-variant)]">Description</p>
+                                                    <p className="text-sm text-[var(--color-on-surface)]">{inc.description}</p>
+                                                  </div>
+                                                )}
+                                                {inc.responseTaken && (
+                                                  <div>
+                                                    <p className="text-xs text-[var(--color-on-surface-variant)]">Response</p>
+                                                    <p className="text-sm text-[var(--color-on-surface)]">{inc.responseTaken}</p>
+                                                  </div>
+                                                )}
+                                                {inc.reportedBy && (
+                                                  <p className="text-xs text-[var(--color-on-surface-variant)]">Reported by: {inc.reportedBy}</p>
+                                                )}
+                                              </div>
+                                            </details>
+                                          ))}
+                                        </div>
+                                      )
+                                    )}
+
+                                    {/* Interventions tab */}
+                                    {adminActiveTab === 'interventions' && (
+                                      adminDetail.interventions.length === 0 ? (
+                                        <p className="text-sm text-[var(--color-on-surface-variant)]">No intervention plans on file.</p>
+                                      ) : (
+                                        <div className="flex flex-col gap-3">
+                                          {adminDetail.interventions.map(plan => (
+                                            <div key={plan.planId} className="border border-[var(--color-outline-variant)] rounded-lg p-3 flex flex-col gap-2">
+                                              <div className="flex items-center justify-between">
+                                                <span className="badge text-xs">{plan.planCategory}</span>
+                                                <span className={`badge text-xs ${plan.status === 'Completed' ? 'badge-success' : ''}`}>{plan.status}</span>
+                                              </div>
+                                              {plan.planDescription && (
+                                                <div>
+                                                  <p className="text-xs text-[var(--color-on-surface-variant)]">Description</p>
+                                                  <p className="text-sm text-[var(--color-on-surface)]">{plan.planDescription}</p>
+                                                </div>
+                                              )}
+                                              {plan.servicesProvided && (
+                                                <div>
+                                                  <p className="text-xs text-[var(--color-on-surface-variant)]">Services Provided</p>
+                                                  <p className="text-sm text-[var(--color-on-surface)]">{plan.servicesProvided}</p>
+                                                </div>
+                                              )}
+                                              <div className="flex gap-6">
+                                                {plan.targetDate && (
+                                                  <div>
+                                                    <p className="text-xs text-[var(--color-on-surface-variant)]">Target Date</p>
+                                                    <p className="text-sm text-[var(--color-on-surface)]">{fmtDate(plan.targetDate)}</p>
+                                                  </div>
+                                                )}
+                                                {plan.caseConferenceDate && (
+                                                  <div>
+                                                    <p className="text-xs text-[var(--color-on-surface-variant)]">Case Conference</p>
+                                                    <p className="text-sm text-[var(--color-on-surface)]">{fmtDate(plan.caseConferenceDate)}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )
+                                    )}
+
+                                    {/* Last Visit tab */}
+                                    {adminActiveTab === 'visit' && (
+                                      !adminDetail.lastVisitation ? (
+                                        <p className="text-sm text-[var(--color-on-surface-variant)]">No home visits on file.</p>
+                                      ) : (
+                                        <div className="flex flex-col gap-3">
+                                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
+                                            {([
+                                              ['Visit Date',    fmtDate(adminDetail.lastVisitation.visitDate)],
+                                              ['Social Worker', adminDetail.lastVisitation.socialWorker],
+                                              ['Visit Type',   adminDetail.lastVisitation.visitType],
+                                              ['Location',     adminDetail.lastVisitation.locationVisited],
+                                              ['Family Present', adminDetail.lastVisitation.familyMembersPresent],
+                                              ['Cooperation',  adminDetail.lastVisitation.familyCooperationLevel],
+                                            ] as [string, string | null | undefined][]).map(([label, value]) => (
+                                              value ? (
+                                                <div key={label}>
+                                                  <p className="text-xs text-[var(--color-on-surface-variant)]">{label}</p>
+                                                  <p className="text-sm font-medium text-[var(--color-on-surface)]">{value}</p>
+                                                </div>
+                                              ) : null
+                                            ))}
+                                          </div>
+                                          {adminDetail.lastVisitation.observations && (
+                                            <div>
+                                              <p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Observations</p>
+                                              <p className="text-sm text-[var(--color-on-surface)]">{adminDetail.lastVisitation.observations}</p>
+                                            </div>
+                                          )}
+                                          {adminDetail.lastVisitation.visitOutcome && (
+                                            <div>
+                                              <p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Outcome</p>
+                                              <p className="text-sm text-[var(--color-on-surface)]">{adminDetail.lastVisitation.visitOutcome}</p>
+                                            </div>
+                                          )}
+                                          <div className="flex gap-3 flex-wrap">
+                                            {adminDetail.lastVisitation.safetyConcernsNoted && (
+                                              <span className="badge badge-error text-xs">Safety Concerns Noted</span>
+                                            )}
+                                            {adminDetail.lastVisitation.followUpNeeded && (
+                                              <span className="badge badge-warning text-xs">Follow-up Needed</span>
+                                            )}
+                                          </div>
+                                          {adminDetail.lastVisitation.followUpNeeded && adminDetail.lastVisitation.followUpNotes && (
+                                            <div>
+                                              <p className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">Follow-up Notes</p>
+                                              <p className="text-sm text-[var(--color-on-surface)]">{adminDetail.lastVisitation.followUpNotes}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -458,9 +771,8 @@ export function Residents() {
           )}
         </SectionCard>
       </div>
-    </div>
-  </div>
-  )
+    )
+  }
 
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -593,6 +905,7 @@ export function Residents() {
                   <th>Admission Date</th>
                   <th>Social Worker</th>
                   <th>Status</th>
+                  <th>Readiness Band</th>
                 </tr>
               </thead>
               <tbody>
@@ -617,12 +930,13 @@ export function Residents() {
                           : <span className="badge text-xs">{r.caseStatus}</span>
                         }
                       </td>
+                      <td><ReadinessBadge band={r.readinessBand} /></td>
                     </tr>
 
                     {/* Accordion detail row */}
                     {expandedId === r.residentId && (
                       <tr>
-                        <td colSpan={6} className="p-0 border-b border-[var(--color-outline-variant)]">
+                        <td colSpan={7} className="p-0 border-b border-[var(--color-outline-variant)]">
                           <div className="bg-[var(--color-surface-container-low)] border-t border-[var(--color-outline-variant)]">
                             {/* Tab bar */}
                             <div className="flex border-b border-[var(--color-outline-variant)] px-4">
