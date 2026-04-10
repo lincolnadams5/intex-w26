@@ -105,7 +105,7 @@ export function UsersPage() {
   const staffCount  = users.filter(u => u.role === 'Staff').length
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Manage Users"
         subtitle="View all registered accounts, reassign roles, and deactivate/delete users."
@@ -202,18 +202,20 @@ export function UsersPage() {
                       <button
                         disabled={saving === user.id}
                         onClick={() => handleReactivate(user)}
-                        className="text-xs hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                        className="text-xs text-[var(--color-success)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
                       >
                         {saving === user.id ? 'Saving…' : 'Reactivate'}
                       </button>
                     )}
-                    <button
-                      disabled={saving === user.id}
-                      onClick={() => handleDelete(user)}
-                      className="ml-4 text-xs text-[var(--error)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
-                    >
-                      {saving === user.id ? 'Saving…' : 'Delete'}
-                    </button>
+                    {!user.isActive && (
+                      <button
+                        disabled={saving === user.id}
+                        onClick={() => handleDelete(user)}
+                        className="ml-4 text-xs text-[var(--color-error)] hover:underline cursor-pointer disabled:opacity-50 transition-opacity"
+                      >
+                        {saving === user.id ? 'Saving…' : 'Delete'}
+                      </button>
+                    )}                    
                   </td>
                 </tr>
               ))}

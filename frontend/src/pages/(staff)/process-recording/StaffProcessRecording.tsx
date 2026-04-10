@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useAuth }      from '../../../hooks/useAuth'
-import { PageHeader }   from '../../../components/admin/PageHeader'
-import { SectionCard }  from '../../../components/admin/SectionCard'
-import { LoadingState } from '../../../components/admin/LoadingState'
-import { Pagination }   from '../../../components/admin/Pagination'
+import { useAuth }       from '../../../hooks/useAuth'
+import { PageHeader }    from '../../../components/admin/PageHeader'
+import { SectionCard }   from '../../../components/admin/SectionCard'
+import { LoadingState }  from '../../../components/admin/LoadingState'
+import { Pagination }    from '../../../components/admin/Pagination'
+import { FormWizard, type WizardStep } from '../../../components/admin/FormWizard'
+import { useToast }      from '../../../components/admin/Toast'
 import {
   getStaffResidents,
   getMyProcessRecordings,
@@ -26,35 +28,266 @@ function today() {
 
 function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  // Parse only the date part to avoid UTC→local shift rolling the day back
   const [year, month, day] = iso.split('T')[0].split('-').map(Number)
   return new Date(year, month - 1, day).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 interface FormState {
-  residentId:            string
-  sessionDate:           string
-  socialWorker:          string
-  sessionType:           string
+  residentId:             string
+  sessionDate:            string
+  socialWorker:           string
+  sessionType:            string
   emotionalStateObserved: string
-  narrativeSummary:      string
-  interventionsApplied:  string
-  followUpActions:       string
-  concernsFlagged:       boolean
+  narrativeSummary:       string
+  interventionsApplied:   string
+  followUpActions:        string
+  concernsFlagged:        boolean
+}
+
+// ── Step sub-components ───────────────────────────────────────────────────────
+
+function StepResidentAndSession({
+  form, setForm, residents,
+}: {
+  form: FormState
+  setForm: React.Dispatch<React.SetStateAction<FormState>>
+  residents: CaseloadItem[]
+}) {
+  function set<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="spr-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Resident <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <select
+          id="spr-resident"
+          className="form-input w-full"
+          value={form.residentId}
+          onChange={e => set('residentId', e.target.value)}
+        >
+          <option value="">Select resident…</option>
+          {residents.map(r => (
+            <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="spr-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Session Date <span className="text-[var(--color-error)]">*</span>
+          </label>
+          <input
+            id="spr-date"
+            type="date"
+            className="form-input w-full"
+            value={form.sessionDate}
+            onChange={e => set('sessionDate', e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="spr-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+            Session Type <span className="text-[var(--color-error)]">*</span>
+          </label>
+          <select
+            id="spr-type"
+            className="form-input w-full"
+            value={form.sessionType}
+            onChange={e => set('sessionType', e.target.value)}
+          >
+            {SESSION_TYPES.map(t => <option key={t}>{t}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="spr-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Social Worker
+        </label>
+        <input
+          id="spr-sw"
+          className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed"
+          value={form.socialWorker || '—'}
+          readOnly
+          title="Assigned from your account"
+        />
+      </div>
+    </div>
+  )
+}
+
+function StepObservations({
+  form, setForm,
+}: {
+  form: FormState
+  setForm: React.Dispatch<React.SetStateAction<FormState>>
+}) {
+  function set<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+  const narrativeLen = form.narrativeSummary.length
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="spr-emotion" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Emotional State Observed <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <select
+          id="spr-emotion"
+          className="form-input w-full"
+          value={form.emotionalStateObserved}
+          onChange={e => set('emotionalStateObserved', e.target.value)}
+        >
+          <option value="">Select…</option>
+          {EMOTIONAL_STATES.map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="spr-narrative" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Narrative Summary <span className="text-[var(--color-error)]">*</span>
+          <span className={`ml-2 font-normal ${narrativeLen < 50 ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>
+            ({narrativeLen}/50 min)
+          </span>
+        </label>
+        <textarea
+          id="spr-narrative"
+          className="form-input w-full"
+          rows={6}
+          value={form.narrativeSummary}
+          onChange={e => set('narrativeSummary', e.target.value)}
+          placeholder="Full account of the session…"
+        />
+      </div>
+    </div>
+  )
+}
+
+function StepActions({
+  form, setForm,
+}: {
+  form: FormState
+  setForm: React.Dispatch<React.SetStateAction<FormState>>
+}) {
+  function set<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="spr-interventions" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Interventions Applied <span className="text-[var(--color-error)]">*</span>
+        </label>
+        <textarea
+          id="spr-interventions"
+          className="form-input w-full"
+          rows={4}
+          value={form.interventionsApplied}
+          onChange={e => set('interventionsApplied', e.target.value)}
+          placeholder="Techniques or interventions used…"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="spr-followup" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
+          Follow-up Actions
+        </label>
+        <textarea
+          id="spr-followup"
+          className="form-input w-full"
+          rows={3}
+          value={form.followUpActions}
+          onChange={e => set('followUpActions', e.target.value)}
+          placeholder="Planned next steps…"
+        />
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
+        <input
+          id="spr-concerns"
+          type="checkbox"
+          checked={form.concernsFlagged}
+          onChange={e => set('concernsFlagged', e.target.checked)}
+        />
+        <span>Flag concerns — marks this record for follow-up attention</span>
+        {form.concernsFlagged && <span className="badge badge-warning text-xs">⚑ Flagged</span>}
+      </label>
+    </div>
+  )
+}
+
+function StepReview({
+  form, residents,
+}: {
+  form: FormState
+  residents: CaseloadItem[]
+}) {
+  const residentLabel = residents.find(r => String(r.residentId) === form.residentId)?.internalCode ?? '—'
+  const rows: [string, string][] = [
+    ['Resident',          residentLabel],
+    ['Session Date',      fmtDate(form.sessionDate)],
+    ['Session Type',      form.sessionType],
+    ['Social Worker',     form.socialWorker || '—'],
+    ['Emotional State',   form.emotionalStateObserved || '—'],
+    ['Concerns Flagged',  form.concernsFlagged ? 'Yes ⚑' : 'No'],
+  ]
+  return (
+    <div className="flex flex-col gap-5">
+      <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-xs text-[var(--color-on-surface-variant)] mb-0.5">{label}</dt>
+            <dd className="text-sm font-medium text-[var(--color-on-surface)]">{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {form.narrativeSummary && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Narrative Summary</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">
+            {form.narrativeSummary}
+          </p>
+        </div>
+      )}
+
+      {form.interventionsApplied && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Interventions Applied</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">
+            {form.interventionsApplied}
+          </p>
+        </div>
+      )}
+
+      {form.followUpActions && (
+        <div>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-1">Follow-up Actions</p>
+          <p className="text-sm text-[var(--color-on-surface)] whitespace-pre-wrap bg-[var(--color-surface-container-low)] rounded-lg p-3">
+            {form.followUpActions}
+          </p>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
 
 export default function StaffProcessRecording() {
-  const { user }          = useAuth()
-  const [searchParams]    = useSearchParams()
-  const preselectedId     = searchParams.get('residentId')
+  const { user }       = useAuth()
+  const toast          = useToast()
+  const [searchParams] = useSearchParams()
+  const preselectedId  = searchParams.get('residentId')
 
   // ── Residents for dropdown ────────────────────────────────────────────────
   const [residents, setResidents] = useState<CaseloadItem[]>([])
 
   // ── Form state ────────────────────────────────────────────────────────────
-  const defaultForm = (): FormState => ({
+  const makeInitialForm = (): FormState => ({
     residentId:             preselectedId ?? '',
     sessionDate:            today(),
     socialWorker:           user?.socialWorkerCode ?? '',
@@ -66,10 +299,9 @@ export default function StaffProcessRecording() {
     concernsFlagged:        false,
   })
 
-  const [form, setForm]             = useState<FormState>(defaultForm)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError]   = useState<string | null>(null)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [form, setForm]             = useState<FormState>(makeInitialForm)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // ── History state ─────────────────────────────────────────────────────────
   const [recordings, setRecordings]         = useState<MyRecordingItem[]>([])
@@ -83,59 +315,42 @@ export default function StaffProcessRecording() {
   // ── Page loading ──────────────────────────────────────────────────────────
   const [pageLoading, setPageLoading] = useState(true)
 
-
   // ── Effects ───────────────────────────────────────────────────────────────
 
-  // Load residents for the form dropdown (active only, all at once)
   useEffect(() => {
     getStaffResidents({ pageSize: 200 })
       .then(({ items }) => setResidents(items))
       .finally(() => setPageLoading(false))
   }, [])
 
-  // Update social worker code if user loads after mount
   useEffect(() => {
     if (user?.socialWorkerCode && !form.socialWorker) {
       setForm(f => ({ ...f, socialWorker: user.socialWorkerCode! }))
     }
   }, [user?.socialWorkerCode])
 
-  // Load history (re-runs on page / resident filter change)
   useEffect(() => {
     setHistoryLoading(true)
-    getMyProcessRecordings({
-      page:       historyPage,
-      pageSize:   PAGE_SIZE,
-      residentId: historyResident,
-    }).then(({ total, items }) => {
-      setHistoryTotal(total)
-      setRecordings(items)
-    }).finally(() => setHistoryLoading(false))
+    getMyProcessRecordings({ page: historyPage, pageSize: PAGE_SIZE, residentId: historyResident })
+      .then(({ total, items }) => { setHistoryTotal(total); setRecordings(items) })
+      .finally(() => setHistoryLoading(false))
   }, [historyPage, historyResident])
-
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
-  function setField<K extends keyof FormState>(key: K, val: FormState[K]) {
-    setForm(f => ({ ...f, [key]: val }))
+  function refetchHistory() {
+    setHistoryPage(1)
+    getMyProcessRecordings({ page: 1, pageSize: PAGE_SIZE, residentId: historyResident })
+      .then(({ total, items }) => { setHistoryTotal(total); setRecordings(items) })
   }
 
-  function isFormValid() {
-    return (
-      form.residentId &&
-      form.sessionDate &&
-      form.sessionType &&
-      form.emotionalStateObserved &&
-      form.narrativeSummary.length >= 50
-    )
+  function handleHistoryResidentChange(val: string) {
+    setHistoryResident(val ? Number(val) : undefined)
+    setHistoryPage(1)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!isFormValid()) return
-    setSubmitError(null)
-    setSubmitting(true)
-
+  async function handleSubmit() {
+    setIsSubmitting(true)
     try {
       await createProcessRecording({
         residentId:             Number(form.residentId),
@@ -148,220 +363,69 @@ export default function StaffProcessRecording() {
         followUpActions:        form.followUpActions || undefined,
         concernsFlagged:        form.concernsFlagged,
       })
-
-      setSubmitSuccess(true)
-      // Reset form, keeping social worker and today's date
-      setForm({
-        residentId:             '',
-        sessionDate:            today(),
-        socialWorker:           user?.socialWorkerCode ?? '',
-        sessionType:            'Individual',
-        emotionalStateObserved: '',
-        narrativeSummary:       '',
-        interventionsApplied:   '',
-        followUpActions:        '',
-        concernsFlagged:        false,
-      })
-      // Refresh history to show the new submission at the top
-      setHistoryPage(1)
-      getMyProcessRecordings({ page: 1, pageSize: PAGE_SIZE, residentId: historyResident })
-        .then(({ total, items }) => { setHistoryTotal(total); setRecordings(items) })
-      setTimeout(() => setSubmitSuccess(false), 4000)
+      toast.success('Process recording saved.')
+      setForm({ ...makeInitialForm(), socialWorker: user?.socialWorkerCode ?? '' })
+      setCurrentStep(1)
+      refetchHistory()
     } catch {
-      setSubmitError('Failed to save recording. Please try again.')
+      toast.error('Failed to save recording. Please try again.')
     } finally {
-      setSubmitting(false)
+      setIsSubmitting(false)
     }
   }
-
-  function handleHistoryResidentChange(val: string) {
-    setHistoryResident(val ? Number(val) : undefined)
-    setHistoryPage(1)
-  }
-
 
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (pageLoading) return <LoadingState />
 
   const totalPages = Math.max(1, Math.ceil(historyTotal / PAGE_SIZE))
-  const narrativeLen = form.narrativeSummary.length
+
+  const steps: WizardStep[] = [
+    {
+      label:   'Resident & Session',
+      isValid: () => !!form.residentId && !!form.sessionDate && !!form.sessionType,
+      content: <StepResidentAndSession form={form} setForm={setForm} residents={residents} />,
+    },
+    {
+      label:   'Observations',
+      isValid: () => !!form.emotionalStateObserved && form.narrativeSummary.trim().length >= 50,
+      content: <StepObservations form={form} setForm={setForm} />,
+    },
+    {
+      label:   'Actions',
+      isValid: () => form.interventionsApplied.trim().length > 0,
+      content: <StepActions form={form} setForm={setForm} />,
+    },
+    {
+      label:   'Review & Submit',
+      isValid: () => true,
+      content: <StepReview form={form} residents={residents} />,
+    },
+  ]
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1200px]">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto w-full">
       <PageHeader
         title="Process Recording"
         subtitle="Document a counseling session for a resident at your safehouse."
       />
 
-      {/* Two-column layout: form left, history right */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 items-start">
 
-        {/* ── Submission form ───────────────────────────────────────────────── */}
+        {/* ── Wizard ───────────────────────────────────────────────────────── */}
         <SectionCard title="New Recording">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
-            {/* Session Details */}
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Session Details</p>
-
-              <div>
-                <label htmlFor="spr-resident" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Resident <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <select
-                  id="spr-resident"
-                  className="form-input w-full"
-                  value={form.residentId}
-                  onChange={e => setField('residentId', e.target.value)}
-                  required
-                >
-                  <option value="">Select resident…</option>
-                  {residents.map(r => (
-                    <option key={r.residentId} value={r.residentId}>{r.internalCode}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="spr-date" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Session Date <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <input
-                    id="spr-date"
-                    type="date"
-                    className="form-input w-full"
-                    value={form.sessionDate}
-                    onChange={e => setField('sessionDate', e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="spr-type" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                    Session Type <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <select
-                    id="spr-type"
-                    className="form-input w-full"
-                    value={form.sessionType}
-                    onChange={e => setField('sessionType', e.target.value)}
-                    required
-                  >
-                    {SESSION_TYPES.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="spr-sw" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Social Worker
-                </label>
-                <input
-                  id="spr-sw"
-                  className="form-input w-full bg-[var(--color-surface-container-low)] cursor-not-allowed"
-                  value={form.socialWorker || '—'}
-                  readOnly
-                  title="Assigned from your account"
-                />
-              </div>
-            </div>
-
-            {/* Session Content */}
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold text-[var(--color-on-surface)] pb-2 border-b border-[var(--color-outline-variant)]">Session Content</p>
-
-              <div>
-                <label htmlFor="spr-emotion" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Emotional State Observed <span className="text-[var(--color-error)]">*</span>
-                </label>
-                <select
-                  id="spr-emotion"
-                  className="form-input w-full"
-                  value={form.emotionalStateObserved}
-                  onChange={e => setField('emotionalStateObserved', e.target.value)}
-                  required
-                >
-                  <option value="">Select…</option>
-                  {EMOTIONAL_STATES.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="spr-narrative" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">
-                  Narrative Summary <span className="text-[var(--color-error)]">*</span>
-                  <span className={`ml-2 font-normal ${narrativeLen < 50 ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>
-                    ({narrativeLen}/50 min)
-                  </span>
-                </label>
-                <textarea
-                  id="spr-narrative"
-                  className="form-input w-full"
-                  rows={5}
-                  value={form.narrativeSummary}
-                  onChange={e => setField('narrativeSummary', e.target.value)}
-                  placeholder="Full account of the session…"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="spr-interventions" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Interventions Applied</label>
-                <textarea
-                  id="spr-interventions"
-                  className="form-input w-full"
-                  rows={3}
-                  value={form.interventionsApplied}
-                  onChange={e => setField('interventionsApplied', e.target.value)}
-                  placeholder="Techniques or interventions used…"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="spr-followup" className="text-sm text-[var(--color-on-surface-variant)] mb-1 block">Follow-up Actions</label>
-                <textarea
-                  id="spr-followup"
-                  className="form-input w-full"
-                  rows={3}
-                  value={form.followUpActions}
-                  onChange={e => setField('followUpActions', e.target.value)}
-                  placeholder="Planned next steps…"
-                />
-              </div>
-
-              <label className="flex items-center gap-2 text-sm text-[var(--color-on-surface)] cursor-pointer">
-                <input
-                  id="spr-concerns"
-                  type="checkbox"
-                  checked={form.concernsFlagged}
-                  onChange={e => setField('concernsFlagged', e.target.checked)}
-                />
-                <span>Flag concerns — marks this record for follow-up attention</span>
-                {form.concernsFlagged && <span className="badge badge-warning text-xs">⚑ Flagged</span>}
-              </label>
-            </div>
-
-            {/* Feedback */}
-            {submitError && (
-              <p className="text-sm text-[var(--color-error)]">{submitError}</p>
-            )}
-            {submitSuccess && (
-              <p className="text-sm text-[var(--color-primary)]">Recording saved successfully.</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting || !isFormValid()}
-              className="btn btn-primary w-full"
-            >
-              {submitting ? 'Saving…' : 'Save Recording'}
-            </button>
-          </form>
+          <FormWizard
+            steps={steps}
+            currentStep={currentStep}
+            onStepChange={setCurrentStep}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            submitLabel="Save Recording"
+          />
         </SectionCard>
 
-        {/* ── My Submissions history ────────────────────────────────────────── */}
+        {/* ── My Recordings history ─────────────────────────────────────────── */}
         <SectionCard title="My Recordings">
-          {/* Resident filter */}
           <div className="mb-4">
             <label htmlFor="spr-filter-resident" className="sr-only">Filter history by resident</label>
             <select
@@ -396,7 +460,6 @@ export default function StaffProcessRecording() {
                       <span className="text-xs text-[var(--color-on-surface-variant)]">{rec.emotionalStateObserved}</span>
                     </div>
                   </summary>
-
                   <div className="px-3 pb-3 pt-2 border-t border-[var(--color-outline-variant)] flex flex-col gap-2.5">
                     {rec.sessionNarrative && (
                       <div>
@@ -428,7 +491,7 @@ export default function StaffProcessRecording() {
               totalPages={totalPages}
               totalItems={historyTotal}
               pageSize={PAGE_SIZE}
-              onPageChange={p => { setHistoryPage(p) }}
+              onPageChange={p => setHistoryPage(p)}
             />
           )}
         </SectionCard>
