@@ -1,5 +1,5 @@
 # IS 413 – Enterprise Application Development: Requirements Analysis
-*Generated: 2026-04-09 | Project: Pag-asa Sanctuary (intex-w26)*
+*Generated: 2026-04-09 | Updated: 2026-04-10 | Project: Pag-asa Sanctuary (intex-w26)*
 
 ---
 
@@ -63,7 +63,7 @@ All data is aggregated and anonymized. Full error handling and loading state are
 **Status: ✅ Complete**
 
 Implemented pages:
-- `Login.tsx` — username/password form with error handling
+- `Login.tsx` — username/password form with error handling and 2FA verification step
 - `Register.tsx` — new user registration
 - `ForgotPassword.tsx` — email-based password reset initiation
 - `ResetPassword.tsx` — password reset with token
@@ -92,7 +92,7 @@ Implemented pages:
 `Dashboard.tsx` (shared, branched by `isAdmin`) renders for admin:
 - Stat cards: active residents across all safehouses, high/critical risk counts, recent donations, upcoming conferences
 - Activity feed: recent incidents, process recordings, home visits
-- Quick-action cards
+- Quick-action cards including a link to the Reports page
 - Upcoming conferences table
 
 ---
@@ -173,20 +173,33 @@ Both portals have full implementations:
 ### 10. Reports & Analytics
 **Requirement:** Aggregated insights and trends — donation trends over time, **resident outcome metrics (education progress, health improvements)**, **safehouse performance comparisons**, **reintegration success rates**. Consider aligning with the Annual Accomplishment Report format used by Philippine social welfare agencies (caring, healing, teaching).
 
-**Status: ⚠️ Partially Met — Coverage is fragmented; Annual Accomplishment Report format missing**
+**Status: ✅ Complete — Annual Accomplishment Report format fully implemented**
 
-Reporting coverage is spread across multiple pages:
-- `DonorsPage` — donation trends, type/channel/campaign breakdowns, allocation by program area ✅
-- `Residents` page (admin view) — risk chart, escalations, safehouse-level stats ✅
-- `SafehousePage` — safehouse-level data ✅
-- `MLPage` — reintegration readiness scores (currently mock), donor risk ✅
+A dedicated `ReportsPage.tsx` is now built and routed at `/admin/reports` (linked from the Admin Dashboard quick-action cards). It implements the full Annual Accomplishment Report format with four sections:
 
-However, there is no consolidated reporting page, and the following are explicitly missing:
-- Resident outcome metrics (education progress %, health improvement trends) — models exist for this (`EducationRecord`, `HealthWellbeingRecord`) but no reporting UI
-- Reintegration success rates over time — model data exists but not surfaced in a reporting format
-- Annual Accomplishment Report format (caring/healing/teaching beneficiary counts and program outcomes) — **not built**
+**CARING (beneficiary counts and case volume):**
+- Total Beneficiaries, New Admissions, Home Visitations, Incidents — stat cards
+- Case category breakdown table (case types and counts)
+- Safehouse occupancy table (region, active residents, capacity, occupancy %)
 
-**Recommendation:** Acknowledge in the IS 413 video that reporting is distributed across pages, and be forthright that the Annual Accomplishment Report format was not implemented. If time allows, even a simple table on the SafehousePage or a new Reports tab aggregating the key metrics could improve this score.
+**HEALING (health and wellness outcomes):**
+- Sessions count, average health/nutrition scores, health records completed — stat cards
+- Monthly session count bar chart (Recharts)
+- Medical, dental, and psychological checkup completion rates
+- Sessions by type breakdown
+
+**TEACHING (education and reintegration outcomes):**
+- Residents enrolled, attendance rate, successfully reintegrated, in-progress — stat cards
+- Intervention plans and reintegration outcomes by type
+
+**SAFEHOUSE PERFORMANCE:**
+- Cross-safehouse comparison table (region, active residents, capacity, occupancy %, session count, home visits, incidents)
+
+**Technical implementation:**
+- Backend: `GET /api/admin/reports/aar-summary?year=&safehouseId=` in `AdminController.cs` — full implementation computing all metrics from EF Core queries
+- Frontend: `getAarSummary()` in `adminApi.ts` (typed, returns `AarSummaryDto`)
+- Year selector (current year back to 2020) and safehouse filter for drill-down
+- Real data from the database — no mock values
 
 ---
 
@@ -204,7 +217,7 @@ However, there is no consolidated reporting page, and the following are explicit
 | CSS custom properties | ✅ Met | All colors use `var(--color-*)` — no raw hex or Tailwind color classes |
 | Responsiveness | ✅ Met | `md:` and `lg:` breakpoints used throughout all public-facing pages |
 | DTOs | ✅ Met | Separate DTO classes for all request/response shapes |
-| Footer links (some) | ⚠️ Minor | Several footer links still use `href: '#'` as placeholders (Our Mission, Impact, Volunteer, Partner, Careers, Annual Reports, News, FAQ). These should be resolved before final presentation. |
+| Footer links (some) | ⚠️ Minor | Several footer links still use `href: '#'` as placeholders. Intentionally left as-is for now — not a grading concern. |
 
 ---
 
@@ -222,12 +235,11 @@ However, there is no consolidated reporting page, and the following are explicit
 | Resident profile UPDATE | ❌ No PUT endpoint or UI |
 | Process Recording | ✅ Complete |
 | Home Visitation & Case Conferences | ✅ Complete |
-| Reports & Analytics | ❌ Missing entirely |
+| Reports & Analytics (Annual Accomplishment Report) | ✅ Complete |
 | Tech stack compliance | ✅ Complete |
-| Code quality / polish | ✅ Mostly complete (some placeholder footer links) |
+| Code quality / polish | ✅ Mostly complete (some placeholder footer links — intentional) |
 
-**Priority gaps before presentation:**
-1. **Reports & Analytics page** — significant missing requirement
-2. **Donor/supporter create and manage** — admin portal lacks CUD for supporters
-3. **Resident profile update** — no PUT endpoint
-4. **Footer placeholder links** — quick fix, small but visible to judges
+**Remaining gaps before presentation:**
+1. **Donor/supporter create and manage** — admin portal lacks CUD for supporters; explain in video
+2. **Resident profile update** — no PUT endpoint; explain in video
+3. **Show the Reports page prominently** in the IS 413 video — it directly addresses the AAR format requirement

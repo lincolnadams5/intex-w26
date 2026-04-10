@@ -9,10 +9,5 @@ python-dotenv>=1.0
 joblib>=1.3
 xgboost>=2.0
 imbalanced-learn>=0.12
-
-
-My read on the scope:
-
-A true causal analysis (difference-in-differences, causal forests) requires experimental or quasi-experimental data. What you actually have is observational data, which is perfect for explanatory regression + descriptive analytics — that's the honest framing and what a professor will want to see. The deliverable is: "here's what correlates with high donation value and why, based on historical posts."
-
-The recommendation dashboard is appropriate scope and is honestly the most impressive deliverable of the three pipelines. Instead of a post optimizer based on prediction (which requires a predictive model), it becomes a "what worked" dashboard — staff pick a post type/platform/tone and see what similar historical posts generated, plus regression-derived coefficients telling them what characteristics drive donation value.
+fastapi>=0.110
+uvicorn>=0.29

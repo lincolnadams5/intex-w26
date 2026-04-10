@@ -1300,19 +1300,20 @@ public class AdminController : ControllerBase
     }
 
     // POST /api/admin/social/score-post
-    // Proxy to the social media recommendation FastAPI at http://localhost:8001/score.
-    // Accepts pre-publication post attributes, returns predicted P(donation) and expected value.
+    // Proxy to the social media recommendation FastAPI.
+    // URL is read from SCORE_POST_URL env var (falls back to http://localhost:8001 for local dev).
     [HttpPost("social/score-post")]
     public async Task<IActionResult> ScorePost([FromBody] JsonElement body)
     {
         try
         {
+            var baseUrl = Environment.GetEnvironmentVariable("SCORE_POST_URL") ?? "http://localhost:8001";
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(10);
 
             var json    = body.GetRawText();
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("http://localhost:8001/score", content);
+            var response = await client.PostAsync($"{baseUrl}/score", content);
 
             var responseBody = await response.Content.ReadAsStringAsync();
 

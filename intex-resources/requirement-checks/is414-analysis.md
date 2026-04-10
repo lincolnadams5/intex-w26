@@ -1,5 +1,5 @@
 # IS 414 – Security: Requirements Analysis
-*Generated: 2026-04-09 | Project: Pag-asa Sanctuary (intex-w26)*
+*Generated: 2026-04-09 | Updated: 2026-04-10 | Project: Pag-asa Sanctuary (intex-w26)*
 
 > **Important note from the case:** Security features that are not documented in the submission video do not exist for grading purposes. Every item below should be clearly demonstrated in the IS 414 video walkthrough.
 
@@ -47,8 +47,9 @@ Both deployment targets provide TLS:
 
 Implemented via ASP.NET Identity + JWT Bearer (no cookies). Flow:
 1. `POST /api/auth/login` — verifies credentials using `SignInManager.CheckPasswordSignInAsync` (lockout-aware)
-2. On success (and 2FA not enabled): returns a signed JWT token
-3. Token stored in `localStorage` on the client; `authFetch` wrapper attaches `Authorization: Bearer <token>` to all subsequent requests
+2. If 2FA is not enabled: returns a signed JWT token
+3. If 2FA is enabled: returns `{ requires2FA: true, userId }` — frontend prompts for email code
+4. Token stored in `localStorage` on the client; `authFetch` wrapper attaches `Authorization: Bearer <token>` to all subsequent requests
 
 **Lockout protection:** 5 failed attempts triggers a 15-minute lockout. Returns HTTP 429 with a user-facing message.
 
@@ -142,8 +143,6 @@ This is a strong implementation — typing confirmation is a higher bar than a s
 
 Linked from the site footer under "Resources → Privacy Policy" (`/privacy`).
 
-**Minor suggestion:** The "How do we store your data?" section is brief. Consider mentioning encrypted database storage or that data is hosted on Render/Supabase with standard security practices. This strengthens the policy's credibility.
-
 **GDPR Cookie Consent — ✅ Fully Functional (1 pt)**
 
 `CookieBanner.tsx` implementation:
@@ -200,14 +199,23 @@ Both frontend and backend are accessible without any local setup.
 
 The following additional security features have been implemented. Be sure to demonstrate each one in the video:
 
-**1. Email-Based Two-Factor Authentication (2FA) — Strong implementation**
+**1. Email-Based Two-Factor Authentication (2FA) — ✅ Fully Implemented End-to-End**
 
+Backend (`AuthController.cs`):
 - `POST /api/auth/enable-2fa` — enables 2FA for the current user
 - `POST /api/auth/disable-2fa` — disables 2FA
 - `POST /api/auth/verify-2fa` — verifies the emailed 6-digit code after login
-- When 2FA is enabled, login returns `{ requires2FA: true, userId }` instead of a token; the frontend prompts for the code; verification returns the JWT
-- The 2FA token is generated using ASP.NET Identity's `GenerateTwoFactorTokenAsync` with the Email provider
-- **The case requires:** at least one admin without 2FA, one donor without 2FA, and one account WITH 2FA. Make sure test credentials for all three are included in the submission form.
+- When 2FA is enabled, login returns `{ requires2FA: true, userId }` instead of a token; verification of the emailed code returns the JWT
+
+Frontend:
+- `Login.tsx` and `LoginForm.tsx` — both handle the 2FA verification step after a `requires2FA: true` response
+- `ProfileCard.tsx` — shows a toggle switch for enabling/disabling 2FA; reads `user.twoFactorEnabled` from the auth context
+- `AuthContext.tsx` — `toggle2FA()` calls `enable-2fa` or `disable-2fa` and updates local state
+
+**Test accounts (for submission form):**
+1. Admin account — 2FA **not** enabled
+2. Matt's donor account — 2FA **not** enabled
+3. Lincoln's account — 2FA **enabled** ← use this to demonstrate the email code flow
 
 **2. Third-Party Authentication (Google OAuth)**
 
@@ -261,7 +269,7 @@ PostgreSQL is used for both operational data and ASP.NET Identity tables. This s
 | Privacy policy | Show `/privacy` page linked from footer |
 | Cookie consent | Show banner on first visit; show accept/decline behavior; show cookie in DevTools |
 | CSP header | DevTools → Network → any request → Response Headers → Content-Security-Policy |
-| 2FA | Enable 2FA on a user; log in; show email code prompt; enter code; get in |
+| 2FA | Enable 2FA on Lincoln's account; log in; show email code prompt; enter code; get in; show profile card toggle |
 | Google OAuth | Show "Sign in with Google" button; complete Google auth flow |
 | HSTS | DevTools → Network → any response → Strict-Transport-Security header |
 | Browser-accessible cookie | DevTools → Application → Cookies → show `cookie_consent` and `analytics` |
